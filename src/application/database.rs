@@ -4,16 +4,16 @@ use rusqlite::{Connection, Error};
 
 use super::{error::ApplicationError, file::opening_file};
 
-pub fn ensuring_model(connection: Connection) -> Result<usize, ApplicationError>{
+pub fn ensuring_model(connection: Connection) -> Result<(), ApplicationError>{
     let mut init_query = String::new();  
     
-    opening_file(INIT_SQL_PATH)
+     opening_file(INIT_SQL_PATH)
     .map_err(ApplicationError::from)?
-    .read_to_string(&mut init_query);
+    .read_to_string(&mut init_query)
+    .map_err(ApplicationError::from)?;
 
-    return connection.execute(
+    return connection.execute_batch(
         &init_query,
-        (),
     ).map_err(ApplicationError::from);
 }
 

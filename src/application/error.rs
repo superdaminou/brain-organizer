@@ -44,3 +44,10 @@ impl  From<sqlError> for ApplicationError{
         return ApplicationError::new(value.to_string());
     }
 }
+
+impl  From<String> for ApplicationError{
+    fn from(value: String) -> Self {
+        return ApplicationError::new(value);
+    }
+}
+

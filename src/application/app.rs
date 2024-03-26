@@ -1,26 +1,48 @@
 use rusqlite::Connection;
 
-use super::database;
+use super::reference::Reference;
+use super::{reference, database, evenement};
 use super::evenement::Evenement;
-use super::contenu::Contenu;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
     evenement: Evenement,
-    contenu: Contenu,
+    section_reference: SectionReference,
+    evnements: Vec<Evenement>,
 
     #[serde(skip)] 
     connection: Connection
 }
 
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct SectionReference {
+    pub reference: Reference,
+    pub list_references: Vec<Reference>,
+}
+
+impl SectionReference {
+    pub fn new() -> Self {
+        let connection = database::opening_database().unwrap();
+        Self {
+            reference: Reference { id: None, titre: "titre".to_string(), url: "String".to_string(), categorie: "Nope".to_string() },
+            list_references: reference::get_all(&connection).unwrap_or(vec![])
+        }
+    } 
+}
+
 impl Default for TemplateApp {
     fn default() -> Self {
+        let connection = database::opening_database().unwrap();
+        let contenu = reference::get_all(&connection).unwrap_or(vec![]);
+        let evenements = evenement::get_all(&connection).unwrap_or(vec![]);
+
         Self {
             // Example stuff:
             evenement: Evenement { id: None, titre: "titre".to_string(), niveau: "val".to_string() },
-            contenu: Contenu { id: None, titre: "titre".to_string(), url: "String".to_string(), categorie: "Nope".to_string() },
-            connection: database::opening_database().unwrap()
+            section_reference: SectionReference::new(),
+            connection: connection,
+            evnements: evenements
         }
     }
 }
@@ -50,7 +72,7 @@ impl eframe::App for TemplateApp {
     }
 
     /// Called each time the UI needs repainting, which may be many times per second.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update<'a>(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
@@ -73,47 +95,7 @@ impl eframe::App for TemplateApp {
             });
         });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("Evenements");
-
-            ui.horizontal(|ui| {
-                ui.label("Titre ");
-                ui.text_edit_singleline(&mut self.evenement.titre);
-
-                ui.label("Niveau");
-                ui.text_edit_singleline(&mut self.evenement.niveau)
-            });
-
-            if ui.button("Enregistrer évenement").clicked() {
-            }
-
-
-            ui.separator();
-
-            ui.heading("Contenu");
-
-            ui.horizontal(|ui| {
-                ui.label("Titre ");
-                ui.text_edit_singleline(&mut self.contenu.titre);
-
-                ui.label("Categorie");
-                ui.text_edit_singleline(&mut self.contenu.categorie);
-
-                ui.label("URL");
-                ui.text_edit_singleline(&mut self.contenu.url);
-            });
-
-            if ui.button("Enregistrer contenu").clicked() {
-            }
-
-
-            ui.separator();
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
-                egui::warn_if_debug_build(ui);
-            });
-        });
+        central_panel(self, ctx); 
     }
 }
 
@@ -128,5 +110,20 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
             "https://github.com/emilk/egui/tree/master/crates/eframe",
         );
         ui.label(".");
+    });
+}
+
+fn central_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
+    egui::CentralPanel::default().show(ctx, |ui| {
+        evenement::section_evenements(&mut &template.evnements , &mut template.evenement, ui, &template.connection);
+        ui.separator();
+        
+        reference::section_references(&mut template.section_reference, ui, &template.connection);
+        ui.separator();
+        
+        ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+            powered_by_egui_and_eframe(ui);
+            egui::warn_if_debug_build(ui);
+        });
     });
 }
