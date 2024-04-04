@@ -36,31 +36,31 @@ impl Error for ApplicationError {
 
 impl From<IoError> for ApplicationError{
     fn from(value: IoError) -> Self {
-        return ApplicationError::new(value.to_string());
+        ApplicationError::new(value.to_string())
     }
 }
 
 impl  From<sqlError> for ApplicationError{
     fn from(value: sqlError) -> Self {
-        return ApplicationError::new(value.to_string());
+        ApplicationError::new(value.to_string())
     }
 }
 
 impl From<eframe::Error> for ApplicationError {
     fn from(value: eframe::Error) -> Self {
-        return ApplicationError::new(value.to_string());
+        ApplicationError::new(value.to_string())
     }
 }
 
 impl  From<String> for ApplicationError{
     fn from(value: String) -> Self {
-        return ApplicationError::new(value);
+        ApplicationError::new(value)
     }
 }
 
 
 impl  From<Infallible> for ApplicationError{
     fn from(value: Infallible) -> Self {
-        return ApplicationError::new(value.to_string());
+        ApplicationError::new(value.to_string())
     }
 }

@@ -33,27 +33,27 @@ pub fn create(contenu: &Reference) -> Result<(), ApplicationError> {
                 }
         });
 
-    return Ok(());
+    Ok(())
 }
 
 
 pub fn delete(reference: &Reference) -> Result<usize, ApplicationError> {
-     return reference.id.clone()
+     reference.id.clone()
         .ok_or(ApplicationError::from("Pas d'id".to_string()))
         .and_then(|_| database::opening_database().map_err(ApplicationError::from))?
         .execute("DELETE FROM reference WHERE id=?1", [reference.id.clone()])
-            .map_err(ApplicationError::from);
+            .map_err(ApplicationError::from)
 }
 
 
 pub fn get_all() -> Result<Vec<Reference>, ApplicationError> {
     let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag FROM reference as r LEFT JOIN tag as t ON t.reference_id = r.id GROUP BY r.id;";
-    return Ok(database::opening_database()?
+    Ok(database::opening_database()?
             .prepare(query)
             .map_err(ApplicationError::from)?
-            .query_map([], |row| map_row(row))?
+            .query_map([], map_row)?
             .map(|row| row.unwrap())
-            .collect::<Vec<Reference>>());
+            .collect::<Vec<Reference>>())
 }
 
 fn map_row(row: &Row) -> Result<Reference, Error> {
@@ -63,7 +63,7 @@ fn map_row(row: &Row) -> Result<Reference, Error> {
         id: row.get(0)?,
         titre: row.get(1)?,
         url: row.get(2)?,
-        categorie: tags.split(",").map(String::from).collect::<Vec<String>>(),
+        categorie: tags.split(',').map(String::from).collect::<Vec<String>>(),
     })
 
 }
@@ -71,12 +71,12 @@ fn map_row(row: &Row) -> Result<Reference, Error> {
 
 impl From<CsvLine> for Reference {
     fn from(value: CsvLine) -> Self {
-        let mut split = value.split(";").map(String::from).collect::<Vec<String>>();
+        let split = value.split(';').map(String::from).collect::<Vec<String>>();
 
         Reference {
             id: Some(Uuid::new_v4().to_string()),
-            titre: split.get(0).expect("Missing title").to_string(),
-            categorie: split.get(1).expect("Missing tag").split(",").map(String::from).collect(),
+            titre: split.first().expect("Missing title").to_string(),
+            categorie: split.get(1).expect("Missing tag").split(',').map(String::from).collect(),
             url: split.get(2).expect("Missing url").to_string()
         }
     }

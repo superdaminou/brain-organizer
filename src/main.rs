@@ -1,5 +1,5 @@
-use std::{env, fmt::Error, fs::{read_to_string, File}, io::{BufRead, BufReader, Read}};
-use application::{command::Command, error::ApplicationError, file::opening_file, reference::{self, reference::{create, Reference}}};
+use std::{env, fs::read_to_string};
+use application::{error::ApplicationError, reference::reference::{create, Reference}};
 use crate::application::{command::match_command, database::{ensuring_model, opening_database}, gui::gui::TemplateApp};
 
 
@@ -14,13 +14,13 @@ fn main() -> Result<(), ApplicationError> {
     ensuring_model();
     match init {
         Ok(_) => println!("Database initialized"),
-        Err(err) => panic!("Error: {}", err.to_string())
+        Err(err) => panic!("Error: {}", err)
     }
 
-    return match command {
+    match command {
         application::command::Command::GUI => running_gui(),
         application::command::Command::IMPORT => import()
-    };
+    }
 }
 
 fn running_gui() -> Result<(), ApplicationError>{
@@ -48,9 +48,7 @@ fn import() -> Result<(), ApplicationError> {
     return read_to_string("import.csv") 
         .unwrap()  // panic on possible file-reading errors
         .lines()  // split the string into an iterator of string slices
-        .map(String::from)  // make each slice into a string
-        .map(|line| create(&Reference::from(line)))
-        .collect::<Result<(), ApplicationError>>();
+        .map(String::from).try_for_each(|line| create(&Reference::from(line)));
 }
 
 type CsvLine = String;
