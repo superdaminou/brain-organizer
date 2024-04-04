@@ -6,7 +6,7 @@ pub fn create_file(path: &str) -> Result<File, std::io::Error> {
 }
 
 pub fn opening_file(path: &str) -> Result<File, std::io::Error> {
-    println!("Try opening database file: {}", path);
+    println!("Try file: {}", path);
     return File::open(path);
 }
 

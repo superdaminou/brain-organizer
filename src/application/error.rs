@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use std::{error::Error, fmt};
 use std::io::Error as IoError;
 use rusqlite::Error as sqlError;
@@ -45,9 +46,21 @@ impl  From<sqlError> for ApplicationError{
     }
 }
 
+impl From<eframe::Error> for ApplicationError {
+    fn from(value: eframe::Error) -> Self {
+        return ApplicationError::new(value.to_string());
+    }
+}
+
 impl  From<String> for ApplicationError{
     fn from(value: String) -> Self {
         return ApplicationError::new(value);
     }
 }
 
+
+impl  From<Infallible> for ApplicationError{
+    fn from(value: Infallible) -> Self {
+        return ApplicationError::new(value.to_string());
+    }
+}

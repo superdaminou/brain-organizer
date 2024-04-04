@@ -1,37 +1,33 @@
-use std::{env, fmt::Error, fs::File};
-use application::command::Command;
-use crate::application::app::TemplateApp;
-use crate::application::database::{ensuring_model, opening_database};
-use crate::application::error::ApplicationError;
+use std::{env, fmt::Error, fs::{read_to_string, File}, io::{BufRead, BufReader, Read}};
+use application::{command::Command, error::ApplicationError, file::opening_file, reference::{self, reference::{create, Reference}}};
+use crate::application::{command::match_command, database::{ensuring_model, opening_database}, gui::gui::TemplateApp};
 
 
 mod application;
 
-fn main() -> eframe::Result<()> {
-    println!("Hello, world!");
-    //dbg!(args); => Debug LINE 
-    
-
+fn main() -> Result<(), ApplicationError> {
     // MATCH COMMANDS AND DO WHATS NEEDED
     let args: Vec<String> = env::args().collect();
-    /*let command = match args.iter().next() {
-        Some(value) => match_command(value),
-        None => panic!("No command provided")
-    }; */ 
-    
+    let command = match_command(args.get(1).unwrap_or(&"gui".to_string()));
 
-    // OPENING DATABASE AND GETTING CONNECTION
-    let init = opening_database()
-    .map_err(ApplicationError::from)
-    .and_then(ensuring_model)
-    .map_err(ApplicationError::from);
+    let init = opening_database();
+    ensuring_model();
     match init {
         Ok(_) => println!("Database initialized"),
         Err(err) => panic!("Error: {}", err.to_string())
     }
 
+    return match command {
+        application::command::Command::GUI => running_gui(),
+        application::command::Command::IMPORT => import()
+    };
+}
+
+fn running_gui() -> Result<(), ApplicationError>{
+    
+
     // OPEN GUI
-    print!("Getting gui context");
+    println!("Getting gui context");
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([400.0, 300.0])
@@ -43,13 +39,18 @@ fn main() -> eframe::Result<()> {
         "eframe template",
         native_options,
         Box::new(|cc| Box::new(TemplateApp::new(cc))),
-    )
+    ).map_err(ApplicationError::from)
 }
 
 
 
-
-fn apply_operation(file: File, command: Command) -> Result<String, Error> {
-    return Ok("String".to_string());
-
+fn import() -> Result<(), ApplicationError> {
+    return read_to_string("import.csv") 
+        .unwrap()  // panic on possible file-reading errors
+        .lines()  // split the string into an iterator of string slices
+        .map(String::from)  // make each slice into a string
+        .map(|line| create(&Reference::from(line)))
+        .collect::<Result<(), ApplicationError>>();
 }
+
+type CsvLine = String;

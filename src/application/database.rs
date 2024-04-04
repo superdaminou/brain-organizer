@@ -1,26 +1,19 @@
-use std::io::Read;
 
-use rusqlite::{Connection, Error};
+use rusqlite::Connection;
+use refinery::embed_migrations;
+use refinery::Migration;
+embed_migrations!("./src/migration");
 
-use super::{error::ApplicationError, file::opening_file};
+use super::error::ApplicationError;
 
-pub fn ensuring_model(connection: Connection) -> Result<(), ApplicationError>{
-    let mut init_query = String::new();  
-    
-     opening_file(INIT_SQL_PATH)
-    .map_err(ApplicationError::from)?
-    .read_to_string(&mut init_query)
-    .map_err(ApplicationError::from)?;
-
-    return connection.execute_batch(
-        &init_query,
-    ).map_err(ApplicationError::from);
+pub fn ensuring_model() {
+    let mut connexion = Connection::open(DB_PATH).unwrap();
+    migrations::runner().run(&mut connexion).unwrap();
 }
 
-pub fn opening_database() -> Result<Connection, Error> {
+pub fn opening_database() -> Result<Connection, ApplicationError> {
     println!("Try opening database file: {}", DB_PATH);
-    return Connection::open(DB_PATH);
+    return Connection::open(DB_PATH).map_err(ApplicationError::from);
 }
 
-const INIT_SQL_PATH: &str = "init.sql";
 const DB_PATH: &str = "whatsNext.db";

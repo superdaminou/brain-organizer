@@ -1,7 +1,8 @@
-pub fn match_command(string: &str) -> Command{
-    match string {
-        "NEXT" => Command::NEXT,
-        "ADD" => Command::ADD,
+pub fn match_command(command: &str) -> Command{
+    println!("command: {}", command);
+    match command {
+        "import" => Command::IMPORT,
+        "gui" => Command::GUI,
         _ => panic!("Unrecognized command")
     }
 }
@@ -9,8 +10,7 @@ pub fn match_command(string: &str) -> Command{
 
 
 pub enum Command {
-    NEXT,
-    ADD,
-    DB
+    IMPORT,
+    GUI
 }
 

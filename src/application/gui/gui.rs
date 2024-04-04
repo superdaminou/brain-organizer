@@ -1,48 +1,28 @@
 use rusqlite::Connection;
 
-use super::reference::Reference;
-use super::{reference, database, evenement};
-use super::evenement::Evenement;
+use crate::application::database;
+
+use super::reference_gui::{section_references, SectionReference};
+
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
-    evenement: Evenement,
     section_reference: SectionReference,
-    evnements: Vec<Evenement>,
 
     #[serde(skip)] 
     connection: Connection
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct SectionReference {
-    pub reference: Reference,
-    pub list_references: Vec<Reference>,
-}
 
-impl SectionReference {
-    pub fn new() -> Self {
-        let connection = database::opening_database().unwrap();
-        Self {
-            reference: Reference { id: None, titre: "titre".to_string(), url: "String".to_string(), categorie: "Nope".to_string() },
-            list_references: reference::get_all(&connection).unwrap_or(vec![])
-        }
-    } 
-}
 
 impl Default for TemplateApp {
     fn default() -> Self {
         let connection = database::opening_database().unwrap();
-        let contenu = reference::get_all(&connection).unwrap_or(vec![]);
-        let evenements = evenement::get_all(&connection).unwrap_or(vec![]);
 
         Self {
-            // Example stuff:
-            evenement: Evenement { id: None, titre: "titre".to_string(), niveau: "val".to_string() },
             section_reference: SectionReference::new(),
             connection: connection,
-            evnements: evenements
         }
     }
 }
@@ -114,11 +94,8 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
 }
 
 fn central_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
-    egui::CentralPanel::default().show(ctx, |ui| {
-        evenement::section_evenements(&mut &template.evnements , &mut template.evenement, ui, &template.connection);
-        ui.separator();
-        
-        reference::section_references(&mut template.section_reference, ui, &template.connection);
+    egui::CentralPanel::default().show(ctx, |ui| {        
+        section_references(&mut template.section_reference, ui);
         ui.separator();
         
         ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
