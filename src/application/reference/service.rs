@@ -1,17 +1,9 @@
 use rusqlite::{Error, Row};
-use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::{application::{database, error::ApplicationError}, CsvLine};
+use crate::application::{database, error::ApplicationError};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct Reference {
-    pub id: Option<String>,
-    pub titre: String,
-    pub url: String,
-    pub categorie: Vec<Tag>
-}
+use super::structs::Reference;
 
-pub type Tag = String;
 
 pub fn create(contenu: &Reference) -> Result<(), ApplicationError> {
     let id =Uuid::new_v4();
@@ -41,8 +33,15 @@ pub fn delete(reference: &Reference) -> Result<usize, ApplicationError> {
      reference.id.clone()
         .ok_or(ApplicationError::from("Pas d'id".to_string()))
         .and_then(|_| database::opening_database().map_err(ApplicationError::from))?
+        .execute("DELETE FROM tag WHERE reference_id=?1", [reference.id.clone()])
+        .map_err(ApplicationError::from)?;
+
+    reference.id.clone()
+        .ok_or(ApplicationError::from("Pas d'id".to_string()))
+        .and_then(|_| database::opening_database().map_err(ApplicationError::from))?
         .execute("DELETE FROM reference WHERE id=?1", [reference.id.clone()])
-            .map_err(ApplicationError::from)
+        .map_err(ApplicationError::from)
+        
 }
 
 
@@ -67,19 +66,3 @@ fn map_row(row: &Row) -> Result<Reference, Error> {
     })
 
 }
-
-
-impl From<CsvLine> for Reference {
-    fn from(value: CsvLine) -> Self {
-        let split = value.split(';').map(String::from).collect::<Vec<String>>();
-
-        Reference {
-            id: Some(Uuid::new_v4().to_string()),
-            titre: split.first().expect("Missing title").to_string(),
-            categorie: split.get(1).expect("Missing tag").split(',').map(String::from).collect(),
-            url: split.get(2).expect("Missing url").to_string()
-        }
-    }
-}
- 
-

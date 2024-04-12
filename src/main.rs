@@ -1,5 +1,5 @@
-use std::{env, fs::read_to_string};
-use application::{error::ApplicationError, reference::reference::{create, Reference}};
+use std::{env, fs::{read_to_string, File}, io::Write};
+use application::{error::ApplicationError, reference::{self, service::create, structs::Reference}, reflexion::{self, structs::Reflexion}};
 use crate::application::{command::match_command, database::{ensuring_model, opening_database}, gui::gui::TemplateApp};
 
 
@@ -19,7 +19,8 @@ fn main() -> Result<(), ApplicationError> {
 
     match command {
         application::command::Command::GUI => running_gui(),
-        application::command::Command::IMPORT => import()
+        application::command::Command::IMPORT => import(),
+        application::command::Command::EXPORT => export()
     }
 }
 
@@ -49,6 +50,26 @@ fn import() -> Result<(), ApplicationError> {
         .unwrap()  // panic on possible file-reading errors
         .lines()  // split the string into an iterator of string slices
         .map(String::from).try_for_each(|line| create(&Reference::from(line)));
+}
+
+fn export() -> Result<(), ApplicationError> {
+    let mut references_file = File::create("reference.csv")?;
+    let content = reference::service::get_all()?
+        .iter()
+        .map(Reference::to_csv)
+        .collect::<Vec<String>>()
+        .join("\r\n");
+    
+    references_file.write_all(content.as_bytes()).map_err(ApplicationError::from)?;
+    
+    let mut reflexion_file = File::create("reflexion.csv")?;
+    let content = reflexion::service::get_all()?
+        .iter()
+        .map(Reflexion::to_csv)
+        .collect::<Vec<String>>()
+        .join("\r\n");
+    
+    return reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::from);
 }
 
 type CsvLine = String;

@@ -1,28 +1,37 @@
-use rusqlite::Connection;
+use super::{reference::{reference_gui::section_references, structs::SectionReference}, reflexion::{gui::section_reflexions, structs::SectionReflexion}};
 
-use crate::application::database;
 
-use super::reference_gui::{section_references, SectionReference};
 
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
     section_reference: SectionReference,
-
-    #[serde(skip)] 
-    connection: Connection
+    section_reflexion: SectionReflexion,
+    error: AppError
 }
-
-
 
 impl Default for TemplateApp {
     fn default() -> Self {
-        let connection = database::opening_database().unwrap();
-
         Self {
             section_reference: SectionReference::new(),
-            connection,
+            section_reflexion: SectionReflexion::new(),
+            error: AppError::init()
+        }
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+struct AppError {
+    visible: bool,
+    msg: String
+}
+
+impl AppError {
+    pub fn init() -> AppError {
+        AppError {
+            visible: false,
+            msg: String::new()
         }
     }
 }
@@ -76,6 +85,7 @@ impl eframe::App for TemplateApp {
         });
 
         central_panel(self, ctx); 
+        error_panel(self, ctx)
     }
 }
 
@@ -95,7 +105,13 @@ fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
 
 fn central_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
     egui::CentralPanel::default().show(ctx, |ui| {        
-        section_references(&mut template.section_reference, ui);
+        if section_references(&mut template.section_reference, ui).is_err() {
+            template.error.visible = true;
+        }
+        ui.separator();
+
+        
+        section_reflexions(&mut template.section_reflexion, ui);
         ui.separator();
         
         ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
@@ -103,4 +119,13 @@ fn central_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
             egui::warn_if_debug_build(ui);
         });
     });
+}
+
+fn error_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
+    egui::Window::new("Shit, an error")
+                .collapsible(false)
+                .open(&mut template.error.visible)
+                .show(ctx, |ui| {
+                    ui.label(template.error.msg.clone());
+                });
 }
