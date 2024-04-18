@@ -85,7 +85,7 @@ impl eframe::App for TemplateApp {
         });
 
         central_panel(self, ctx); 
-        error_panel(self, ctx)
+        error_panel(self, ctx);
     }
 }
 
