@@ -7,12 +7,10 @@ pub fn match_command(command: &str) -> Command{
     match command {
         "import" => Command::IMPORT,
         "export" => Command::EXPORT,
-        "gui" => Command::GUI,
+        "GUI" => Command::GUI,
         _ => panic!("Unrecognized command")
     }
 }
-
-
 
 pub enum Command {
     IMPORT,
