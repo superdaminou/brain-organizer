@@ -1,19 +1,25 @@
 
+use log::info;
 use rusqlite::Connection;
 use refinery::embed_migrations;
+use super::error::ApplicationError;
 
 embed_migrations!("./src/migration");
 
-use super::error::ApplicationError;
+const DB_PATH: &str = "whatsNext.db";
 
-pub fn ensuring_model() {
-    let mut connexion = Connection::open(DB_PATH).unwrap();
-    migrations::runner().run(&mut connexion).unwrap();
+pub fn ensuring_model() -> Result<(), ApplicationError> {
+    info!("Ensuring model and running migration if needed");
+    Connection::open(DB_PATH).map_err(ApplicationError::from)
+        .and_then(|mut connexion | 
+            migrations::runner().run(&mut connexion)
+            .map_err(ApplicationError::from))?;
+
+    Ok(())
 }
 
 pub fn opening_database() -> Result<Connection, ApplicationError> {
-    println!("Try opening database file: {}", DB_PATH);
+    info!("Ensuring Database: {}", DB_PATH);
     Connection::open(DB_PATH).map_err(ApplicationError::from)
 }
 
-const DB_PATH: &str = "whatsNext.db";

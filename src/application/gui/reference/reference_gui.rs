@@ -4,9 +4,31 @@ use crate::application::{error::ApplicationError, reference::service::{create, d
 use super::structs::{ReferenceGui, SectionReference};
 
 
-pub fn section_references<'a>(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     ui.heading("Reference");
 
+    create_reference(section, ui)?;
+
+    ui.horizontal(|ui| {
+        if ui.button("Recharger reference").clicked() {
+            return get_all()
+                .map(|list| 
+                    list.iter()
+                    .map(|reference|ReferenceGui::from(reference.clone()))
+                    .collect::<Vec<ReferenceGui>>())
+                .map(|list| section.list_references = list);
+        }
+
+        Ok(())
+
+    }).inner?;
+                
+    list_references(&mut section.list_references, ui);
+
+    Ok(())
+}
+
+fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Titre ");
         ui.text_edit_singleline(&mut section.reference.titre);
@@ -31,44 +53,30 @@ pub fn section_references<'a>(section: &mut SectionReference, ui: &mut egui::Ui)
                 .map(|list| section.list_references = list);
         }
 
-        return Ok(());
+        Ok(())
     }).inner?;
 
-    ui.horizontal(|ui| {
-        if ui.button("Recharger reference").clicked() {
-            return get_all()
-                .map(|list| 
-                    list.iter()
-                    .map(|reference|ReferenceGui::from(reference.clone()))
-                    .collect::<Vec<ReferenceGui>>())
-                .map(|list| section.list_references = list);
-        }
+    Ok(())
+}
 
-        return Ok(());
 
-    }).inner?;
-                
+fn list_references (list_references: &mut Vec<ReferenceGui>, ui: &mut egui::Ui) {
     egui::ScrollArea::vertical()
         .id_source("reference")
         .max_height(300.0)
         .show(ui, |ui| {
-            for contenu in &section.list_references {
+            for contenu in list_references {
                 ui.horizontal(|ui| {
                     ui.label(&contenu.id.clone().unwrap_or("".to_string()));
                     ui.label(&contenu.titre);
                     ui.label(&contenu.categorie);
                     ui.hyperlink(&contenu.url);
                     if ui.button("Supprimer").clicked() {
-                        match delete(&contenu.clone().into()) {
-                            Ok(_) => println!("Deleted"),
-                            Err(error) => return Err(error)
-                        }
+                        delete(&contenu.clone().into());
                     }
                     ui.allocate_space(ui.available_size());
-                    Ok(())
+                
                 });
             }
         });
-
-        return Ok(());
 }

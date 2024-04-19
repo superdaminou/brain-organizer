@@ -64,3 +64,9 @@ impl  From<Infallible> for ApplicationError{
         ApplicationError::new(value.to_string())
     }
 }
+
+impl  From<refinery::Error> for ApplicationError{
+    fn from(value: refinery::Error) -> Self {
+        ApplicationError::new(value.to_string())
+    }
+}

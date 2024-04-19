@@ -1,3 +1,4 @@
+use log::{error, info};
 use rusqlite::{Error, Row};
 use uuid::Uuid;
 use crate::application::{database, error::ApplicationError};
@@ -5,23 +6,24 @@ use crate::application::{database, error::ApplicationError};
 use super::structs::Reference;
 
 
-pub fn create(contenu: &Reference) -> Result<(), ApplicationError> {
+pub fn create(reference: &Reference) -> Result<(), ApplicationError> {
     let id =Uuid::new_v4();
     let ref_query = "INSERT INTO reference (id, nom, url) VALUES (?1, ?2, ?3);";
     let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
     let connexion = database::opening_database().map_err(ApplicationError::from)?;
 
 
-    connexion.execute(ref_query, (id.to_string(), contenu.titre.clone(), contenu.url.clone()))
+    info!("Adding new reference: {}", reference.titre);
+    connexion.execute(ref_query, (id.to_string(), reference.titre.clone(), reference.url.clone()))
     .map_err(ApplicationError::from)?;
 
-    contenu.categorie.iter().map(|cat|
+    reference.categorie.iter().map(|cat|
         connexion.execute(tag_query, (Uuid::new_v4().to_string(), cat, id.to_string()))
             .map_err(ApplicationError::from))
             .for_each(|result|  {
                 match result {
-                    Err(e) => println!("Error while insertion: {}", e),
-                    Ok(_) => println!("Successful")
+                    Err(e) => error!("Error while insertion: {}", e),
+                    Ok(_) => info!("Successful")
                 }
         });
 

@@ -1,5 +1,9 @@
+use std::fmt;
+
+use log::info;
+
 pub fn match_command(command: &str) -> Command{
-    println!("command: {}", command);
+    info!("command: {}", command);
     match command {
         "import" => Command::IMPORT,
         "export" => Command::EXPORT,
@@ -16,3 +20,14 @@ pub enum Command {
     EXPORT
 }
 
+
+
+impl fmt::Display for Command {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Command::IMPORT => write!(f, "Import"),
+            Command::GUI => write!(f, "GUI"),
+            Command::EXPORT => write!(f, "Export"),
+        }
+    }
+}

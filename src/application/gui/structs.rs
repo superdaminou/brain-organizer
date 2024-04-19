@@ -1,14 +1,11 @@
-use super::{reference::{reference_gui::section_references, structs::SectionReference}, reflexion::{gui::section_reflexions, structs::SectionReflexion}};
-
-
-
+use super::{app::{central_panel, error_panel}, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
-    section_reference: SectionReference,
-    section_reflexion: SectionReflexion,
-    error: AppError
+    pub section_reference: SectionReference,
+    pub section_reflexion: SectionReflexion,
+    pub error: AppError
 }
 
 impl Default for TemplateApp {
@@ -22,9 +19,9 @@ impl Default for TemplateApp {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
-struct AppError {
-    visible: bool,
-    msg: String
+pub struct AppError {
+    pub visible: bool,
+    pub msg: String
 }
 
 impl AppError {
@@ -87,45 +84,4 @@ impl eframe::App for TemplateApp {
         central_panel(self, ctx); 
         error_panel(self, ctx);
     }
-}
-
-fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 0.0;
-        ui.label("Powered by ");
-        ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-        ui.label(" and ");
-        ui.hyperlink_to(
-            "eframe",
-            "https://github.com/emilk/egui/tree/master/crates/eframe",
-        );
-        ui.label(".");
-    });
-}
-
-fn central_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
-    egui::CentralPanel::default().show(ctx, |ui| {        
-        if section_references(&mut template.section_reference, ui).is_err() {
-            template.error.visible = true;
-        }
-        ui.separator();
-
-        
-        section_reflexions(&mut template.section_reflexion, ui);
-        ui.separator();
-        
-        ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-            powered_by_egui_and_eframe(ui);
-            egui::warn_if_debug_build(ui);
-        });
-    });
-}
-
-fn error_panel<'a>(template: &mut TemplateApp, ctx: &egui::Context) {
-    egui::Window::new("Shit, an error")
-                .collapsible(false)
-                .open(&mut template.error.visible)
-                .show(ctx, |ui| {
-                    ui.label(template.error.msg.clone());
-                });
 }

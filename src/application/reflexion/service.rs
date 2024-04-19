@@ -2,7 +2,7 @@ use std::fs::{remove_file, File};
 
 use rusqlite::{Error, Row};
 use uuid::Uuid;
-use crate::{application::{database, error::ApplicationError}, CsvLine};
+use crate::application::{database, error::ApplicationError, reference::structs::CsvLine};
 
 use super::structs::Reflexion;
 
@@ -63,13 +63,13 @@ impl From<CsvLine> for Reflexion {
 
 impl ToString for Reflexion {
     fn to_string(&self) -> String {
-        return self.sujet.to_string();
+        self.sujet.to_string()
     }
 }
 
 impl Reflexion {
     pub fn to_csv(&self) -> String {
-        return self.sujet.to_string() + ";";
+        self.sujet.to_string() + ";"
     }
 }
  

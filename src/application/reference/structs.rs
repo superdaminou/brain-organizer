@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::CsvLine;
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Reference {
     pub id: Option<String>,
@@ -12,7 +10,7 @@ pub struct Reference {
 }
 
 pub type Tag = String;
-
+pub type CsvLine = String;
 
 impl From<CsvLine> for Reference {
     fn from(value: CsvLine) -> Self {
@@ -29,13 +27,13 @@ impl From<CsvLine> for Reference {
 
 impl ToString for Reference {
     fn to_string(&self) -> String {
-        return self.titre.to_string() + &self.categorie.join("\\") + &self.url.to_string();
+        self.titre.to_string() + &self.categorie.join("\\") + &self.url.to_string()
     }
 }
 
 impl Reference {
     pub fn to_csv(&self) -> String {
-        return self.titre.to_string() + ";" + &self.categorie.join("\\") + ";" + &self.url.to_string();
+        self.titre.to_string() + ";" + &self.categorie.join("\\") + ";" + &self.url.to_string()
     }
 }
  
