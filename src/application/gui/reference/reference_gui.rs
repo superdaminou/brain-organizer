@@ -94,8 +94,7 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) {
                         delete(&contenu.clone().into());
                     }
                     ui.allocate_space(ui.available_size());
-                
                 });
             }
-        });
+        }).inner;
 }

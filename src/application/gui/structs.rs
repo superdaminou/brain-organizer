@@ -5,15 +5,16 @@ use super::{app::central_panel, reference::structs::SectionReference, reflexion:
 pub struct TemplateApp {
     pub section_reference: SectionReference,
     pub section_reflexion: SectionReflexion,
-    pub error: AppError
+    pub error: AppError,
 }
 
 impl Default for TemplateApp {
     fn default() -> Self {
+        //let g = generate_graph();
         Self {
             section_reference: SectionReference::new(),
             section_reflexion: SectionReflexion::new(),
-            error: AppError::init()
+            error: AppError::init(),
         }
     }
 }
@@ -46,7 +47,7 @@ impl TemplateApp {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
         */
-
+        //let g = generate_graph();
         Default::default()
     }
 }
@@ -84,3 +85,18 @@ impl eframe::App for TemplateApp {
         central_panel(self, ctx);
     }
 }
+
+
+// fn generate_graph() -> StableGraph<(), ()> {
+//     let mut g = StableGraph::new();
+
+//     let a = g.add_node(());
+//     let b = g.add_node(());
+//     let c = g.add_node(());
+
+//     g.add_edge(a, b, ());
+//     g.add_edge(b, c, ());
+//     g.add_edge(c, a, ());
+
+//     g
+// }

@@ -52,7 +52,7 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
         .id_source("reflexion")
         .max_height(300.0)
         .show(ui, |ui| {
-            for reflexion in &section.list_reflexions {
+            for reflexion in &section.list_reflexions.clone() {
                 ui.horizontal(|ui| {
                     ui.label(&reflexion.id.clone().unwrap_or("".to_string()));
                     ui.label(&reflexion.sujet);
@@ -62,7 +62,9 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
                         return Ok(());
                     }
                     if ui.button("Supprimer").clicked() {
-                        return delete(&reflexion.clone());
+                        return delete(&reflexion.clone())
+                            .and_then(|_| get_all())
+                            .map(|result| section.list_reflexions = result);
                     }
                     Ok(())
                 });
