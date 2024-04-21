@@ -3,10 +3,12 @@ mod application;
 use std::env;
 use application::{error::ApplicationError, file::lib::{ensuring_storage, export, import}};
 use log::info;
-use crate::application::{command::{match_command, Command}, database::{ensuring_model, opening_database}, gui::app::running_gui};
-
+use crate::application::{command::Command, database::{ensuring_model, opening_database}, gui::app::running_gui};
+use dotenv::dotenv;
 
 fn main() -> Result<(), ApplicationError> {
+    dotenv().ok();
+    env_logger::init();
     info!("Application Initialization");
     opening_database()
     .and_then(|_| ensuring_model())
@@ -15,7 +17,9 @@ fn main() -> Result<(), ApplicationError> {
 
     // MATCH COMMANDS AND DO WHATS NEEDED
     let args: Vec<String> = env::args().collect();
-    let command = match_command(args.get(1).unwrap_or(&Command::GUI.to_string()));
+    let command = args.get(1)
+        .map(|command|Command::from(command.to_owned()))
+        .unwrap_or(Command::GUI);
     info!("Detected mode: {}", command);
     match command {
         application::command::Command::GUI => running_gui(),

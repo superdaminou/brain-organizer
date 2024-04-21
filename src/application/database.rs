@@ -19,7 +19,7 @@ pub fn ensuring_model() -> Result<(), ApplicationError> {
 }
 
 pub fn opening_database() -> Result<Connection, ApplicationError> {
-    info!("Ensuring Database: {}", DB_PATH);
+    info!("Opening Database: {}", DB_PATH);
     Connection::open(DB_PATH).map_err(ApplicationError::from)
 }
 

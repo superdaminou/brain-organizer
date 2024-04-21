@@ -1,4 +1,4 @@
-use super::{app::{central_panel, error_panel}, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
+use super::{app::central_panel, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -81,7 +81,6 @@ impl eframe::App for TemplateApp {
             });
         });
 
-        central_panel(self, ctx); 
-        error_panel(self, ctx);
+        central_panel(self, ctx);
     }
 }

@@ -70,3 +70,9 @@ impl  From<refinery::Error> for ApplicationError{
         ApplicationError::new(value.to_string())
     }
 }
+
+impl  From<uuid::Error> for ApplicationError{
+    fn from(value: uuid::Error) -> Self {
+        ApplicationError::new(value.to_string())
+    }
+}

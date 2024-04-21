@@ -1,17 +1,4 @@
 use std::fmt;
-
-use log::info;
-
-pub fn match_command(command: &str) -> Command{
-    info!("command: {}", command);
-    match command {
-        "import" => Command::IMPORT,
-        "export" => Command::EXPORT,
-        "GUI" => Command::GUI,
-        _ => panic!("Unrecognized command")
-    }
-}
-
 pub enum Command {
     IMPORT,
     GUI,
@@ -19,6 +6,17 @@ pub enum Command {
 }
 
 
+
+impl From<String> for Command {
+    fn from(value: std::string::String) -> Self {
+        match value.to_lowercase().as_str() {
+            "import" => Command::IMPORT,
+            "export" => Command::EXPORT,
+            "gui" => Command::GUI,
+            _ => Command::GUI
+        }
+    }
+}
 
 impl fmt::Display for Command {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -29,3 +27,4 @@ impl fmt::Display for Command {
         }
     }
 }
+

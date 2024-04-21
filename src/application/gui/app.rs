@@ -35,10 +35,21 @@ pub fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
 }
 
 pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
-    egui::CentralPanel::default().show(ctx, |ui| {        
-        if section_references(&mut template.section_reference, ui).is_err() {
-            template.error.visible = true;
+    error_panel(template, ctx);
+
+    egui::SidePanel::left("Modules").show(ctx, |ui| {
+        ui.label("Modules")
+    });
+
+    egui::CentralPanel::default().show(ctx, |ui| {    
+        match section_references(&mut template.section_reference, ui) {
+            Err(e) => {
+                template.error.visible = true;
+                template.error.msg = e.to_string();
+            },
+            Ok(_) => ()
         }
+        
         ui.separator();
 
         if section_reflexions(&mut template.section_reflexion, ui).is_err(){

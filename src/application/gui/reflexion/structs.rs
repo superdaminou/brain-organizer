@@ -42,13 +42,12 @@ impl EditText {
         let path = edit_reflexion.reflexion.get_path();
         Window::new(&edit_reflexion.reflexion.sujet)
             .open(&mut edit_reflexion.show)
-            .resizable(true)
+            .vscroll(true)
             .default_size([300.0, 300.0])
-            .max_height(300.0)
             .show(ui.ctx(), 
             |ui|
             {
-                ui.add_sized(ui.available_size(), TextEdit::multiline(&mut edit_reflexion.contenu));
+                ui.add_sized([ui.available_height() -50.0, ui.available_width() - 50.0], TextEdit::multiline(&mut edit_reflexion.contenu));
             
                 if ui.button("Enregistrer").clicked() {
                     let write = File::options().read(true).write(true).open(&path)
@@ -66,7 +65,6 @@ impl EditText {
     pub fn open(&mut self ,reflexion: Reflexion, edit_reflexion:&mut EditReflexion) {
         info!("Opening: {}", reflexion.get_path());
         edit_reflexion.contenu = read_to_string( reflexion.get_path()).unwrap();
-        info!("Contenu: {}", edit_reflexion.contenu);
         edit_reflexion.show = !edit_reflexion.show;
         edit_reflexion.reflexion = reflexion;
     }

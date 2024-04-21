@@ -2,15 +2,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::application::reference::{service::get_all, structs::{Reference, Tag}};
 
-
-
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ReferenceGui {
     pub id: Option<String>,
     pub titre: String,
     pub url: String,
-    pub categorie: String
+    pub tags: Vec<Tag>
 }
 
 
@@ -20,7 +17,7 @@ impl From<Reference> for ReferenceGui {
             id: value.id,
             titre: value.titre,
             url: value.url,
-            categorie: value.categorie.join(",")
+            tags: value.categorie
         }
     }
 }
@@ -31,7 +28,7 @@ impl From<ReferenceGui> for Reference {
             id: val.id,
             titre: val.titre,
             url: val.url,
-            categorie: val.categorie.split(',').map(String::from).collect::<Vec<Tag>>()
+            categorie: val.tags,
         }
     }
 }
@@ -46,8 +43,14 @@ pub struct SectionReference {
 impl SectionReference {
     pub fn new() -> Self {
         Self {
-            reference: Reference { id: None, titre: "titre".to_string(), url: "String".to_string(), categorie: vec![] }.into(),
+            reference: Reference::new().into(),
             list_references: get_all().unwrap_or_default().iter().map(|reference| ReferenceGui::from(reference.clone())).collect::<Vec<ReferenceGui>>()
         }
+    } 
+}
+
+impl ReferenceGui {
+    pub fn new() -> Self {
+        Reference::new().into()
     } 
 }
