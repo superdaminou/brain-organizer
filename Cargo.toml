@@ -1,5 +1,5 @@
 [package]
-name = "ilmen_manager"
+name = "brain_manager"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,7 +9,6 @@ edition = "2021"
 rusqlite= {version = "0.31.0", features = ["bundled"]}
 egui= {version = "0.27.2", features = ["persistence"]}
 eframe = { version = "0.27.0", default-features = false, features = [
-    "accesskit",     # Make egui comptaible with screen readers. NOTE: adds a lot of dependencies.
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
     "persistence",   # Enable restoring app state when restarting the app.
@@ -17,9 +16,10 @@ eframe = { version = "0.27.0", default-features = false, features = [
 log = "0.4"
 refinery = {version = "0.8.13", features = ["rusqlite"]}
 uuid = {version = "1.8.0", features = ["v4"]}
-# You only need serde if you want app persistence:
 serde = { version = "1", features = ["derive"] }
 strum = "0.26"
 strum_macros = "0.26"
 env_logger = "0.11"
 dotenv = "0.15.0"
+egui_graphs = { version = "0", features = ["egui_persistence", "serde"]}
+petgraph = {version = "0.6", features = ["serde-1"]}

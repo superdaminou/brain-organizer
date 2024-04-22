@@ -1,4 +1,6 @@
+use egui_graphs::{DefaultEdgeShape, DefaultNodeShape, GraphView};
 use log::info;
+
 use crate::application::error::ApplicationError;
 use super::{reference::reference_gui::section_references, reflexion::gui::section_reflexions, structs::TemplateApp};
 
@@ -14,7 +16,7 @@ pub fn running_gui() -> Result<(), ApplicationError>{
     
     info!("Starting eframe");
     eframe::run_native(
-        "eframe template",
+        "brain manager",
         native_options,
         Box::new(|cc| Box::new(TemplateApp::new(cc))),
     ).map_err(ApplicationError::from)
@@ -41,6 +43,21 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
         ui.label("Modules")
     });
 
+    // hidding for now
+    egui::Window::new("My graph")
+                .open(&mut false)
+                .show(ctx, |ui| {
+                    ui.add(&mut GraphView::<
+                            _,
+                            _,
+                            _,
+                            _,
+                            DefaultNodeShape,
+                            DefaultEdgeShape,
+                        >::new(&mut template.g));
+                });
+
+
     egui::CentralPanel::default().show(ctx, |ui| {    
         match section_references(&mut template.section_reference, ui) {
             Err(e) => {
@@ -56,11 +73,14 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
             template.error.visible = true;
         }
         ui.separator();
+
+    
         
         ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
             powered_by_egui_and_eframe(ui);
             egui::warn_if_debug_build(ui);
         });
+
     });
 }
 
@@ -71,4 +91,3 @@ pub fn error_panel(template: &mut TemplateApp, ctx: &egui::Context) {
                     ui.label(template.error.msg.clone());
                 });
 }
-
