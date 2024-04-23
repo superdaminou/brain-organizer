@@ -1,23 +1,42 @@
-use std::{fs::{create_dir, read_to_string, File}, io::Write, path::Path};
+use std::{fs::{self, create_dir, read_to_string, File}, io::Write, path::Path};
 use log::info;
 use crate::application::{error::ApplicationError, reference::{self, service::create, structs::Reference}, reflexion::{self, structs::Reflexion}};
 
 pub const REFLEXION_STORAGE: &str = "./storage/";
 const REFLEXION_EXPORT: &str = "reflexion.csv";
 const REFERENCE_EXPORT: &str = "reference.csv";
-const IMPORT_FILE: &str = "import.csv";
+const EXPORT_STORAGE: &str = "./export/";
+const IMPORT_STORAGE: &str = "./import/";
 
 pub fn import() -> Result<(), ApplicationError> {
-    info!("Start importing reference file: {}", IMPORT_FILE);
-    return read_to_string(IMPORT_FILE) 
+    info!("Start importing reference file: {}", REFERENCE_EXPORT);
+    read_to_string(IMPORT_STORAGE.to_string() + REFERENCE_EXPORT) 
         .unwrap()  // panic on possible file-reading errors
         .lines()  // split the string into an iterator of string slices
-        .map(String::from).try_for_each(|line| create(&Reference::from(line)));
+        .map(String::from).try_for_each(|line| create(&Reference::from(line)))?;
+
+    info!("Start importing reflexion file: {}", REFERENCE_EXPORT);
+    read_to_string(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE) 
+        .unwrap()  // panic on possible file-reading errors
+        .lines()  // split the string into an iterator of string slices
+        .map(String::from).try_for_each(|line| create(&Reference::from(line)))?;
+
+    
+    return copy_recursively(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE, REFLEXION_STORAGE);
 }
 
 pub fn export() -> Result<(), ApplicationError> {
+    match Path::new(EXPORT_STORAGE).exists() {
+        true => info!("Export directory - cleaning files"),
+        false => {
+            info!("Creating storage directory: {}", EXPORT_STORAGE);
+            create_dir(EXPORT_STORAGE)?
+        }
+    }
+
+
     info!("Start exporting reference file: {}", REFERENCE_EXPORT);
-    let mut references_file = File::create(REFERENCE_EXPORT)?;
+    let mut references_file = File::create(EXPORT_STORAGE.to_string() + REFERENCE_EXPORT)?;
     let content = reference::service::get_all()?
         .iter()
         .map(Reference::to_csv)
@@ -26,15 +45,18 @@ pub fn export() -> Result<(), ApplicationError> {
     
     references_file.write_all(content.as_bytes()).map_err(ApplicationError::from)?;
     
-    info!("Start exporting reflexion file: {}", REFLEXION_EXPORT);
-    let mut reflexion_file = File::create(REFLEXION_EXPORT)?;
+    info!("Start exporting reflexion entries: {}", REFLEXION_EXPORT);
+    let mut reflexion_file = File::create(EXPORT_STORAGE.to_string() + REFLEXION_EXPORT)?;
     let content = reflexion::service::get_all()?
         .iter()
         .map(Reflexion::to_csv)
         .collect::<Vec<String>>()
         .join("\r\n");
 
-    return reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::from);
+    reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::from)?;
+
+
+    return copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE);
 }
 
 
@@ -45,6 +67,20 @@ pub fn ensuring_storage() -> Result<(),ApplicationError> {
         false => {
             info!("Creating storage directory: {}", REFLEXION_STORAGE);
             create_dir(REFLEXION_STORAGE)?
+        }
+    }
+    Ok(())
+}
+
+fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>) -> Result<(), ApplicationError> {
+    fs::create_dir_all(&destination)?;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let filetype = entry.file_type()?;
+        if filetype.is_dir() {
+            copy_recursively(entry.path(), destination.as_ref().join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), destination.as_ref().join(entry.file_name()))?;
         }
     }
     Ok(())
