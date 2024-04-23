@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::application::reference::{service::get_all, structs::{Reference, Tag}};
+use crate::application::reference::{service::get_all, structs::{reference::Reference, tag::Tag}};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ReferenceGui {

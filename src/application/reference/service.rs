@@ -3,7 +3,8 @@ use rusqlite::{Error, Row};
 use uuid::Uuid;
 use crate::application::{database, error::ApplicationError};
 
-use super::structs::{Reference, Tag};
+use super::structs::{reference::Reference, tag::Tag};
+
 
 
 pub fn create(reference: &Reference) -> Result<(), ApplicationError> {
@@ -109,11 +110,15 @@ pub fn get_one(id: Uuid) -> Result<Option<Reference>, ApplicationError> {
 fn map_row(row: &Row) -> Result<Reference, Error> {
     let tags :String = row.get(3)?;
 
+    let categorie = tags.split(',')
+        .map(Tag::try_from)
+        .collect::<Result<Vec<Tag>,ApplicationError>>()
+        .map_err(|_| Error::ExecuteReturnedResults)?;
+
     Ok(Reference {
         id: row.get(0)?,
         titre: row.get(1)?,
         url: row.get(2)?,
-        categorie: tags.split(',').map(String::from).map(Tag::from).collect::<Vec<Tag>>(),
+        categorie,
     })
-
 }

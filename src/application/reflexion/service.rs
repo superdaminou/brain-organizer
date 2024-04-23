@@ -1,8 +1,9 @@
 use std::fs::{remove_file, File};
 
+
 use rusqlite::{Error, Row};
 use uuid::Uuid;
-use crate::application::{database, error::ApplicationError, reference::structs::CsvLine};
+use crate::application::{database, error::ApplicationError};
 
 use super::structs::Reflexion;
 
@@ -48,29 +49,6 @@ fn map_row(row: &Row) -> Result<Reflexion, Error> {
         sujet: row.get(1)?,
     })
 
-}
-
-impl From<CsvLine> for Reflexion {
-    fn from(value: CsvLine) -> Self {
-        let split = value.split(';').map(String::from).collect::<Vec<String>>();
-
-        Reflexion {
-            id: Some(Uuid::new_v4().to_string()),
-            sujet: split.get(1).expect("Missing sujet").split(',').map(String::from).collect()
-        }
-    }
-}
-
-impl ToString for Reflexion {
-    fn to_string(&self) -> String {
-        self.sujet.to_string()
-    }
-}
-
-impl Reflexion {
-    pub fn to_csv(&self) -> String {
-        self.sujet.to_string() + ";"
-    }
 }
  
 

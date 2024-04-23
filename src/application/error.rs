@@ -46,6 +46,7 @@ impl  From<sqlError> for ApplicationError{
     }
 }
 
+
 impl From<eframe::Error> for ApplicationError {
     fn from(value: eframe::Error) -> Self {
         ApplicationError::new(value.to_string())
@@ -57,6 +58,13 @@ impl  From<String> for ApplicationError{
         ApplicationError::new(value)
     }
 }
+
+impl  From<&str> for ApplicationError{
+    fn from(value: &str) -> Self {
+        ApplicationError::new(value.to_string())
+    }
+}
+
 
 
 impl  From<Infallible> for ApplicationError{

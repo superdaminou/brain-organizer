@@ -1,6 +1,6 @@
 use strum::IntoEnumIterator;
 
-use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, get_all}, structs::Tag}};
+use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, get_all}, structs::tag::Tag}};
 
 use super::structs::{ReferenceGui, SectionReference};
 
@@ -96,5 +96,5 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) {
                     ui.allocate_space(ui.available_size());
                 });
             }
-        }).inner;
+        });
 }

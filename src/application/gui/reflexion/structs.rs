@@ -38,8 +38,6 @@ pub struct EditReflexion {
 
 impl EditText {
     pub fn show(&mut self, ui: &mut Ui,   edit_reflexion: &mut EditReflexion) -> Result<(), ApplicationError> {
-
-        let path = edit_reflexion.reflexion.get_path();
         Window::new(&edit_reflexion.reflexion.sujet)
             .open(&mut edit_reflexion.show)
             .vscroll(true)
@@ -50,11 +48,11 @@ impl EditText {
                 ui.add_sized([ui.available_height() -50.0, ui.available_width() - 50.0], TextEdit::multiline(&mut edit_reflexion.contenu));
             
                 if ui.button("Enregistrer").clicked() {
-                    let write = File::options().read(true).write(true).open(&path)
+                    let write = File::options().read(true).write(true).open(edit_reflexion.reflexion.get_path())
                         .and_then(|mut f| 
                             f.write_all(edit_reflexion.contenu.as_bytes()));
                     match write {
-                        Err(e) => info!("Error while writing file {} :  {}", path, e.to_string()),
+                        Err(e) => info!("Error while writing file {} :  {}", edit_reflexion.reflexion.get_path(), e.to_string()),
                         Ok(_) => info!("")
                     }
                 } 

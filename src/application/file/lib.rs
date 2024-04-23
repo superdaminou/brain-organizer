@@ -1,6 +1,6 @@
 use std::{fs::{self, create_dir, read_to_string, File}, io::Write, path::Path};
 use log::info;
-use crate::application::{error::ApplicationError, reference::{self, service::create, structs::Reference}, reflexion::{self, structs::Reflexion}};
+use crate::application::{error::ApplicationError, reference::{self, structs::reference::Reference}, reflexion::{self, structs::Reflexion}};
 
 pub const REFLEXION_STORAGE: &str = "./storage/";
 const REFLEXION_EXPORT: &str = "reflexion.csv";
@@ -11,18 +11,24 @@ const IMPORT_STORAGE: &str = "./import/";
 pub fn import() -> Result<(), ApplicationError> {
     info!("Start importing reference file: {}", REFERENCE_EXPORT);
     read_to_string(IMPORT_STORAGE.to_string() + REFERENCE_EXPORT) 
-        .unwrap()  // panic on possible file-reading errors
+        .map_err(ApplicationError::from)?
         .lines()  // split the string into an iterator of string slices
-        .map(String::from).try_for_each(|line| create(&Reference::from(line)))?;
+        .map(Reference::try_from)
+        .collect::<Result<Vec<Reference>, ApplicationError>>()?
+        .iter()
+        .try_for_each(reference::service::create)?;
 
-    info!("Start importing reflexion file: {}", REFERENCE_EXPORT);
-    read_to_string(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE) 
-        .unwrap()  // panic on possible file-reading errors
+    info!("Start importing reflexion file: {}", REFLEXION_EXPORT);
+    read_to_string(IMPORT_STORAGE.to_string() + REFLEXION_EXPORT) 
+        .map_err(ApplicationError::from)?  
         .lines()  // split the string into an iterator of string slices
-        .map(String::from).try_for_each(|line| create(&Reference::from(line)))?;
+        .map(Reflexion::try_from)
+        .collect::<Result<Vec<Reflexion>, ApplicationError>>()?
+        .iter()
+        .try_for_each(reflexion::service::create)?;
 
     
-    return copy_recursively(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE, REFLEXION_STORAGE);
+    copy_recursively(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE, REFLEXION_STORAGE)
 }
 
 pub fn export() -> Result<(), ApplicationError> {
@@ -56,7 +62,7 @@ pub fn export() -> Result<(), ApplicationError> {
     reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::from)?;
 
 
-    return copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE);
+    copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE)
 }
 
 
