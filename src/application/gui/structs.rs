@@ -6,6 +6,7 @@ use super::{app::central_panel, reference::structs::SectionReference, reflexion:
 pub struct TemplateApp {
     pub section_reference: SectionReference,
     pub section_reflexion: SectionReflexion,
+    pub show_reference: bool,
     pub error: AppError,
     pub g: Graph<(), ()>,
 }
@@ -17,7 +18,8 @@ impl Default for TemplateApp {
             section_reference: SectionReference::new(),
             section_reflexion: SectionReflexion::new(),
             error: AppError::init(),
-            g: Graph::from(&g)
+            g: Graph::from(&g),
+            show_reference: false
         }
     }
 }
@@ -49,7 +51,7 @@ impl eframe::App for TemplateApp {
     
 
     /// Called each time the UI needs repainting, which may be many times per second.
-    fn update<'a>(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 

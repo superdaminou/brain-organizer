@@ -3,7 +3,7 @@ use std::fs::{remove_file, File};
 
 use rusqlite::{Error, Row};
 use uuid::Uuid;
-use crate::application::{database, error::ApplicationError};
+use crate::application::{database, error::ApplicationError, file::construct_path};
 
 use super::structs::Reflexion;
 
@@ -16,7 +16,7 @@ pub fn create(reflexion: &Reflexion) -> Result<(), ApplicationError> {
     connexion.execute(ref_query, (id.to_string(), reflexion.sujet.clone()))
     .map_err(ApplicationError::from)?;
 
-    File::create(reflexion.get_path())?;
+    File::create(construct_path(reflexion))?;
 
     Ok(())
 }
@@ -28,7 +28,7 @@ pub fn delete(reflexion: &Reflexion) -> Result<(), ApplicationError> {
         .and_then(|_| database::opening_database().map_err(ApplicationError::from))?
         .execute("DELETE FROM reflexion WHERE id=?1", [reflexion.id.clone()])
         .map_err(ApplicationError::from)
-        .and_then(|_| remove_file(reflexion.get_path()).map_err(ApplicationError::from))
+        .and_then(|_| remove_file(construct_path(reflexion)).map_err(ApplicationError::from))
         
 }
 

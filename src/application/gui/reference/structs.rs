@@ -38,13 +38,15 @@ impl From<ReferenceGui> for Reference {
 pub struct SectionReference {
     pub reference: ReferenceGui,
     pub list_references: Vec<ReferenceGui>,
+    pub show: bool
 }
 
 impl SectionReference {
     pub fn new() -> Self {
         Self {
             reference: Reference::new().into(),
-            list_references: get_all().unwrap_or_default().iter().map(|reference| ReferenceGui::from(reference.clone())).collect::<Vec<ReferenceGui>>()
+            list_references: get_all().unwrap_or_default().iter().map(|reference| ReferenceGui::from(reference.clone())).collect::<Vec<ReferenceGui>>(),
+            show: false
         }
     } 
 }

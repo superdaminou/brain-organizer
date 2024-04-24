@@ -57,15 +57,27 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
                         >::new(&mut template.g));
                 });
 
+    egui::Window::new("My graph")
+        .open(&mut template.show_reference)
+        .show(ctx, |ui| {
+            match section_references(&mut template.section_reference, ui) {
+                Err(e) => {
+                    template.error.visible = true;
+                    template.error.msg = e.to_string();
+                },
+                Ok(_) => ()
+            };
+    });
+
 
     egui::CentralPanel::default().show(ctx, |ui| {    
-        match section_references(&mut template.section_reference, ui) {
-            Err(e) => {
-                template.error.visible = true;
-                template.error.msg = e.to_string();
-            },
-            Ok(_) => ()
-        }
+        // match section_references(&mut template.section_reference, ui) {
+        //     Err(e) => {
+        //         template.error.visible = true;
+        //         template.error.msg = e.to_string();
+        //     },
+        //     Ok(_) => ()
+        // }
         
         ui.separator();
 

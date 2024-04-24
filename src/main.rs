@@ -1,9 +1,9 @@
 mod application;
 
 use std::env;
-use application::{error::ApplicationError, file::lib::{ensuring_storage, export, import}};
+use application::error::ApplicationError;
 use log::info;
-use crate::application::{command::Command, database::{ensuring_model, opening_database}, gui::app::running_gui};
+use crate::application::{command::Command, database::{ensuring_model, opening_database}, file::{ensuring_storage, export, import}, gui::app::running_gui};
 use dotenv::dotenv;
 
 fn main() -> Result<(), ApplicationError> {
