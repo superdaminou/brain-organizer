@@ -7,10 +7,8 @@ pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> 
     EditText::default().show(ui, &mut section.edit_reflexion)?;
     new_reflexion(section, ui)?;
     list_reflexions(section, ui)?;
-
     Ok(())
 }
-
 
 
 fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
@@ -50,11 +48,9 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
 
     egui::ScrollArea::vertical()
         .id_source("reflexion")
-        .max_height(300.0)
         .show(ui, |ui| {
             for reflexion in &section.list_reflexions.clone() {
                 ui.horizontal(|ui| {
-                    ui.label(&reflexion.id.clone().unwrap_or("".to_string()));
                     ui.label(&reflexion.sujet);
                     if ui.button("Ouvrir").clicked() {
                         section.edit.open(reflexion.clone(), &mut section.edit_reflexion);

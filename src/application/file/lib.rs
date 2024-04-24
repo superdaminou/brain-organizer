@@ -34,5 +34,5 @@ pub fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>)
 }
 
 pub fn construct_path(reflexion: &Reflexion) -> String {
-    return REFLEXION_STORAGE.to_string() + &reflexion.filename();
+    REFLEXION_STORAGE.to_string() + &reflexion.filename()
 }

@@ -3,7 +3,9 @@ use std::{fs::{read_to_string, File}, io::Write};
 use egui::{TextEdit, Ui, Window};
 use log::info;
 
-use crate::application::{error::ApplicationError, file::construct_path, reflexion::{service::get_all, structs::Reflexion}};
+use crate::application::{error::ApplicationError, file::construct_path, gui::structs::Fenetre, reflexion::{service::get_all, structs::Reflexion}};
+
+use super::gui::section_reflexions;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct SectionReflexion {
@@ -13,8 +15,9 @@ pub struct SectionReflexion {
     pub edit_reflexion: EditReflexion
 }
 
-impl SectionReflexion {
-    pub fn new() -> Self {
+
+impl Default for SectionReflexion {
+    fn default() -> Self {
         Self {
             reflexion: Reflexion::new(),
             list_reflexions: get_all().unwrap_or_default(),
@@ -67,4 +70,21 @@ impl EditText {
         edit_reflexion.reflexion = reflexion;
     }
 
+}
+
+
+impl Fenetre for SectionReflexion {
+    fn name(&self) -> &'static str {
+        "Reflexions"
+    }
+
+    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), crate::application::error::ApplicationError> {
+        egui::Window::new(self.name())
+        .open(is_open)
+        .scroll2(true)
+        .show(ctx, |ui| {
+            section_reflexions(self, ui)
+        });
+        Ok(())
+    }
 }

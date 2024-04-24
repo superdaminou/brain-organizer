@@ -19,6 +19,12 @@ impl fmt::Display for ApplicationError {
     }
 }
 
+impl Default for ApplicationError {
+    fn default() -> Self {
+        Self { details: String::from("An error occured") }
+    }
+}
+
 
 impl Error for ApplicationError {
     fn description(&self) -> &str {

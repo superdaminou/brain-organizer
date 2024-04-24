@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::application::reference::{service::get_all, structs::{reference::Reference, tag::Tag}};
+use crate::application::{error::ApplicationError, gui::structs::Fenetre, reference::{service::get_all, structs::{reference::Reference, tag::Tag}}};
+
+use super::reference_gui::section_references;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct ReferenceGui {
@@ -41,18 +43,35 @@ pub struct SectionReference {
     pub show: bool
 }
 
-impl SectionReference {
-    pub fn new() -> Self {
+
+impl Default for SectionReference {
+    fn default() -> Self {
         Self {
             reference: Reference::new().into(),
             list_references: get_all().unwrap_or_default().iter().map(|reference| ReferenceGui::from(reference.clone())).collect::<Vec<ReferenceGui>>(),
             show: false
         }
-    } 
+    }
 }
 
 impl ReferenceGui {
     pub fn new() -> Self {
         Reference::new().into()
     } 
+}
+
+impl Fenetre for SectionReference {
+    fn name(&self) -> &'static str {
+        "References"
+    }
+
+    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), ApplicationError> {
+        egui::Window::new(self.name())
+        .open(is_open)
+        .scroll2(true)
+        .show(ctx, |ui| {
+            section_references(self, ui)
+        });
+        Ok(())
+    }
 }

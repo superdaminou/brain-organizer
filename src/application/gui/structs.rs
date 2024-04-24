@@ -1,25 +1,31 @@
+use std::collections::BTreeSet;
+
 use egui_graphs::Graph;
 use petgraph::stable_graph::StableGraph;
+
+use crate::application::error::ApplicationError;
 
 use super::{app::central_panel, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
 
 pub struct TemplateApp {
-    pub section_reference: SectionReference,
-    pub section_reflexion: SectionReflexion,
-    pub show_reference: bool,
+    pub fenetres: Vec<Box<dyn Fenetre>>,
     pub error: AppError,
     pub g: Graph<(), ()>,
+    pub fenetre_ouverte: BTreeSet<&'static str>
 }
 
 impl Default for TemplateApp {
     fn default() -> Self {
         let g = generate_graph();
+        let fenetres: Vec<Box<dyn Fenetre>> = vec![
+                Box::<SectionReference>::default(),
+                Box::<SectionReflexion>::default(),
+            ];
         Self {
-            section_reference: SectionReference::new(),
-            section_reflexion: SectionReflexion::new(),
+            fenetres,
             error: AppError::init(),
             g: Graph::from(&g),
-            show_reference: false
+            fenetre_ouverte: BTreeSet::new()
         }
     }
 }
@@ -91,4 +97,13 @@ fn generate_graph() -> StableGraph<(), ()> {
     g.add_edge(c, a, ());
 
     g
+}
+
+pub trait Fenetre {
+    // Associated function signature; `Self` refers to the implementor type.
+    
+    // Method signatures; these will return a string.
+    fn name(&self) -> &'static str;
+
+    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), ApplicationError>;
 }

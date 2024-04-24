@@ -21,7 +21,7 @@ impl Reflexion {
             .split_ascii_whitespace()
             .map(String::from)
             .collect::<Vec<String>>().join("_");
-        return clean_path.to_string() + ".txt"
+        clean_path.to_string() + ".txt"
     }
 
     /// Initialize a new Reflexion

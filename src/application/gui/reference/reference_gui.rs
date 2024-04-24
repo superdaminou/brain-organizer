@@ -79,11 +79,9 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
 fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) {
     egui::ScrollArea::vertical()
         .id_source("reference")
-        .max_height(300.0)
         .show(ui, |ui| {
             for contenu in &section.list_references {
                 ui.horizontal(|ui| {
-                    ui.label(&contenu.id.clone().unwrap_or("".to_string()));
                     ui.label(&contenu.titre);
                     ui.label(&contenu.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
                     ui.hyperlink(&contenu.url);

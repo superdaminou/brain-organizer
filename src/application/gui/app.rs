@@ -1,8 +1,10 @@
+use std::collections::BTreeSet;
+
 use egui_graphs::{DefaultEdgeShape, DefaultNodeShape, GraphView};
 use log::info;
 
 use crate::application::error::ApplicationError;
-use super::{reference::reference_gui::section_references, reflexion::gui::section_reflexions, structs::TemplateApp};
+use super::structs::TemplateApp;
 
 pub fn running_gui() -> Result<(), ApplicationError>{
     // OPEN GUI
@@ -40,7 +42,17 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
     error_panel(template, ctx);
 
     egui::SidePanel::left("Modules").show(ctx, |ui| {
-        ui.label("Modules")
+        template.fenetres.iter().map(|f| f.name()).for_each(|f| {
+            let label_fenetre = ui.selectable_label(template.fenetre_ouverte.contains(&f), f);
+            if label_fenetre.clicked() {
+                if template.fenetre_ouverte.contains(&f) {
+                    template.fenetre_ouverte.remove(&f);
+                } else {
+                    template.fenetre_ouverte.insert(f);
+                }
+            
+            }
+        });
     });
 
     // hidding for now
@@ -57,43 +69,38 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
                         >::new(&mut template.g));
                 });
 
-    egui::Window::new("My graph")
-        .open(&mut template.show_reference)
-        .show(ctx, |ui| {
-            match section_references(&mut template.section_reference, ui) {
-                Err(e) => {
-                    template.error.visible = true;
-                    template.error.msg = e.to_string();
-                },
-                Ok(_) => ()
-            };
-    });
+    let (_, errors) : (Vec<_>, Vec<_>)= 
+        template.fenetres.iter_mut().map(|f| {
+            let mut is_open = template.fenetre_ouverte.contains(f.name());
+            let window = f.show(ctx, &mut is_open);
+            set_open(&mut template.fenetre_ouverte, f.name(), is_open);
+            window
+        })
+        .partition(Result::is_ok);
 
+    let errors = errors.into_iter().map(Result::unwrap_err).collect::<Vec<ApplicationError>>();
+    if !errors.is_empty() {
+        template.error.visible = true;
+        template.error.msg = errors.iter().map(ApplicationError::to_string).collect::<Vec<String>>().join("\\n");
+    }
 
-    egui::CentralPanel::default().show(ctx, |ui| {    
-        // match section_references(&mut template.section_reference, ui) {
-        //     Err(e) => {
-        //         template.error.visible = true;
-        //         template.error.msg = e.to_string();
-        //     },
-        //     Ok(_) => ()
-        // }
-        
-        ui.separator();
-
-        if section_reflexions(&mut template.section_reflexion, ui).is_err(){
-            template.error.visible = true;
-        }
-        ui.separator();
-
-    
-        
+    egui::CentralPanel::default().show(ctx, |ui| {        
         ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
             powered_by_egui_and_eframe(ui);
             egui::warn_if_debug_build(ui);
         });
 
     });
+}
+
+fn set_open(open: &mut BTreeSet<&'static str>, key: &'static str, is_open: bool) {
+    if is_open {
+        if !open.contains(key) {
+            open.insert(key);
+        }
+    } else {
+        open.remove(key);
+    }
 }
 
 pub fn error_panel(template: &mut TemplateApp, ctx: &egui::Context) {
