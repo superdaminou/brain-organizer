@@ -1,5 +1,5 @@
 use log::{error, info};
-use rusqlite::{Error, Row};
+use rusqlite::{params_from_iter, Error, Row};
 use uuid::Uuid;
 use crate::application::{database, error::ApplicationError};
 
@@ -18,7 +18,7 @@ pub fn create(reference: &Reference) -> Result<(), ApplicationError> {
     connexion.execute(ref_query, (id.to_string(), reference.titre.clone(), reference.url.clone()))
     .map_err(ApplicationError::from)?;
 
-    reference.categorie.iter().map(|cat|
+    reference.tags.iter().map(|cat|
         connexion.execute(tag_query, (Uuid::new_v4().to_string(), cat.to_string(), id.to_string()))
             .map_err(ApplicationError::from))
             .for_each(|result|  {
@@ -58,7 +58,7 @@ pub fn update(reference: &Reference) -> Result<(), ApplicationError> {
     connexion.execute(delete_tag_query, (id.to_string(),))
     .map_err(ApplicationError::from)?;
 
-    reference.categorie.iter().map(|cat|
+    reference.tags.iter().map(|cat|
         connexion.execute(tag_query, (Uuid::new_v4().to_string(), cat.to_string(), id.to_string()))
             .map_err(ApplicationError::from))
             .for_each(|result|  {
@@ -98,6 +98,37 @@ pub fn get_all() -> Result<Vec<Reference>, ApplicationError> {
             .collect::<Vec<Reference>>())
 }
 
+pub fn filter_by_tags(tags: Vec<Tag>) -> Result<Vec<Reference>, ApplicationError> {
+    if tags.is_empty() {
+        return get_all();
+    }
+    
+    let binding = tags.iter().map(Tag::to_string).collect::<Vec<String>>();
+    let tags_str  = binding.as_slice();
+
+    let query = format!("WITH ref_ids AS (SELECT reference_id FROM tag WHERE nom IN ({}))
+        SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag 
+        FROM reference as r 
+        LEFT JOIN tag as t ON t.reference_id = r.id 
+        WHERE r.id IN (SELECT * FROM ref_ids)
+        GROUP BY r.id;", repeat_vars(tags.len()));
+
+    Ok(database::opening_database()?
+            .prepare(&query)
+            .map_err(ApplicationError::from)?
+            .query_map(params_from_iter(tags_str), map_row)?
+            .map(|row| row.unwrap())
+            .collect::<Vec<Reference>>())
+}
+
+fn repeat_vars(count: usize) -> String {
+    assert_ne!(count, 0);
+    let mut s = "?,".repeat(count);
+    // Remove trailing comma
+    s.pop();
+    s
+}
+
 pub fn get_one(id: Uuid) -> Result<Option<Reference>, ApplicationError> {
     let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag FROM reference as r LEFT JOIN tag as t ON t.reference_id = r.id WHERE r.id = :id GROUP BY r.id LIMIT 1;";
     Ok(database::opening_database()?
@@ -119,6 +150,6 @@ fn map_row(row: &Row) -> Result<Reference, Error> {
         id: row.get(0)?,
         titre: row.get(1)?,
         url: row.get(2)?,
-        categorie,
+        tags: categorie,
     })
 }

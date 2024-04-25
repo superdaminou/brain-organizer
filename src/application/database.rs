@@ -1,5 +1,5 @@
 
-use log::info;
+use log::{info, trace};
 use rusqlite::Connection;
 use refinery::embed_migrations;
 use super::error::ApplicationError;
@@ -19,7 +19,7 @@ pub fn ensuring_model() -> Result<(), ApplicationError> {
 }
 
 pub fn opening_database() -> Result<Connection, ApplicationError> {
-    info!("Opening Database: {}", DB_PATH);
+    trace!("Opening Database: {}", DB_PATH);
     Connection::open(DB_PATH).map_err(ApplicationError::from)
 }
 

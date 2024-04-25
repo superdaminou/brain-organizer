@@ -12,7 +12,7 @@ pub struct Reference {
     pub id: Option<String>,
     pub titre: String,
     pub url: String,
-    pub categorie: Vec<Tag>
+    pub tags: Vec<Tag>
 }
 
 
@@ -33,7 +33,7 @@ impl TryFrom<CsvLine> for Reference {
         Ok(Reference {
             id: Some(Uuid::new_v4().to_string()),
             titre: split.first().expect("Missing title").to_string(),
-            categorie,
+            tags: categorie,
             url: split.get(2).expect("Missing url").to_string()
         })
     }
@@ -55,7 +55,7 @@ impl TryFrom<&str> for Reference {
         Ok(Reference {
             id: Some(Uuid::new_v4().to_string()),
             titre: split.first().expect("Missing title").to_string(),
-            categorie,
+            tags: categorie,
             url: split.get(2).expect("Missing url").to_string()
         })
     }
@@ -67,17 +67,17 @@ impl TryFrom<&str> for Reference {
 
 impl ToString for Reference {
     fn to_string(&self) -> String {
-        self.titre.to_string() + &self.categorie.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + &self.url.to_string()
+        self.titre.to_string() + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + &self.url.to_string()
     }
 }
 
 impl Reference {
     pub fn to_csv(&self) -> String {
-        self.titre.to_string() + ";" + &self.categorie.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + ";" + &self.url.to_string()
+        self.titre.to_string() + ";" + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + ";" + &self.url.to_string()
     }
     pub fn new() -> Self {
         Self {
-            categorie: vec![],
+            tags: vec![],
             id: None,
             titre: String::from("Reference"),
             url: String::from("www.url.com")

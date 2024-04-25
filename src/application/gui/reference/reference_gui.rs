@@ -1,31 +1,33 @@
 use strum::IntoEnumIterator;
 
-use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, get_all}, structs::tag::Tag}};
+use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, filter_by_tags, get_all}, structs::{reference::Reference, tag::Tag}}};
 
-use super::structs::{ReferenceGui, SectionReference};
+use super::structs::SectionReference;
 
 
 pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     ui.heading("Reference");
-
     create_reference(section, ui)?;
+    filter_bar(section, ui)?;
+    return list_references(section, ui);
+}
 
-    ui.horizontal(|ui| {
-        if ui.button("Recharger reference").clicked() {
-            return get_all()
-                .map(|list| 
-                    list.iter()
-                    .map(|reference|ReferenceGui::from(reference.clone()))
-                    .collect::<Vec<ReferenceGui>>())
-                .map(|list| section.list_references = list);
-        }
-
-        Ok(())
-
+fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+    ui.horizontal::<Result<(), ApplicationError>>(|ui| {
+        Tag::iter().try_for_each(|t| {
+            let tag_label = ui.selectable_label(section.tag_filter.contains(&t), t.to_string());
+            if tag_label.clicked() {
+                if section.tag_filter.contains(&t) {
+                    section.tag_filter.retain(|tag| !t.eq(tag));
+                } else {
+                    section.tag_filter.push(t);
+                }
+                section.list_references = filter_by_tags(section.tag_filter.clone())?;
+            };
+            return Ok::<(), ApplicationError>(())
+        })?;
+        return Ok(())
     }).inner?;
-                
-    list_references(section, ui);
-
     Ok(())
 }
 
@@ -53,19 +55,13 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
         ui.label("URL");
         ui.text_edit_singleline(&mut section.reference.url);
 
-        
         let button = egui::Button::new("Enregistrer");
-
 
         if ui.add(button).clicked() {
             return create_or_update(&section.reference.clone().into())
                 .and_then(|_|get_all())
-                .map(|list| 
-                    list.iter()
-                    .map(|reference|ReferenceGui::from(reference.clone()))
-                    .collect::<Vec<ReferenceGui>>())
                 .map(|list| section.list_references = list)
-                .map(|_| section.reference = ReferenceGui::new());
+                .map(|_| section.reference = Reference::new());
                     
         }
 
@@ -76,23 +72,27 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
 }
 
 
-fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) {
+fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError>{
     egui::ScrollArea::vertical()
         .id_source("reference")
         .show(ui, |ui| {
-            for contenu in &section.list_references {
+            return section.list_references.iter().try_for_each(|reference| {
                 ui.horizontal(|ui| {
-                    ui.label(&contenu.titre);
-                    ui.label(&contenu.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
-                    ui.hyperlink(&contenu.url);
+                    ui.label(&reference.titre);
+                    ui.label(reference.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
+                    ui.hyperlink(&reference.url);
                     if ui.button("Modifier").clicked() {
-                        section.reference = contenu.clone();
+                        section.reference = reference.clone();
                     }
                     if ui.button("Supprimer").clicked() {
-                        delete(&contenu.clone().into());
+                        delete(reference)?;
                     }
                     ui.allocate_space(ui.available_size());
+                    return Ok::<(),ApplicationError>(())
                 });
-            }
+
+                return Ok::<(),ApplicationError>(())
+            });
         });
+    Ok(())
 }
