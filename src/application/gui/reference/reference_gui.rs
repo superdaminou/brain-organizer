@@ -22,7 +22,7 @@ fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), A
                 } else {
                     section.tag_filter.push(t);
                 }
-                section.list_references = filter_by_tags(section.tag_filter.clone())?;
+                section.list_references = filter_by_tags(&section.tag_filter)?;
             };
             return Ok::<(), ApplicationError>(())
         })?;
@@ -59,7 +59,7 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
 
         if ui.add(button).clicked() {
             return create_or_update(&section.reference.clone().into())
-                .and_then(|_|get_all())
+                .and_then(|_|filter_by_tags(&section.tag_filter))
                 .map(|list| section.list_references = list)
                 .map(|_| section.reference = Reference::new());
                     
@@ -78,9 +78,8 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
         .show(ui, |ui| {
             return section.list_references.iter().try_for_each(|reference| {
                 ui.horizontal(|ui| {
-                    ui.label(&reference.titre);
+                    ui.hyperlink_to(&reference.titre, &reference.url);
                     ui.label(reference.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
-                    ui.hyperlink(&reference.url);
                     if ui.button("Modifier").clicked() {
                         section.reference = reference.clone();
                     }

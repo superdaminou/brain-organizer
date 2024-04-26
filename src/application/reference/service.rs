@@ -98,7 +98,7 @@ pub fn get_all() -> Result<Vec<Reference>, ApplicationError> {
             .collect::<Vec<Reference>>())
 }
 
-pub fn filter_by_tags(tags: Vec<Tag>) -> Result<Vec<Reference>, ApplicationError> {
+pub fn filter_by_tags(tags: &Vec<Tag>) -> Result<Vec<Reference>, ApplicationError> {
     if tags.is_empty() {
         return get_all();
     }
@@ -106,7 +106,8 @@ pub fn filter_by_tags(tags: Vec<Tag>) -> Result<Vec<Reference>, ApplicationError
     let binding = tags.iter().map(Tag::to_string).collect::<Vec<String>>();
     let tags_str  = binding.as_slice();
 
-    let query = format!("WITH ref_ids AS (SELECT reference_id FROM tag WHERE nom IN ({}))
+    let query = format!(
+        "WITH ref_ids AS (SELECT reference_id FROM tag WHERE nom IN ({}))
         SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag 
         FROM reference as r 
         LEFT JOIN tag as t ON t.reference_id = r.id 
@@ -118,7 +119,9 @@ pub fn filter_by_tags(tags: Vec<Tag>) -> Result<Vec<Reference>, ApplicationError
             .map_err(ApplicationError::from)?
             .query_map(params_from_iter(tags_str), map_row)?
             .map(|row| row.unwrap())
+            .filter(|refe|tags.iter().all(|item| refe.tags.contains(item))) 
             .collect::<Vec<Reference>>())
+            
 }
 
 fn repeat_vars(count: usize) -> String {
