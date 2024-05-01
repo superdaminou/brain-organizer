@@ -59,6 +59,18 @@ impl From<eframe::Error> for ApplicationError {
     }
 }
 
+impl From<indradb::Error> for ApplicationError {
+    fn from(value: indradb::Error) -> Self {
+        ApplicationError::new(value.to_string())
+    }
+}
+
+impl From<indradb::ValidationError> for ApplicationError {
+    fn from(value: indradb::ValidationError) -> Self {
+        ApplicationError::new(value.to_string())
+    }
+}
+
 impl  From<String> for ApplicationError{
     fn from(value: String) -> Self {
         ApplicationError::new(value)

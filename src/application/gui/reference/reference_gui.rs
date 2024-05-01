@@ -1,6 +1,7 @@
+use petgraph::stable_graph::StableGraph;
 use strum::IntoEnumIterator;
 
-use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, filter_by_tags, get_all}, structs::{reference::Reference, tag::Tag}}};
+use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, filter_by_tags}, structs::{reference::Reference, tag::Tag}}};
 
 use super::structs::SectionReference;
 
@@ -9,6 +10,7 @@ pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> 
     ui.heading("Reference");
     create_reference(section, ui)?;
     filter_bar(section, ui)?;
+    ui.separator();
     return list_references(section, ui);
 }
 
@@ -17,18 +19,24 @@ fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), A
         Tag::iter().try_for_each(|t| {
             let tag_label = ui.selectable_label(section.tag_filter.contains(&t), t.to_string());
             if tag_label.clicked() {
-                if section.tag_filter.contains(&t) {
-                    section.tag_filter.retain(|tag| !t.eq(tag));
-                } else {
-                    section.tag_filter.push(t);
-                }
-                section.list_references = filter_by_tags(&section.tag_filter)?;
+                update_tag_filter(&t, section)?;
             };
             return Ok::<(), ApplicationError>(())
         })?;
         return Ok(())
     }).inner?;
     Ok(())
+}
+
+fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<(), ApplicationError>{
+    if section.tag_filter.contains(tag) {
+        section.tag_filter.retain(|tag| !tag.eq(tag));
+    } else {
+        section.tag_filter.push(tag.clone());
+    }
+
+    return filter_by_tags(&section.tag_filter)
+        .map(|references |section.list_references = references);
 }
 
 fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
@@ -46,7 +54,6 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                         } else {
                             section.reference.tags.push(t);
                         }
-                    
                     }
                 });
             }
@@ -61,7 +68,7 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
             return create_or_update(&section.reference.clone().into())
                 .and_then(|_|filter_by_tags(&section.tag_filter))
                 .map(|list| section.list_references = list)
-                .map(|_| section.reference = Reference::new());
+                .map(|_| section.reference = Reference::default());
                     
         }
 

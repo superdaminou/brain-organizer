@@ -14,7 +14,7 @@ pub struct SectionReference {
 impl Default for SectionReference {
     fn default() -> Self {
         Self {
-            reference: Reference::new().into(),
+            reference: Reference::default().into(),
             list_references: get_all().unwrap_or_default(),
             tag_filter: vec![]
         }

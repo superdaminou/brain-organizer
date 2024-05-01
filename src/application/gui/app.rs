@@ -1,10 +1,9 @@
 use std::collections::BTreeSet;
 
-use egui_graphs::{DefaultEdgeShape, DefaultNodeShape, GraphView};
 use log::info;
 
 use crate::application::error::ApplicationError;
-use super::structs::TemplateApp;
+use super::{ structs::TemplateApp};
 
 pub fn running_gui() -> Result<(), ApplicationError>{
     // OPEN GUI
@@ -55,20 +54,7 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
         });
     });
 
-    // hidding for now
-    egui::Window::new("My graph")
-                .open(&mut false)
-                .show(ctx, |ui| {
-                    ui.add(&mut GraphView::<
-                            _,
-                            _,
-                            _,
-                            _,
-                            DefaultNodeShape,
-                            DefaultEdgeShape,
-                        >::new(&mut template.g));
-                });
-
+    
     let (_, errors) : (Vec<_>, Vec<_>)= 
         template.fenetres.iter_mut().map(|f| {
             let mut is_open = template.fenetre_ouverte.contains(f.name());

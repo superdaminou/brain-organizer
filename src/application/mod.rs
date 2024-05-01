@@ -5,3 +5,4 @@ pub mod gui;
 pub mod reference;
 pub mod reflexion;
 pub mod file;
+pub mod graph;

@@ -71,16 +71,19 @@ impl ToString for Reference {
     }
 }
 
-impl Reference {
-    pub fn to_csv(&self) -> String {
-        self.titre.to_string() + ";" + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + ";" + &self.url.to_string()
-    }
-    pub fn new() -> Self {
+impl Default for Reference {
+    fn default() -> Self {
         Self {
             tags: vec![],
             id: None,
             titre: String::from("Reference"),
             url: String::from("www.url.com")
         }
+    }
+}
+
+impl Reference {
+    pub fn to_csv(&self) -> String {
+        self.titre.to_string() + ";" + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + ";" + &self.url.to_string()
     }
 }

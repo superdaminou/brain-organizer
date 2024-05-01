@@ -3,28 +3,26 @@ use std::collections::BTreeSet;
 use egui_graphs::Graph;
 use petgraph::stable_graph::StableGraph;
 
-use crate::application::error::ApplicationError;
+use crate::application::{error::ApplicationError, graph::{self, structs::{MyEdge, MyNode, Type}}};
 
-use super::{app::central_panel, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
+use super::{app::central_panel, graph::structs::FenetreGraph, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
 
 pub struct TemplateApp {
     pub fenetres: Vec<Box<dyn Fenetre>>,
     pub error: AppError,
-    pub g: Graph<(), ()>,
     pub fenetre_ouverte: BTreeSet<&'static str>
 }
 
 impl Default for TemplateApp {
     fn default() -> Self {
-        let g = generate_graph();
         let fenetres: Vec<Box<dyn Fenetre>> = vec![
                 Box::<SectionReference>::default(),
                 Box::<SectionReflexion>::default(),
+                Box::<FenetreGraph>::default()
             ];
         Self {
             fenetres,
             error: AppError::init(),
-            g: Graph::from(&g),
             fenetre_ouverte: BTreeSet::new()
         }
     }
@@ -84,20 +82,6 @@ impl eframe::App for TemplateApp {
     }
 }
 
-
-fn generate_graph() -> StableGraph<(), ()> {
-    let mut g = StableGraph::new();
-
-    let a = g.add_node(());
-    let b = g.add_node(());
-    let c = g.add_node(());
-
-    g.add_edge(a, b, ());
-    g.add_edge(b, c, ());
-    g.add_edge(c, a, ());
-
-    g
-}
 
 pub trait Fenetre {
     // Associated function signature; `Self` refers to the implementor type.

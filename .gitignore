@@ -4,3 +4,5 @@
 /storage
 /export
 /import
+/rock.h
+*.lua
