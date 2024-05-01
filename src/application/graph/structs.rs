@@ -1,8 +1,9 @@
 use core::fmt;
 
 use egui_graphs::Node as EguiNode;
-use indradb::{Edge, Vertex};
+use indradb::{Edge, Identifier, Vertex};
 use serde::Serialize;
+use strum_macros::EnumIter;
 
 use crate::application::error::ApplicationError;
 
@@ -59,17 +60,38 @@ impl TryFrom<&Edge> for MyEdge {
     type Error = ApplicationError;
     fn try_from(edge: &Edge) -> Result<MyEdge, Self::Error> {
         Ok(MyEdge {
-            edge_type: Type::DEFINIE
+            edge_type: Type::try_from(edge.t)?
         })
     }
 
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, EnumIter)]
 pub enum Type {
     ALieuA,
     DEFINIE,
+}
+
+impl TryFrom<Identifier> for Type {
+    type Error = ApplicationError;
+
+    fn try_from(value: Identifier) -> Result<Self, Self::Error> {
+        match value.to_lowercase().as_str() {
+            "definie" => Ok(Type::DEFINIE),
+            "alieua" => Ok(Type::ALieuA),
+            _ => Err(ApplicationError::from(format!("Could not determine tag from: {}", value.to_string())))
+        }
+    }
+}
+
+impl Type {
+    pub fn identifier(&self) -> &'static str {
+        match self {
+            Type::ALieuA => "a_lieu_a",
+            Type::DEFINIE => "definie"
+        }
+    }
 }
 
 

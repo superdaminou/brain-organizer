@@ -1,6 +1,7 @@
 
-use std::{collections::HashMap, f32::consts::E, fs::read_to_string};
+use std::{collections::HashMap,  fs::read_to_string};
 
+use indradb::QueryExt;
 use log::info;
 use petgraph::{ stable_graph::StableGraph, prelude::NodeIndex};
 use uuid::Uuid;
@@ -8,7 +9,6 @@ use uuid::Uuid;
 use crate::application::error::ApplicationError;
 
 use super::structs::{MyEdge, MyNode, Type};
-
 
 pub fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
     let db: indradb::Database<indradb::RocksdbDatastore> = indradb::RocksdbDatastore::new_db("rock.h").map_err(ApplicationError::from)?;
@@ -39,7 +39,6 @@ pub fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
         let binding = NodeIndex::from(default);
         let node_out= map_vertex_indice.get(&edge.outbound_id).unwrap_or(&binding);
         let node_in= map_vertex_indice.get(&edge.inbound_id).unwrap_or(&binding);
-        info!("{}", edge.t.to_string());
         graph.add_edge(node_out.clone(),node_in.clone(),  MyEdge::try_from(edge)?);
         Ok::<(), ApplicationError>(())
     })?;
@@ -75,21 +74,21 @@ fn read_file() -> Result<(), ApplicationError>{
     Ok(())
 }
 
-pub fn save_node(name: &String) -> Result<Uuid, ApplicationError> {
+pub fn save_node(node_in: &String, node_out: &String, edge: &Type) -> Result<(), ApplicationError> {
     let db: indradb::Database<indradb::RocksdbDatastore> = indradb::RocksdbDatastore::new_db("rock.h").map_err(ApplicationError::from)?;
     // Create a couple of vertices
-    let node = indradb::Vertex::new(indradb::Identifier::new(name).map_err(ApplicationError::from)?);
-    db.create_vertex(&node)?;
-    let edge = indradb::Edge::new(node.id, indradb::Identifier::new("DEFINIE").map_err(ApplicationError::from)?, node.id);
+    // let node_in = indradb::Vertex::new(indradb::Identifier::new(node_in).map_err(ApplicationError::from)?);
+    // db.create_vertex(&node_in)?;
+    let in_id = indradb::Identifier::new(node_in).map(indradb::Vertex::new).map_err(ApplicationError::from)?;
+    
+    // Convenience function to extract out the edges from the query results
+    db.create_vertex(&in_id)?;
+
+    let out_id = indradb::Identifier::new(node_out).map(indradb::Vertex::new).map_err(ApplicationError::from)?;
+    db.create_vertex(&out_id)?;
+
+    let edge = indradb::Edge::new(out_id.id, indradb::Identifier::new(edge.identifier()).map_err(ApplicationError::from)?, in_id.id);
     db.create_edge(&edge)?;
-    Ok(node.id)
+    info!("All is good");
+    Ok(())
 }
-
-
-// pub fn save_edge(name: String, node_in: Uuid, node_out: Uuid) -> Result<String, ApplicationError> {
-//     let db: indradb::Database<indradb::RocksdbDatastore> = indradb::Database::from("rock.h").map_err(ApplicationError::from)?;
-//     // Create a couple of vertices
-//     let edge = indradb::Edge::new(node_out, indradb::Identifier::new("likes").map_err(ApplicationError::from)?, node_in);
-//     db.create_edge(&edge)?;
-//     Ok(edge.t.to_string())
-// }

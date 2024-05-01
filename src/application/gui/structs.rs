@@ -1,9 +1,6 @@
 use std::collections::BTreeSet;
 
-use egui_graphs::Graph;
-use petgraph::stable_graph::StableGraph;
-
-use crate::application::{error::ApplicationError, graph::{self, structs::{MyEdge, MyNode, Type}}};
+use crate::application::error::ApplicationError;
 
 use super::{app::central_panel, graph::structs::FenetreGraph, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
 

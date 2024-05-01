@@ -1,19 +1,18 @@
-use std::{fs::{read_to_string, File}, io::Write};
 
-use egui::{TextEdit, Ui, Window};
 use egui_graphs::Graph;
-use log::info;
 use petgraph::stable_graph::StableGraph;
 
-use crate::application::{error::ApplicationError, file::construct_path, graph::structs::{MyEdge, MyNode}, gui::structs::Fenetre, reflexion::{service::get_all, structs::Reflexion}};
+use crate::application::{graph::structs::{MyEdge, MyNode, Type}, gui::structs::Fenetre};
 
 use super::gui::show_graph;
 
 
 pub struct FenetreGraph {
     pub graph: Graph<MyNode, MyEdge>,
-    pub node: Option<MyNode>,
-    pub node_name: String,
+    pub selected_node: Option<MyNode>,
+    pub create_node_in_name: String,
+    pub create_node_out_name: String,
+    pub create_edge_type: Type
 }
 
 
@@ -21,8 +20,10 @@ impl Default for FenetreGraph {
     fn default() -> Self {
         Self {
             graph: Graph::from(&StableGraph::<MyNode, MyEdge>::new()),
-            node: Option::default(),
-            node_name: String::default()
+            selected_node: Option::default(),
+            create_node_in_name: String::default(),
+            create_node_out_name: String::default(),
+            create_edge_type: Type::DEFINIE
         }
     } 
 }

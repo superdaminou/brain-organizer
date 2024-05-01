@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use log::info;
 
 use crate::application::error::ApplicationError;
-use super::{ structs::TemplateApp};
+use super::structs::TemplateApp;
 
 pub fn running_gui() -> Result<(), ApplicationError>{
     // OPEN GUI

@@ -1,4 +1,3 @@
-use petgraph::stable_graph::StableGraph;
 use strum::IntoEnumIterator;
 
 use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, filter_by_tags}, structs::{reference::Reference, tag::Tag}}};
