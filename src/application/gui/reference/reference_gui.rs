@@ -3,9 +3,10 @@ use strum::IntoEnumIterator;
 use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, filter_by_tags}, structs::{reference::Reference, tag::Tag}}};
 
 use super::structs::SectionReference;
+use anyhow::Result;
 
 
-pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
     ui.heading("Reference");
     create_reference(section, ui)?;
     filter_bar(section, ui)?;
@@ -13,21 +14,21 @@ pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> 
     return list_references(section, ui);
 }
 
-fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
-    ui.horizontal::<Result<(), ApplicationError>>(|ui| {
+fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
+    ui.horizontal::<Result<()>>(|ui| {
         Tag::iter().try_for_each(|t| {
             let tag_label = ui.selectable_label(section.tag_filter.contains(&t), t.to_string());
             if tag_label.clicked() {
                 update_tag_filter(&t, section)?;
             };
-            return Ok::<(), ApplicationError>(())
+            return Ok::<(), anyhow::Error>(())
         })?;
         return Ok(())
     }).inner?;
     Ok(())
 }
 
-fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<(), ApplicationError>{
+fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<()>{
     if section.tag_filter.contains(tag) {
         section.tag_filter.retain(|tag| !tag.eq(tag));
     } else {
@@ -38,7 +39,7 @@ fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<(), Ap
         .map(|references |section.list_references = references);
 }
 
-fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Titre ");
         ui.text_edit_singleline(&mut section.reference.titre);
@@ -78,7 +79,7 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
 }
 
 
-fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result<(), ApplicationError>{
+fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()>{
     egui::ScrollArea::vertical()
         .id_source("reference")
         .show(ui, |ui| {
@@ -93,7 +94,7 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                         delete(reference)?;
                     }
                     ui.allocate_space(ui.available_size());
-                    return Ok::<(),ApplicationError>(())
+                    return Ok::<(),anyhow::Error>(())
                 });
 
                 return Ok::<(),ApplicationError>(())

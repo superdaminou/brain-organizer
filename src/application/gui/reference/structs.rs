@@ -2,6 +2,7 @@ use crate::application::{error::ApplicationError, gui::structs::Fenetre, referen
 
 use super::reference_gui::section_references;
 
+use anyhow::{Context, Result};
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct SectionReference {
@@ -36,7 +37,10 @@ impl Fenetre for SectionReference {
         });
 
         return match visible {
-            Some(windows) => windows.inner.unwrap_or(Ok(())),
+            Some(windows) => {
+                return windows.inner.context("References GUI Error")?
+                    .map_err(ApplicationError::Other)
+            },
             None => Ok(())
         }
     }

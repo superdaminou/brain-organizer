@@ -52,7 +52,7 @@ impl TryFrom<CsvLine> for Reflexion {
     fn try_from(value: CsvLine) -> Result<Self, ApplicationError> {
         let split = value.split(';').map(String::from).collect::<Vec<String>>();
 
-        let sujet = split.get(0).ok_or(ApplicationError::from("Missing sujet"))?;
+        let sujet = split.get(0).ok_or(ApplicationError::DefaultError)?;
 
         Ok(Reflexion {
             id: Some(Uuid::new_v4().to_string()),

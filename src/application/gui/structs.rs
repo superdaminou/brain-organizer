@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use crate::application::error::ApplicationError;
 
 use super::{app::central_panel, graph::structs::FenetreGraph, reference::structs::SectionReference, reflexion::structs::SectionReflexion};
-
+use anyhow::Result;
 pub struct TemplateApp {
     pub fenetres: Vec<Box<dyn Fenetre>>,
     pub error: AppError,
@@ -86,5 +86,5 @@ pub trait Fenetre {
     // Method signatures; these will return a string.
     fn name(&self) -> &'static str;
 
-    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), ApplicationError>;
+    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(),ApplicationError>;
 }

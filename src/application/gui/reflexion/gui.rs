@@ -1,9 +1,10 @@
 use log::info;
-use crate::application::{error::ApplicationError, reflexion::service::{create, delete, get_all}};
+use crate::application::reflexion::service::{create, delete, get_all};
 use super::structs::{EditText, SectionReflexion};
+use anyhow::{Context, Result};
 
 
-pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()> {
     EditText::default().show(ui, &mut section.edit_reflexion)?;
     new_reflexion(section, ui)?;
     list_reflexions(section, ui)?;
@@ -11,7 +12,7 @@ pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> 
 }
 
 
-fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()> {
     ui.heading("Reflexion");
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Sujet");
@@ -20,7 +21,7 @@ fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()
         let button = egui::Button::new("Créer");
         if ui.add(button).clicked() {
             return create(&section.reflexion.clone())
-                .and_then(|_| get_all())
+                .and_then(|_| get_all().context("Coulnt get all"))
                 .map(|result| section.list_reflexions = result);
 
         }
@@ -32,7 +33,7 @@ fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()
 }
 
 
-fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()> {
 
     ui.horizontal(|ui| {
         if ui.button("Recharger reflexion").clicked() {
@@ -59,7 +60,7 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
                     }
                     if ui.button("Supprimer").clicked() {
                         return delete(&reflexion.clone())
-                            .and_then(|_| get_all())
+                            .and_then(|_| get_all().context("get All"))
                             .map(|result| section.list_reflexions = result);
                     }
                     Ok(())

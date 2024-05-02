@@ -2,24 +2,26 @@
 use log::{info, trace};
 use rusqlite::Connection;
 use refinery::embed_migrations;
-use super::error::ApplicationError;
+use anyhow::{Context, Result};
 
 embed_migrations!("./src/migration");
 
 const DB_PATH: &str = "whatsNext.db";
 
-pub fn ensuring_model() -> Result<(), ApplicationError> {
+pub fn ensuring_model() -> Result<(), anyhow::Error> {
     info!("Ensuring model and running migration if needed");
-    Connection::open(DB_PATH).map_err(ApplicationError::from)
+    opening_database()
         .and_then(|mut connexion | 
-            migrations::runner().run(&mut connexion)
-            .map_err(ApplicationError::from))?;
+            migrations::runner()
+            .run(&mut connexion)
+            .with_context(||"Could not run migration"))
+            .with_context(||"Trouble")?;
 
-    Ok(())
+        Ok(())
 }
 
-pub fn opening_database() -> Result<Connection, ApplicationError> {
+pub fn opening_database() -> Result<Connection> {
     trace!("Opening Database: {}", DB_PATH);
-    Connection::open(DB_PATH).map_err(ApplicationError::from)
+    Connection::open(DB_PATH).with_context(||"Couldnt open database")
 }
 

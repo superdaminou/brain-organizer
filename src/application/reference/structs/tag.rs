@@ -25,7 +25,7 @@ impl TryFrom<String> for Tag {
             "informatique" => Ok(Tag::INFORMATIQUE),
             "politique" => Ok(Tag::POLITIQUE),
             "sociologie" => Ok(Tag::SOCIOLOGIE),
-            _ => Err(ApplicationError::from(format!("Could not determine tag from: {}", value)))
+            _ => Err(ApplicationError::DefaultError)
         }
     }
 }
@@ -41,7 +41,7 @@ impl TryFrom<&str> for Tag {
             "informatique" => Ok(Tag::INFORMATIQUE),
             "politique" => Ok(Tag::POLITIQUE),
             "sociologie" => Ok(Tag::SOCIOLOGIE),
-            _ => Err(ApplicationError::from(format!("Could not determine tag from: {}", value)))
+            _ => Err(ApplicationError::DefaultError)
         }
     }
 }
@@ -57,7 +57,7 @@ impl TryFrom<&String> for Tag {
             "informatique" => Ok(Tag::INFORMATIQUE),
             "politique" => Ok(Tag::POLITIQUE),
             "sociologie" => Ok(Tag::SOCIOLOGIE),
-            _ => Err(ApplicationError::from(format!("Could not determine tag from: {}", value)))
+            _ => Err(ApplicationError::DefaultError)
         }
     }
 }

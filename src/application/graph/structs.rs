@@ -2,7 +2,7 @@ use core::fmt;
 
 use egui_graphs::Node as EguiNode;
 use indradb::{Edge, Identifier, Vertex};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
 use crate::application::error::ApplicationError;
@@ -67,7 +67,7 @@ impl TryFrom<&Edge> for MyEdge {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, EnumIter)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize,  EnumIter)]
 pub enum Type {
     ALieuA,
     DEFINIE,
@@ -77,11 +77,12 @@ impl TryFrom<Identifier> for Type {
     type Error = ApplicationError;
 
     fn try_from(value: Identifier) -> Result<Self, Self::Error> {
-        match value.to_lowercase().as_str() {
+        let value: Result<Type, ApplicationError> = match value.to_lowercase().as_str() {
             "definie" => Ok(Type::DEFINIE),
             "alieua" => Ok(Type::ALieuA),
-            _ => Err(ApplicationError::from(format!("Could not determine tag from: {}", value.to_string())))
-        }
+            _ => Err(ApplicationError::DefaultError)
+        };
+        return  value;
     }
 }
 

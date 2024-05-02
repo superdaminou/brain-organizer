@@ -1,13 +1,15 @@
 use std::{fs::{self, create_dir}, path::Path};
 use log::info;
-use crate::application::{error::ApplicationError, reflexion::structs::Reflexion};
+use crate::application::reflexion::structs::Reflexion;
+
+use anyhow::Result;
 
 pub const REFLEXION_STORAGE: &str = "./storage/";
 pub const REFLEXION_FILE: &str = "reflexion.csv";
 pub const REFERENCE_FILE: &str = "reference.csv";
 
 
-pub fn ensuring_storage() -> Result<(),ApplicationError> {
+pub fn ensuring_storage() -> Result<()> {
     info!("Ensuring storage presence");
     match Path::new(REFLEXION_STORAGE).exists() {
         true => info!("Storage directory present - skipping creation"),
@@ -19,7 +21,7 @@ pub fn ensuring_storage() -> Result<(),ApplicationError> {
     Ok(())
 }
 
-pub fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>) -> Result<(), ApplicationError> {
+pub fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>) -> Result<()> {
     fs::create_dir_all(&destination)?;
     for entry in fs::read_dir(source)? {
         let entry = entry?;

@@ -1,20 +1,52 @@
 use egui::Ui;
-use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, DisplayEdge, DisplayNode, Edge, Graph, GraphView, Node as ENode, NodeProps, SettingsInteraction, SettingsNavigation, SettingsStyle};
-
+use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, DisplayEdge, DisplayNode, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation};
 use petgraph::{csr::{DefaultIx, IndexType}, graph::{EdgeIndex, NodeIndex}, Directed, EdgeType};
 use strum::IntoEnumIterator;
 
 
-use crate::application::{error::ApplicationError, graph::{lib::{get_graph, save_node}, structs::{MyEdge, MyNode, Type}}};
+use crate::application::graph::{lib::{get_graph, save_node, get_node}, structs::{MyEdge, MyNode, Type}};
 
 use super::structs::FenetreGraph;
+use anyhow::Result;
 
 
 
-pub fn show_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
+pub fn show_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()>{
 
-    // Ajout du noeud
+    create_relation(fenetre, ui)?;
+    
+    ui.label("Nom du noeud Entrant");
+    ui.text_edit_singleline(&mut fenetre.search);
+    if ui.button("Getting node").clicked() {
+        fenetre.selected_node = Some(get_node(&fenetre.search)?);
+    };
+
     ui.horizontal(|ui| {
+        if ui.button("get Graph").clicked() {
+            fenetre.graph= actualize_graph(ui);
+        }
+    });
+
+    selected_node(fenetre, ui);
+    create_graph(ui, &mut fenetre.graph);
+    Ok(())
+}
+
+fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) {
+    if !fenetre.graph.selected_nodes().is_empty() {
+        fenetre.selected_node = fenetre.graph.selected_nodes().first()
+            .and_then(|node_index| fenetre.graph.node(*node_index))
+            .map(MyNode::from)
+            .or(Some(MyNode::default()));
+    } else {
+        fenetre.selected_node = None
+    }
+
+    ui.label(format!("This is the selected none: {}", fenetre.selected_node.clone().unwrap_or_default().name));
+}
+
+fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()> {
+    return ui.horizontal(|ui| {
         ui.label("Nom du noeud Entrant");
         ui.text_edit_singleline(&mut fenetre.create_node_in_name);
 
@@ -37,31 +69,8 @@ pub fn show_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicat
             save_node(&fenetre.create_node_in_name, &fenetre.create_node_out_name, &fenetre.create_edge_type)?;
             fenetre.graph= actualize_graph(ui);
         }
-        Ok::<(), ApplicationError>(())
-    });
-
-
-    ui.horizontal(|ui| {
-        if ui.button("get Graph").clicked() {
-            fenetre.graph= actualize_graph(ui);
-        }
-    });
-
-
-    if !fenetre.graph.selected_nodes().is_empty() {
-        fenetre.selected_node = fenetre.graph.selected_nodes().first()
-            .and_then(|node_index| fenetre.graph.node(*node_index))
-            .map(MyNode::from)
-            .or(Some(MyNode::default()));
-    } else {
-        fenetre.selected_node = None
-    }
-
-    ui.label(format!("This is the selected none: {}", fenetre.selected_node.clone().unwrap_or_default().name));
-
-
-    create_graph(ui, &mut fenetre.graph);
-    Ok(())
+        Ok::<(), anyhow::Error>(())
+    }).inner;
 }
 
 fn create_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) -> () {

@@ -1,9 +1,11 @@
 use std::collections::BTreeSet;
 
-use log::info;
+use log::{error, info};
 
 use crate::application::error::ApplicationError;
+
 use super::structs::TemplateApp;
+use anyhow::Result;
 
 pub fn running_gui() -> Result<(), ApplicationError>{
     // OPEN GUI
@@ -16,11 +18,11 @@ pub fn running_gui() -> Result<(), ApplicationError>{
     };
     
     info!("Starting eframe");
-    eframe::run_native(
+    return eframe::run_native(
         "brain manager",
         native_options,
         Box::new(|cc| Box::new(TemplateApp::new(cc))),
-    ).map_err(ApplicationError::from)
+        ).map_err(ApplicationError::from);
 }
 
 pub fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
@@ -67,6 +69,7 @@ pub fn central_panel(template: &mut TemplateApp, ctx: &egui::Context) {
     let errors = errors.into_iter().map(Result::unwrap_err).collect::<Vec<ApplicationError>>();
     if !errors.is_empty() {
         template.error.visible = true;
+        errors.iter().for_each(|err| error!("{}", err.to_string()));
         template.error.msg = errors.iter().map(ApplicationError::to_string).collect::<Vec<String>>().join("\\n");
     }
 

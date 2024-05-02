@@ -21,10 +21,10 @@ fn main() -> Result<(), ApplicationError> {
         .map(|command|Command::from(command.to_owned()))
         .unwrap_or(Command::GUI);
     info!("Detected mode: {}", command);
-    match command {
+    return match command {
         application::command::Command::GUI => running_gui(),
         application::command::Command::IMPORT => import(),
         application::command::Command::EXPORT => export()
-    }
+    };
 }
 

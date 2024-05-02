@@ -6,6 +6,7 @@ use log::info;
 use crate::application::{error::ApplicationError, file::construct_path, gui::structs::Fenetre, reflexion::{service::get_all, structs::Reflexion}};
 
 use super::gui::section_reflexions;
+use anyhow::Result;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct SectionReflexion {
@@ -40,7 +41,7 @@ pub struct EditReflexion {
 
 
 impl EditText {
-    pub fn show(&mut self, ui: &mut Ui,   edit_reflexion: &mut EditReflexion) -> Result<(), ApplicationError> {
+    pub fn show(&mut self, ui: &mut Ui,   edit_reflexion: &mut EditReflexion) -> Result<()> {
         Window::new(&edit_reflexion.reflexion.sujet)
             .open(&mut edit_reflexion.show)
             .vscroll(true)
@@ -78,7 +79,7 @@ impl Fenetre for SectionReflexion {
         "Reflexions"
     }
 
-    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), crate::application::error::ApplicationError> {
+    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), ApplicationError> {
         egui::Window::new(self.name())
         .open(is_open)
         .scroll2(true)
