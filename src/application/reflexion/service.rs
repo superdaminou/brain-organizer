@@ -35,12 +35,11 @@ pub fn delete(reflexion: &Reflexion) -> Result<()> {
 
 pub fn get_all() -> Result<Vec<Reflexion>> {
     let query = "SELECT r.id, r.sujet FROM reflexion as r";
-    return database::opening_database()?
+    database::opening_database()?
             .prepare(query)?
             .query_map([], map_row)?
-            .into_iter()
             .map(|row| row.context("While mapping"))
-            .collect::<Result<Vec<Reflexion>>>();
+            .collect::<Result<Vec<Reflexion>>>()
 }
 
 fn map_row(row: &Row) -> Result<Reflexion, Error> {

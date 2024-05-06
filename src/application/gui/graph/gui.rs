@@ -1,34 +1,52 @@
 use egui::Ui;
-use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, DisplayEdge, DisplayNode, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation};
-use petgraph::{csr::{DefaultIx, IndexType}, graph::{EdgeIndex, NodeIndex}, Directed, EdgeType};
+use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
+use log::info;
+use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, Directed};
 use strum::IntoEnumIterator;
 
 
 use crate::application::graph::{lib::{get_graph, save_node, get_node}, structs::{MyEdge, MyNode, Type}};
 
 use super::structs::FenetreGraph;
-use anyhow::Result;
+use anyhow::{Ok, Result};
 
 
 
 pub fn show_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()>{
 
     create_relation(fenetre, ui)?;
-    
-    ui.label("Nom du noeud Entrant");
-    ui.text_edit_singleline(&mut fenetre.search);
-    if ui.button("Getting node").clicked() {
-        fenetre.selected_node = Some(get_node(&fenetre.search)?);
-    };
-
-    ui.horizontal(|ui| {
-        if ui.button("get Graph").clicked() {
-            fenetre.graph= actualize_graph(ui);
-        }
-    });
-
+    find_node(fenetre, ui)?;
     selected_node(fenetre, ui);
+    if ui.button("Load graph").clicked() {
+        fenetre.graph =  actualize_graph(ui)?;
+    }
     create_graph(ui, &mut fenetre.graph);
+    Ok(())
+}
+
+fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()>{
+    ui.horizontal(|ui| {
+        ui.label("Nom du noeud Entrant");
+        ui.text_edit_singleline(&mut fenetre.search);
+        if ui.button("Getting node").clicked() {
+            let node =get_node(&fenetre.search)?;
+            fenetre.selected_node = Some(node);
+            let gui_node = fenetre.graph.nodes_iter()
+                .find(|node| node.1.payload().name == fenetre.search);
+            match gui_node {
+                Some(node) => {
+                    let index  = node.0;
+                    fenetre.graph.set_selected_nodes(vec![index]);
+                    fenetre.graph
+                        .node_mut(index)
+                        .unwrap()
+                        .set_selected(true);
+                },
+                None => info!("Node not found in gui graph: {}", fenetre.search)
+            }
+        };
+        Ok(())
+    }).inner?;
     Ok(())
 }
 
@@ -46,9 +64,9 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) {
 }
 
 fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()> {
-    return ui.horizontal(|ui| {
-        ui.label("Nom du noeud Entrant");
-        ui.text_edit_singleline(&mut fenetre.create_node_in_name);
+    ui.horizontal(|ui| {
+        ui.label("Nom du noeud Sortant");
+        ui.text_edit_singleline(&mut fenetre.create_node_out_name);
 
         egui::ComboBox::from_id_source("Tags").selected_text(fenetre.create_edge_type.to_string())
             .show_ui(ui, |ui| {
@@ -61,19 +79,18 @@ fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()> {
             }
         );
 
-
-        ui.label("Nom du noeud sortant");
-        ui.text_edit_singleline(&mut fenetre.create_node_out_name);
+        ui.label("Nom du noeud Entrant");
+        ui.text_edit_singleline(&mut fenetre.create_node_in_name);
         
         if ui.button("Add Node").clicked() {
             save_node(&fenetre.create_node_in_name, &fenetre.create_node_out_name, &fenetre.create_edge_type)?;
-            fenetre.graph= actualize_graph(ui);
+            fenetre.graph= actualize_graph(ui)?;
         }
-        Ok::<(), anyhow::Error>(())
-    }).inner;
+        Ok(())
+    }).inner
 }
 
-fn create_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) -> () {
+fn create_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) {
     ui.add(&mut GraphView::<
         _,
         _,
@@ -90,45 +107,31 @@ fn create_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) -> () {
         .with_node_clicking_enabled(true)
         .with_node_selection_enabled(true)
         .with_edge_clicking_enabled(true)
-        .with_edge_selection_enabled(true)));
+        .with_edge_selection_enabled(true))
+    .with_styles(&SettingsStyle::new().with_labels_always(true)));
 }
 
 
-fn actualize_graph(ui: &mut Ui) -> egui_graphs::Graph<MyNode, MyEdge> {
+fn actualize_graph(ui: &mut Ui) -> Result<egui_graphs::Graph<MyNode, MyEdge>> {
     GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
-    return to_graph_custom::<>(
-        &get_graph().unwrap(), 
-        node_transform::<MyNode, MyEdge, Directed, u32, DefaultNodeShape>, 
-        edge_transform::<MyNode, MyEdge,Directed, u32, DefaultNodeShape, DefaultEdgeShape>);
+    Ok(to_graph_custom::<>(
+            &get_graph()?, 
+            node_transform, 
+            edge_transform))
 }
-pub fn node_transform<
-    N: Clone,
-    E: Clone,
-    Ty: EdgeType,
-    Ix: IndexType,
-    D: DisplayNode<N, E, Ty, Ix>,
->(
+pub fn node_transform(
     idx: NodeIndex<u32>,
     payload: &MyNode,
 ) -> ENode<MyNode, MyEdge> {
-    return default_node_transform::<MyNode,MyEdge, Directed, u32,DefaultNodeShape>(idx , &payload)
-        .with_label(payload.name.clone());
-    
+    default_node_transform::<MyNode,MyEdge, Directed, u32,DefaultNodeShape>(idx , payload)
+        .with_label(payload.name.clone())  
 }
 
-pub fn edge_transform<
-    N: Clone,
-    E: Clone,
-    Ty: EdgeType,
-    Ix: IndexType,
-    Dn: DisplayNode<N, E, Ty, Ix>,
-    D: DisplayEdge<N, E, Ty, Ix, Dn>,
->(
+pub fn edge_transform(
     idx: EdgeIndex<u32>,
     payload: &MyEdge,
     order: usize,
 ) -> Edge<MyNode, MyEdge> {
-    return default_edge_transform::<MyNode,MyEdge,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , &payload, order)
-        .with_label(payload.edge_type.to_string());
-    
+    default_edge_transform::<MyNode,MyEdge,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , payload, order)
+        .with_label(payload.edge_type.to_string())
 }

@@ -286,6 +286,7 @@ dependencies = [
  "refinery",
  "rusqlite",
  "serde",
+ "serde_json",
  "strum",
  "strum_macros",
  "thiserror",

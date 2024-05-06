@@ -19,12 +19,12 @@ fn main() -> Result<(), ApplicationError> {
     let args: Vec<String> = env::args().collect();
     let command = args.get(1)
         .map(|command|Command::from(command.to_owned()))
-        .unwrap_or(Command::GUI);
+        .unwrap_or(Command::Gui);
     info!("Detected mode: {}", command);
-    return match command {
-        application::command::Command::GUI => running_gui(),
-        application::command::Command::IMPORT => import(),
-        application::command::Command::EXPORT => export()
-    };
+    match command {
+        application::command::Command::Gui => running_gui(),
+        application::command::Command::Import => import(),
+        application::command::Command::Export => export()
+    }
 }
 

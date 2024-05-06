@@ -92,7 +92,7 @@ pub fn get_all() -> Result<Vec<Reference>> {
             .collect::<Vec<Reference>>())
 }
 
-pub fn filter_by_tags(tags: &Vec<Tag>) -> Result<Vec<Reference>> {
+pub fn filter_by_tags(tags: &[Tag]) -> Result<Vec<Reference>> {
     if tags.is_empty() {
         return get_all();
     }
@@ -127,12 +127,12 @@ fn repeat_vars(count: usize) -> String {
 
 pub fn get_one(id: Uuid) -> Result<Reference> {
     let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag FROM reference as r LEFT JOIN tag as t ON t.reference_id = r.id WHERE r.id = :id GROUP BY r.id LIMIT 1;";
-    return database::opening_database()?
+    database::opening_database()?
             .prepare(query)?
             .query_map([id.to_string()], map_row)?
             .map(|row| row.unwrap())
             .next()
-            .context("Not found");
+            .context("Not found")
 }
 
 fn map_row(row: &Row) -> Result<Reference, Error> {

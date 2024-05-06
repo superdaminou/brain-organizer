@@ -24,7 +24,7 @@ impl Default for FenetreGraph {
             selected_node: Option::default(),
             create_node_in_name: String::default(),
             create_node_out_name: String::default(),
-            create_edge_type: Type::DEFINIE,
+            create_edge_type: Type::Definie,
             search: String::default()
         }
     } 
@@ -39,12 +39,12 @@ impl Fenetre for FenetreGraph {
         let visible = egui::Window::new(self.name())
         .open(is_open)
         .show(ctx, |ui| {
-            return show_graph(self, ui);
+            show_graph(self, ui)
         });
 
-        return match visible {
+        match visible {
             Some(windows) => {
-                return windows.inner.context("Graph GUI Error")?
+                windows.inner.context("Graph GUI Error")?
                     .map_err(ApplicationError::Other)
             },
             None => Ok(())

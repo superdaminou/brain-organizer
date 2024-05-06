@@ -26,3 +26,4 @@ petgraph = {version = "0.6", features = ["serde-1"]}
 indradb-lib = { version = "4.0", features = ["rocksdb-datastore"]}
 anyhow = {version = "1.0"}
 thiserror ={ version = "1.0"}
+serde_json = { version = "1.0"}

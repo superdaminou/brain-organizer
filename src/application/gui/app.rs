@@ -18,11 +18,11 @@ pub fn running_gui() -> Result<(), ApplicationError>{
     };
     
     info!("Starting eframe");
-    return eframe::run_native(
+    eframe::run_native(
         "brain manager",
         native_options,
         Box::new(|cc| Box::new(TemplateApp::new(cc))),
-        ).map_err(ApplicationError::from);
+        ).map_err(ApplicationError::from)
 }
 
 pub fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {

@@ -15,7 +15,7 @@ pub struct SectionReference {
 impl Default for SectionReference {
     fn default() -> Self {
         Self {
-            reference: Reference::default().into(),
+            reference: Reference::default(),
             list_references: get_all().unwrap_or_default(),
             tag_filter: vec![]
         }
@@ -33,12 +33,12 @@ impl Fenetre for SectionReference {
         .open(is_open)
         .scroll2(true)
         .show(ctx, |ui| {
-            return section_references(self, ui)
+            section_references(self, ui)
         });
 
-        return match visible {
+        match visible {
             Some(windows) => {
-                return windows.inner.context("References GUI Error")?
+                windows.inner.context("References GUI Error")?
                     .map_err(ApplicationError::Other)
             },
             None => Ok(())

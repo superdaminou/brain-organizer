@@ -6,11 +6,11 @@ use crate::application::error::ApplicationError;
 
 #[derive(Debug, Clone, EnumIter, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Tag {
-    PHILOSOPHIE,
-    INFORMATIQUE,
-    SOCIOLOGIE,
-    POLITIQUE,
-    HISTOIRE
+    Philosophie,
+    Informatique,
+    Sociologie,
+    Politique,
+    Histoire
 }
 
 
@@ -20,11 +20,11 @@ impl TryFrom<String> for Tag {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.to_lowercase().as_str() {
-            "philosophie" => Ok(Tag::PHILOSOPHIE),
-            "histoire" => Ok(Tag::HISTOIRE),
-            "informatique" => Ok(Tag::INFORMATIQUE),
-            "politique" => Ok(Tag::POLITIQUE),
-            "sociologie" => Ok(Tag::SOCIOLOGIE),
+            "philosophie" => Ok(Tag::Philosophie),
+            "histoire" => Ok(Tag::Histoire),
+            "informatique" => Ok(Tag::Informatique),
+            "politique" => Ok(Tag::Politique),
+            "sociologie" => Ok(Tag::Sociologie),
             _ => Err(ApplicationError::DefaultError)
         }
     }
@@ -36,11 +36,11 @@ impl TryFrom<&str> for Tag {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         match value.to_lowercase().as_str() {
-            "philosophie" => Ok(Tag::PHILOSOPHIE),
-            "histoire" => Ok(Tag::HISTOIRE),
-            "informatique" => Ok(Tag::INFORMATIQUE),
-            "politique" => Ok(Tag::POLITIQUE),
-            "sociologie" => Ok(Tag::SOCIOLOGIE),
+            "philosophie" => Ok(Tag::Philosophie),
+            "histoire" => Ok(Tag::Histoire),
+            "informatique" => Ok(Tag::Informatique),
+            "politique" => Ok(Tag::Politique),
+            "sociologie" => Ok(Tag::Sociologie),
             _ => Err(ApplicationError::DefaultError)
         }
     }
@@ -52,11 +52,11 @@ impl TryFrom<&String> for Tag {
 
     fn try_from(value: &String) -> Result<Self, Self::Error> {
         return match value.to_lowercase().as_str() {
-            "philosophie" => Ok(Tag::PHILOSOPHIE),
-            "histoire" => Ok(Tag::HISTOIRE),
-            "informatique" => Ok(Tag::INFORMATIQUE),
-            "politique" => Ok(Tag::POLITIQUE),
-            "sociologie" => Ok(Tag::SOCIOLOGIE),
+            "philosophie" => Ok(Tag::Philosophie),
+            "histoire" => Ok(Tag::Histoire),
+            "informatique" => Ok(Tag::Informatique),
+            "politique" => Ok(Tag::Politique),
+            "sociologie" => Ok(Tag::Sociologie),
             _ => Err(ApplicationError::DefaultError)
         }
     }
@@ -68,11 +68,11 @@ impl TryFrom<&String> for Tag {
 impl fmt::Display for Tag {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Tag::PHILOSOPHIE => write!(f, "Philosophie"),
-            Tag::HISTOIRE => write!(f,"Histoire"),
-            Tag::INFORMATIQUE => write!(f, "Informatique"),
-            Tag::POLITIQUE => write!(f, "Politique"),
-            Tag::SOCIOLOGIE => write!(f, "Sociologie")
+            Tag::Philosophie => write!(f, "Philosophie"),
+            Tag::Histoire => write!(f,"Histoire"),
+            Tag::Informatique => write!(f, "Informatique"),
+            Tag::Politique => write!(f, "Politique"),
+            Tag::Sociologie => write!(f, "Sociologie")
         }
     }
 }
@@ -80,11 +80,11 @@ impl fmt::Display for Tag {
 impl From<Tag> for String {
     fn from(val: Tag) -> Self {
         match val {
-            Tag::PHILOSOPHIE => String::from("Philosophie"),
-            Tag::HISTOIRE => String::from("Histoire"),
-            Tag::INFORMATIQUE => String::from( "Informatique"),
-            Tag::POLITIQUE => String::from("Politque"),
-            Tag::SOCIOLOGIE => String::from("Sociologie")
+            Tag::Philosophie => String::from("Philosophie"),
+            Tag::Histoire => String::from("Histoire"),
+            Tag::Informatique => String::from( "Informatique"),
+            Tag::Politique => String::from("Politque"),
+            Tag::Sociologie => String::from("Sociologie")
         }
     }
 }

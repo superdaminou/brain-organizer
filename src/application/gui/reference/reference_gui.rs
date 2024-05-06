@@ -11,7 +11,7 @@ pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> 
     create_reference(section, ui)?;
     filter_bar(section, ui)?;
     ui.separator();
-    return list_references(section, ui);
+    list_references(section, ui)
 }
 
 fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
@@ -21,9 +21,9 @@ fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
             if tag_label.clicked() {
                 update_tag_filter(&t, section)?;
             };
-            return Ok::<(), anyhow::Error>(())
+            Ok::<(), anyhow::Error>(())
         })?;
-        return Ok(())
+        Ok(())
     }).inner?;
     Ok(())
 }
@@ -35,8 +35,8 @@ fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<()>{
         section.tag_filter.push(tag.clone());
     }
 
-    return filter_by_tags(&section.tag_filter)
-        .map(|references |section.list_references = references);
+    filter_by_tags(&section.tag_filter)
+        .map(|references |section.list_references = references)
 }
 
 fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
@@ -65,7 +65,7 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
-            return create_or_update(&section.reference.clone().into())
+            return create_or_update(&section.reference.clone())
                 .and_then(|_|filter_by_tags(&section.tag_filter))
                 .map(|list| section.list_references = list)
                 .map(|_| section.reference = Reference::default());
@@ -83,7 +83,7 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
     egui::ScrollArea::vertical()
         .id_source("reference")
         .show(ui, |ui| {
-            return section.list_references.iter().try_for_each(|reference| {
+            section.list_references.iter().try_for_each(|reference| {
                 ui.horizontal(|ui| {
                     ui.hyperlink_to(&reference.titre, &reference.url);
                     ui.label(reference.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
@@ -94,11 +94,11 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                         delete(reference)?;
                     }
                     ui.allocate_space(ui.available_size());
-                    return Ok::<(),anyhow::Error>(())
+                    Ok::<(),anyhow::Error>(())
                 });
 
-                return Ok::<(),ApplicationError>(())
-            });
+                Ok::<(),ApplicationError>(())
+            })
         });
     Ok(())
 }
