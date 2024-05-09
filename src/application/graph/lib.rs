@@ -104,3 +104,11 @@ pub fn get_node(name: &String) -> Result<MyNode> {
         .map(MyNode::from)
         .context("Not found");
 }
+
+
+fn import_from_file() -> Result<StableGraph<MyNode, MyEdge>> {
+
+    let a=  StableGraph::new();
+
+    return  anyhow::Ok(a);
+}

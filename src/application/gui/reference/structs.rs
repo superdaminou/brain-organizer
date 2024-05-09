@@ -38,8 +38,8 @@ impl Fenetre for SectionReference {
 
         match visible {
             Some(windows) => {
-                windows.inner.context("References GUI Error")?
-                    .map_err(ApplicationError::Other)
+                windows.inner.transpose()?;
+                Ok(())
             },
             None => Ok(())
         }

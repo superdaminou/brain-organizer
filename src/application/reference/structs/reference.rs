@@ -1,3 +1,4 @@
+use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -12,7 +13,8 @@ pub struct Reference {
     pub id: Option<String>,
     pub titre: String,
     pub url: String,
-    pub tags: Vec<Tag>
+    pub tags: Vec<Tag>,
+    pub date_creation: NaiveDate<>
 }
 
 
@@ -34,7 +36,8 @@ impl TryFrom<CsvLine> for Reference {
             id: Some(Uuid::new_v4().to_string()),
             titre: split.first().expect("Missing title").to_string(),
             tags: categorie,
-            url: split.get(2).expect("Missing url").to_string()
+            url: split.get(2).expect("Missing url").to_string(),
+            date_creation: Local::now().date_naive()
         })
     }
     
@@ -56,7 +59,8 @@ impl TryFrom<&str> for Reference {
             id: Some(Uuid::new_v4().to_string()),
             titre: split.first().expect("Missing title").to_string(),
             tags: categorie,
-            url: split.get(2).expect("Missing url").to_string()
+            url: split.get(2).expect("Missing url").to_string(),
+            date_creation: Local::now().date_naive()
         })
     }
     
@@ -77,7 +81,8 @@ impl Default for Reference {
             tags: vec![],
             id: None,
             titre: String::from("Reference"),
-            url: String::from("www.url.com")
+            url: String::from("www.url.com"),
+            date_creation: Local::now().date_naive()
         }
     }
 }

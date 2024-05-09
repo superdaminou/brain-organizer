@@ -27,3 +27,5 @@ indradb-lib = { version = "4.0", features = ["rocksdb-datastore"]}
 anyhow = {version = "1.0"}
 thiserror ={ version = "1.0"}
 serde_json = { version = "1.0"}
+chrono = { version = "0.4", features = ["serde"]}
+regex ={ version = "1.10"}

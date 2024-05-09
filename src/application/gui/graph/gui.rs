@@ -18,7 +18,7 @@ pub fn show_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()>{
     find_node(fenetre, ui)?;
     selected_node(fenetre, ui);
     if ui.button("Load graph").clicked() {
-        fenetre.graph =  actualize_graph(ui)?;
+        fenetre.graph = actualize_graph(ui)?;
     }
     create_graph(ui, &mut fenetre.graph);
     Ok(())
