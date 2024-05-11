@@ -5,7 +5,7 @@ use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, Directed};
 use strum::IntoEnumIterator;
 
 
-use crate::application::graph::{lib::{get_graph, save_node, get_node}, structs::{MyEdge, MyNode, Type}};
+use crate::application::graph::{lib::{get_graph, get_node, save_relation}, structs::{MyEdge, MyNode, Relations, Type}};
 
 use super::structs::FenetreGraph;
 use anyhow::{Ok, Result};
@@ -32,7 +32,7 @@ fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()>{
             let node =get_node(&fenetre.search)?;
             fenetre.selected_node = Some(node);
             let gui_node = fenetre.graph.nodes_iter()
-                .find(|node| node.1.payload().name == fenetre.search);
+                .find(|node| node.1.payload().identifier == fenetre.search);
             match gui_node {
                 Some(node) => {
                     let index  = node.0;
@@ -60,7 +60,7 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) {
         fenetre.selected_node = None
     }
 
-    ui.label(format!("This is the selected none: {}", fenetre.selected_node.clone().unwrap_or_default().name));
+    ui.label(format!("This is the selected none: {}", fenetre.selected_node.clone().unwrap_or_default().identifier));
 }
 
 fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()> {
@@ -83,7 +83,10 @@ fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<()> {
         ui.text_edit_singleline(&mut fenetre.create_node_in_name);
         
         if ui.button("Add Node").clicked() {
-            save_node(&fenetre.create_node_in_name, &fenetre.create_node_out_name, &fenetre.create_edge_type)?;
+            let node_out = MyNode::from(&fenetre.create_node_out_name);
+            let node_in = MyNode::from(&fenetre.create_node_in_name);
+            let edge =  MyEdge::from(fenetre.create_edge_type.clone());
+            save_relation(Relations{node_out ,edge, node_in})?;
             fenetre.graph= actualize_graph(ui)?;
         }
         Ok(())
@@ -124,7 +127,7 @@ pub fn node_transform(
     payload: &MyNode,
 ) -> ENode<MyNode, MyEdge> {
     default_node_transform::<MyNode,MyEdge, Directed, u32,DefaultNodeShape>(idx , payload)
-        .with_label(payload.name.clone())  
+        .with_label(payload.identifier.clone())  
 }
 
 pub fn edge_transform(

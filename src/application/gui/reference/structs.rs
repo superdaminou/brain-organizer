@@ -2,7 +2,7 @@ use crate::application::{error::ApplicationError, gui::structs::Fenetre, referen
 
 use super::reference_gui::section_references;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct SectionReference {

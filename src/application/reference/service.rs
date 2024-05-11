@@ -137,7 +137,7 @@ pub fn get_one(id: Uuid) -> Result<Reference> {
         WHERE r.id = :id 
         GROUP BY r.id 
         LIMIT 1;";
-    return database::opening_database()?
+    database::opening_database()?
             .prepare(query)?
             .query_map([id.to_string()], map_row)?
             .next()
