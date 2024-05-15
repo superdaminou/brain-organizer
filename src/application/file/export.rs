@@ -17,7 +17,11 @@ pub fn export() -> Result<(), ApplicationError> {
         }
     }
 
+    export_reference()?;
+    export_reflexions()
+}
 
+fn export_reference() -> Result<(), ApplicationError> {
     info!("Start exporting reference file: {}", REFERENCE_FILE);
     let mut references_file = File::create(EXPORT_STORAGE.to_string() + REFERENCE_FILE).map_err(ApplicationError::FileWriteError)?;
     let content = reference::service::get_all()?
@@ -26,8 +30,10 @@ pub fn export() -> Result<(), ApplicationError> {
         .collect::<Vec<String>>()
         .join("\r\n");
     
-    references_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)?;
-    
+    references_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)
+}
+
+fn export_reflexions() -> Result<(), ApplicationError> {
     info!("Start exporting reflexion entries: {}", REFLEXION_FILE);
     let mut reflexion_file = File::create(EXPORT_STORAGE.to_string() + REFLEXION_FILE).map_err(ApplicationError::FileWriteError)?;
     let content = reflexion::service::get_all()?
@@ -37,7 +43,17 @@ pub fn export() -> Result<(), ApplicationError> {
         .join("\r\n");
 
     reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)?;
-
-
     copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE).map_err(ApplicationError::Other)
 }
+
+
+// fn export_graph() -> Result<(), ApplicationError> {
+//     info!("Start exporting reflexion entries: {}", NODES_FILE);
+//     let mut node_file = File::create(EXPORT_STORAGE.to_string() + NODES_FILE).map_err(ApplicationError::FileWriteError)?;
+//     let mut relations_file = File::create(EXPORT_STORAGE.to_string() + RELATIONS_FILE).map_err(ApplicationError::FileWriteError)?;
+    
+//     let graph = graph::lib::get_graph()?;
+
+//     let a  = graph.nodes_iter();
+//     reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)?;
+// }

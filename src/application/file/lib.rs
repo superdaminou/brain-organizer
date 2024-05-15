@@ -1,6 +1,6 @@
 use std::{fs::{self, create_dir}, path::Path};
 use log::info;
-use crate::application::{graph::lib::{IDENTIFIER, NODE_TYPE}, reflexion::structs::Reflexion};
+use crate::application::{graph::lib::{DATABASE_NAME, IDENTIFIER, NODE_TYPE}, reflexion::structs::Reflexion};
 
 use anyhow::Result;
 
@@ -9,7 +9,6 @@ pub const REFLEXION_FILE: &str = "reflexion.csv";
 pub const NODES_FILE: &str = "nodes.csv";
 pub const RELATIONS_FILE: &str = "relations.csv";
 pub const REFERENCE_FILE: &str = "reference.csv";
-pub const GRAPH_DATABASE: &str = "rock.h";
 
 
 pub fn ensuring_storage() -> Result<()> {
@@ -22,11 +21,11 @@ pub fn ensuring_storage() -> Result<()> {
         }
     }
     
-    match Path::new(GRAPH_DATABASE).exists() {
+    match Path::new(DATABASE_NAME).exists() {
         true => info!("Graph database already exists"),
         false => {
-            info!("Creating graph database directory: {}", GRAPH_DATABASE);
-            let db = indradb::RocksdbDatastore::new_db("rock.h")?;
+            info!("Creating graph database directory: {}", DATABASE_NAME);
+            let db = indradb::RocksdbDatastore::new_db(DATABASE_NAME)?;
             db.index_property(indradb::Identifier::new(IDENTIFIER)?)?;
             db.index_property(indradb::Identifier::new(NODE_TYPE)?)?;
         }

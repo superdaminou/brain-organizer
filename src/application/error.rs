@@ -13,7 +13,6 @@ pub enum ApplicationError
     #[error("Not found")]
     NotFoundError,
 
-
     #[error("Could not determine enum from: {0}")]
     EnumError(&'static str),
     
@@ -34,4 +33,7 @@ pub enum ApplicationError
 
     #[error(transparent)]
     EframeError(#[from] eframe::Error),
+
+    #[error(transparent)]
+    Indra(#[from] indradb::Error)
 }

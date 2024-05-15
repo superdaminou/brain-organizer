@@ -16,8 +16,8 @@ fn main() -> Result<(), ApplicationError> {
 
 
     // MATCH COMMANDS AND DO WHATS NEEDED
-    let args: Vec<String> = env::args().collect();
-    let command = args.get(1)
+    let command = env::args().collect::<Vec<String>>()
+        .get(1)
         .map(|command|Command::from(command.to_owned()))
         .unwrap_or(Command::Gui);
     info!("Detected mode: {}", command);
