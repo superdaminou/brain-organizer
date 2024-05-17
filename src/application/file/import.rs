@@ -1,6 +1,6 @@
-use std::{fs::read_to_string};
+use std::fs::read_to_string;
 
-use log::info;
+use log::{error, info};
 
 use crate::application::{error::ApplicationError, file::lib::{copy_recursively, NODES_FILE, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE, RELATIONS_FILE}, graph::{self, structs::{my_node::MyNode, relation::Relations}}, reference::{self, structs::reference::{CsvLine, Reference}}, reflexion::{self, structs::Reflexion}};
 use anyhow::{Context, Result};
@@ -14,7 +14,15 @@ pub fn import() -> Result<(), ApplicationError> {
         .map(Reference::try_from)
         .collect::<Result<Vec<Reference>, ApplicationError>>()?
         .iter()
-        .try_for_each(reference::service::create)?;
+        .map(reference::service::create)
+        .for_each(|result| {
+            match result {
+                Ok(()) => info!("Successfull import"),
+                Err(e) => error!("error while inserting reference: {}", e)
+            }
+        });
+
+
 
     info!("Start importing reflexion file: {}", REFLEXION_FILE);
     read_to_string(IMPORT_STORAGE.to_string() + REFLEXION_FILE).context("Read file")?  
@@ -23,8 +31,13 @@ pub fn import() -> Result<(), ApplicationError> {
         .map(Reflexion::try_from)
         .collect::<Result<Vec<Reflexion>, ApplicationError>>()?
         .iter()
-        .try_for_each(reflexion::service::create)?;
-
+        .map(reflexion::service::create)
+        .for_each(|result| {
+            match result {
+                Ok(()) => (),
+                Err(e) => error!("error while inserting reflexion: {}", e)
+            }
+        });
     
     copy_recursively(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE, REFLEXION_STORAGE).map_err(ApplicationError::Other)?;
     
