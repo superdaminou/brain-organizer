@@ -1,6 +1,6 @@
 use std::{fs::{self, create_dir}, path::Path};
 use log::info;
-use crate::application::{graph::lib::{DATABASE_NAME, IDENTIFIER, NODE_TYPE}, reflexion::structs::Reflexion};
+use crate::application::{graph::lib::{DATABASE_NAME, IDENTIFIER, NODE_TYPE}, reflexion::Reflexion};
 
 use anyhow::Result;
 
@@ -22,16 +22,18 @@ pub fn ensuring_storage() -> Result<()> {
     }
     
     match Path::new(DATABASE_NAME).exists() {
-        true => info!("Graph database already exists"),
+        true => {
+            info!("Graph database already exists");
+            Ok(())
+        },
         false => {
             info!("Creating graph database directory: {}", DATABASE_NAME);
             let db = indradb::RocksdbDatastore::new_db(DATABASE_NAME)?;
             db.index_property(indradb::Identifier::new(IDENTIFIER)?)?;
             db.index_property(indradb::Identifier::new(NODE_TYPE)?)?;
+            Ok(())
         }
     }
-
-    Ok(())
 }
 
 pub fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>) -> Result<()> {

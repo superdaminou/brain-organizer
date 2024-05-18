@@ -111,3 +111,18 @@ impl FromStr for NodeType {
         value
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::application::graph::structs::my_node::NodeType;
+
+    #[test]
+    fn try_from_unknown_identifier() {
+        let result = NodeType::from_str("unexpected");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().to_string(), "Could not determine enum from: unexpected" )
+    }
+
+}

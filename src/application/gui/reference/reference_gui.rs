@@ -1,6 +1,6 @@
 use strum::IntoEnumIterator;
 
-use crate::application::{error::ApplicationError, reference::{service::{create_or_update, delete, filter_by_tags}, structs::{reference::Reference, tag::Tag}}};
+use crate::application::{error::ApplicationError, reference::{service::ReferenceDatabase, structs::{reference::Reference, tag::Tag}}};
 
 use super::structs::SectionReference;
 use anyhow::Result;
@@ -35,7 +35,7 @@ fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<()>{
         section.tag_filter.push(tag.clone());
     }
 
-    filter_by_tags(&section.tag_filter)
+    Reference::filter_by_tags(&section.tag_filter)
         .map(|references |section.list_references = references)
 }
 
@@ -65,8 +65,8 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
-            return create_or_update(&section.reference.clone())
-                .and_then(|_|filter_by_tags(&section.tag_filter))
+            return Reference::create_or_update(&section.reference.clone())
+                .and_then(|_|Reference::filter_by_tags(&section.tag_filter))
                 .map(|list| section.list_references = list)
                 .map(|_| section.reference = Reference::default());
                     
@@ -92,7 +92,7 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                         section.reference = reference.clone();
                     }
                     if ui.button("Supprimer").clicked() {
-                        delete(reference)?;
+                        Reference::delete(reference)?;
                     }
                     ui.allocate_space(ui.available_size());
                     Ok::<(),anyhow::Error>(())

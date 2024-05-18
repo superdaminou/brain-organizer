@@ -16,13 +16,10 @@ pub const NODE_TYPE : &str= "NodeType";
 pub const IDENTIFIER : &str= "Identifier";
 pub const DATABASE_NAME : &str = "graph.h";
 
+pub struct  Graph {}
+impl GraphDatabase for Graph {
 
-fn get_database() -> Result<Database<RocksdbDatastore>, ApplicationError> {
-    debug!("Opening graph database: {}", DATABASE_NAME);
-    indradb::RocksdbDatastore::new_db(DATABASE_NAME).map_err(ApplicationError::Indra)
-}
-
-pub fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
+fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
     info!("Getting all");
     let db =  get_database()?;
     
@@ -58,7 +55,7 @@ pub fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
     Ok(graph)
 }
 
-pub fn save_nodes(nodes: Vec<MyNode>) -> Result<(), ApplicationError> {
+fn save_nodes(nodes: Vec<MyNode>) -> Result<(), ApplicationError> {
     let db = get_database()?;
     let identifier= indradb::Identifier::new(IDENTIFIER).context("Creating identifier")?;
     
@@ -74,7 +71,7 @@ pub fn save_nodes(nodes: Vec<MyNode>) -> Result<(), ApplicationError> {
 }
 
 
-pub fn save_relations(relations: Vec<Relations>) -> Result<(), ApplicationError> {
+fn save_relations(relations: Vec<Relations>) -> Result<(), ApplicationError> {
     let db = get_database()?;
     
     let mut bulk_edges = vec![];
@@ -91,7 +88,7 @@ pub fn save_relations(relations: Vec<Relations>) -> Result<(), ApplicationError>
 }
 
 
-pub fn save_relation(relation: Relations) -> Result<(), ApplicationError> {
+fn save_relation(relation: Relations) -> Result<(), ApplicationError> {
     let db  = get_database()?;
 
     let node_in = get_or_create_vertex(relation.node_in, &db)?;
@@ -103,7 +100,7 @@ pub fn save_relation(relation: Relations) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-pub fn get_node(name: &String) -> Result<MyNode, ApplicationError> {
+fn get_node(name: &str) -> Result<MyNode, ApplicationError> {
     info!("Getting node with identifier: {}", name);
     let db = get_database()?;
     let q = VertexWithPropertyValueQuery::new(Identifier::new(IDENTIFIER).context("Creating identifier")?, Json::new(json!(name)));
@@ -115,34 +112,10 @@ pub fn get_node(name: &String) -> Result<MyNode, ApplicationError> {
         .context("Extracting vertex properties")?
         .first()
         .map(MyNode::from)
-        .ok_or(ApplicationError::NotFoundError(name.clone()));
+        .ok_or(ApplicationError::NotFoundError(name.to_string()));
 }
 
-fn get_or_create_vertex(node: MyNode, db: &Database<RocksdbDatastore>) -> Result<indradb::Vertex, ApplicationError>{
-    let key = identifier(IDENTIFIER)?;
-    return match db.get(VertexWithPropertyValueQuery::new(key, Json::new(json!(node.identifier.clone()))))
-        .map(indradb::util::extract_vertices)?
-        .unwrap_or_default()
-        .first() {
-            Some(v) => Ok(v.to_owned()),
-            None => create_vertex(db, node).map_err(ApplicationError::Other)
-        };
-}
-
-fn create_vertex(db: &indradb::Database<RocksdbDatastore>,node: MyNode) -> Result<indradb::Vertex> {
-    let key = identifier(IDENTIFIER)?;
-    let node_type= identifier(NODE_TYPE)?;
-    let vertex = indradb::Vertex::new(key);
-    db.create_vertex(&vertex)?;
-    db.set_properties(SpecificVertexQuery::single(vertex.id), key, &indradb::Json::new(json!(node.identifier)))?;
-    db.set_properties(SpecificVertexQuery::single(vertex.id), node_type, &indradb::Json::new(json!(node.node_type.to_string())))?;
-    Ok(vertex)
-}
-
-fn identifier(key: &str) -> Result<indradb::Identifier> {
-    indradb::Identifier::new(key).context("Creating identifier")
-}
-pub fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
+fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
     info!("Getting {}", node.identifier);
     let db =  get_database()?;
     let query = SpecificVertexQuery::single(node.id);
@@ -187,3 +160,46 @@ pub fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdg
     
     Ok(graph)
 }
+
+}
+
+fn identifier(key: &str) -> Result<indradb::Identifier> {
+    indradb::Identifier::new(key).context("Creating identifier")
+}
+
+fn get_or_create_vertex(node: MyNode, db: &Database<RocksdbDatastore>) -> Result<indradb::Vertex, ApplicationError>{
+    let key = identifier(IDENTIFIER)?;
+    return match db.get(VertexWithPropertyValueQuery::new(key, Json::new(json!(node.identifier.clone()))))
+        .map(indradb::util::extract_vertices)?
+        .unwrap_or_default()
+        .first() {
+            Some(v) => Ok(v.to_owned()),
+            None => create_vertex(db, node).map_err(ApplicationError::Other)
+        };
+}
+
+fn create_vertex(db: &indradb::Database<RocksdbDatastore>,node: MyNode) -> Result<indradb::Vertex> {
+    let key = identifier(IDENTIFIER)?;
+    let node_type= identifier(NODE_TYPE)?;
+    let vertex = indradb::Vertex::new(key);
+    db.create_vertex(&vertex)?;
+    db.set_properties(SpecificVertexQuery::single(vertex.id), key, &indradb::Json::new(json!(node.identifier)))?;
+    db.set_properties(SpecificVertexQuery::single(vertex.id), node_type, &indradb::Json::new(json!(node.node_type.to_string())))?;
+    Ok(vertex)
+}
+
+fn get_database() -> Result<Database<RocksdbDatastore>, ApplicationError> {
+    debug!("Opening graph database: {}", DATABASE_NAME);
+    indradb::RocksdbDatastore::new_db(DATABASE_NAME).map_err(ApplicationError::Indra)
+}
+
+
+pub trait GraphDatabase {
+    fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>;
+    fn save_nodes(nodes: Vec<MyNode>) -> Result<(), ApplicationError>;
+    fn save_relations(relations: Vec<Relations>) -> Result<(), ApplicationError>;
+    fn save_relation(relation: Relations) -> Result<(), ApplicationError>;
+    fn get_node(name: &str) -> Result<MyNode, ApplicationError>;
+    fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>;
+}
+ 

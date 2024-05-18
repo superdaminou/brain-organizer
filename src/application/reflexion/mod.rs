@@ -1,2 +1,4 @@
 pub mod service;
-pub mod structs;
+mod structs;
+
+pub use structs::Reflexion;

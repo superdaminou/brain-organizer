@@ -14,10 +14,8 @@ pub fn ensuring_model() -> Result<(), anyhow::Error> {
         .and_then(|mut connexion | 
             migrations::runner()
             .run(&mut connexion)
-            .with_context(||"Could not run migration"))
-            .with_context(||"Trouble")?;
-
-        Ok(())
+            .with_context(||"Could not run migration"))?;
+    Ok(())
 }
 
 pub fn opening_database() -> Result<Connection> {

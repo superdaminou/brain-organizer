@@ -8,9 +8,6 @@ use strum_macros::EnumIter;
 
 use crate::application::error::ApplicationError;
 
-
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize,  EnumIter)]
 pub enum Type {
     ALieuA,
@@ -52,4 +49,27 @@ impl fmt::Display for Type {
             Type::Default => write!(f, "")
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn identifier() {
+        assert_eq!(Type::ALieuA.identifier(), "a_lieu_a");
+    }
+
+    #[test]
+    fn try_from_identifier() {
+        assert_eq!(Type::try_from(Identifier::new("definie").unwrap()).unwrap(), Type::Definie);
+    }
+
+    #[test]
+    fn try_from_unknown_identifier() {
+        let result = Type::try_from(Identifier::new("unexpected").unwrap());
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().to_string(), "Could not determine enum from: unexpected" )
+    }
+
 }

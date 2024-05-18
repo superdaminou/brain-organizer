@@ -2,7 +2,7 @@ mod application;
 
 use std::env;
 use application::error::ApplicationError;
-use log::{info, error};
+use log::{info, warn};
 use crate::application::{command::Command, database::{ensuring_model, opening_database}, file::{ensuring_storage, export, import}, gui::app::running_gui};
 use dotenv::dotenv;
 
@@ -22,7 +22,7 @@ fn main() -> Result<(), ApplicationError> {
             command
         },
         Err(error) => {
-            error!("{}", error);
+            warn!("Could not determine mode:  {}", error);
             Command::Gui
         } 
     };

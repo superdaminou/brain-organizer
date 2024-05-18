@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 
-use crate::application::error::ApplicationError;
+use crate::application::{error::ApplicationError, file::ToCsv};
 
 use super::tag::Tag;
 
@@ -68,13 +68,6 @@ impl TryFrom<&str> for Reference {
 }
 
 
-
-impl ToString for Reference {
-    fn to_string(&self) -> String {
-        self.titre.to_string() + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + &self.url.to_string()
-    }
-}
-
 impl Default for Reference {
     fn default() -> Self {
         Self {
@@ -87,9 +80,18 @@ impl Default for Reference {
     }
 }
 
-impl Reference {
-    pub fn to_csv(&self) -> String {
+impl ToCsv for Reference {
+    fn to_csv(&self) -> String {
         self.titre.to_string() + SEPARATOR + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + SEPARATOR + &self.url.to_string()
+    }
+}
+
+impl ToCsv for Vec<Reference> {
+    fn to_csv(&self) -> String {
+        self.iter()
+        .map(|item|item.to_csv())
+        .collect::<Vec<String>>()
+        .join("\r\n")
     }
 }
 
@@ -97,6 +99,20 @@ impl Reference {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn to_csv() {
+        let mut r = Reference::default();
+        r.tags = vec![Tag::Histoire, Tag::Informatique];
+        assert_eq!(r.to_csv(), "Reference;Histoire\\Informatique;www.url.com");
+    }
+
+    #[test]
+    fn to_csv_vec() {
+        let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: vec![Tag::Histoire, Tag::Informatique], ..Default::default() };
+        let  second_r = Reference { tags: vec![Tag::Sociologie, Tag::Philosophie], ..Default::default() };
+        assert_eq!(vec![first_r, second_r].to_csv(), "UnAutreTitre;Histoire\\Informatique;www.url.com\\Reference;Sociologie\\Philosophie;www.url.com");
+    }
 
     #[test]
     fn reference_from_string() {

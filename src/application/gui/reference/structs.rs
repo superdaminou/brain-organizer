@@ -1,4 +1,4 @@
-use crate::application::{error::ApplicationError, gui::structs::Fenetre, reference::{service::get_all, structs::{reference::Reference, tag::Tag}}};
+use crate::application::{error::ApplicationError, gui::structs::Fenetre, reference::{service::ReferenceDatabase, structs::{reference::Reference, tag::Tag}}};
 
 use super::reference_gui::section_references;
 
@@ -16,7 +16,7 @@ impl Default for SectionReference {
     fn default() -> Self {
         Self {
             reference: Reference::default(),
-            list_references: get_all().unwrap_or_default(),
+            list_references: Reference::get_all().unwrap_or_default(),
             tag_filter: vec![]
         }
     }

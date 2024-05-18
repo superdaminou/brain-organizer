@@ -1,7 +1,9 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::application::{error::ApplicationError, reference::structs::reference::CsvLine};
+use crate::application::{error::ApplicationError, file::ToCsv, reference::structs::reference::CsvLine};
 
 
 const DELIMITER : &str = ";"; 
@@ -80,18 +82,27 @@ impl TryFrom<&str> for Reflexion {
     type Error = ApplicationError;
 }
 
-impl ToString for Reflexion {
-    fn to_string(&self) -> String {
-        self.sujet.to_string()
+impl Display for Reflexion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.sujet)
     }
 }
 
-impl Reflexion {
-    pub fn to_csv(&self) -> String {
+
+impl ToCsv for Reflexion {
+    fn to_csv(&self) -> String {
         self.sujet.to_string() + DELIMITER
     }
 }
 
+impl ToCsv for Vec<Reflexion> {
+    fn to_csv(&self) -> String {
+        self.iter()
+        .map(|item|item.to_csv())
+        .collect::<Vec<String>>()
+        .join("\r\n")
+    }
+}
 
 
 #[cfg(test)]

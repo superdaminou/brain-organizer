@@ -3,7 +3,7 @@ use std::{fs::{read_to_string, File}, io::Write};
 use egui::{TextEdit, Ui, Window};
 use log::info;
 
-use crate::application::{error::ApplicationError, file::construct_path, gui::structs::Fenetre, reflexion::{service::get_all, structs::Reflexion}};
+use crate::application::{error::ApplicationError, file::construct_path, gui::structs::Fenetre, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 use super::gui::section_reflexions;
 use anyhow::Result;
@@ -21,7 +21,7 @@ impl Default for SectionReflexion {
     fn default() -> Self {
         Self {
             reflexion: Reflexion::new(),
-            list_reflexions: get_all().unwrap_or_default(),
+            list_reflexions: Reflexion::get_all().unwrap_or_default(),
             edit: EditText::default(),
             edit_reflexion: EditReflexion {show: false, reflexion: Reflexion::new(), contenu: String::from("")}
             

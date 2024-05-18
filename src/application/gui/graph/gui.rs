@@ -3,9 +3,9 @@ use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_cust
 use log::info;
 use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, stable_graph::StableGraph, Directed};
 use strum::IntoEnumIterator;
+use crate::application::graph::lib::{Graph as MyGraph, GraphDatabase};
 
-
-use crate::application::{error::ApplicationError, graph::{lib::{get_graph, get_node, get_node_with_relation, save_relation}, structs::{edge_type::Type, my_edge::MyEdge, my_node::{MyNode, NodeType}, relation::Relations}}};
+use crate::application::{error::ApplicationError, graph::{ structs::{edge_type::Type, my_edge::MyEdge, my_node::{MyNode, NodeType}, relation::Relations}}};
 
 use super::structs::FenetreGraph;
 use anyhow::Result;
@@ -29,7 +29,7 @@ fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationEr
         ui.label("Nom du noeud");
         ui.text_edit_singleline(&mut fenetre.search);
         if ui.button("Getting node").clicked() {
-            let node =get_node(&fenetre.search)?;
+            let node =MyGraph::get_node(&fenetre.search)?;
             fenetre.selected_node = Some(node);
             let gui_node = fenetre.graph.nodes_iter()
                 .find(|node| node.1.payload().identifier == fenetre.search);
@@ -51,27 +51,25 @@ fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationEr
 }
 
 fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
-    if !fenetre.graph.selected_nodes().is_empty() {
-         let selected_node = fenetre.graph.selected_nodes().first()
+    match fenetre.graph.selected_nodes().first()
             .and_then(|node_index| fenetre.graph.node(*node_index))
-            .map(MyNode::from)
-            .unwrap();
-        if !selected_node.identifier.eq(&fenetre.selected_node.clone().map(|n|n.identifier).unwrap_or("".to_string())) {
-            fenetre.graph = to_egui_graph(get_node_with_relation(&selected_node)?)?;
-            let selected_node_index = fenetre.graph.nodes_iter()
-                .find(|n| n.1.payload().identifier.eq(&selected_node.identifier))
-                .map(|(i, _)| i)
-                .unwrap();
-
-            fenetre.graph.set_selected_nodes(vec![selected_node_index]);
-            fenetre.graph.node_mut(selected_node_index).unwrap().set_selected(true);
-            fenetre.selected_node =  Some(selected_node);
-        }
-    } else {
-        fenetre.selected_node = None
-    }
-
-    ui.label(format!("This is the selected none: {}", fenetre.selected_node.clone().unwrap_or_default().identifier));
+            .map(MyNode::from) {
+                None => fenetre.selected_node = None,
+                Some(selected_node) => {
+                    if !selected_node.identifier.eq(&fenetre.selected_node.clone().map(|n|n.identifier).unwrap_or("".to_string())) {
+                        fenetre.graph = to_egui_graph(MyGraph::get_node_with_relation(&selected_node)?)?;
+                        let selected_node_index = fenetre.graph.nodes_iter()
+                            .find(|n| n.1.payload().identifier.eq(&selected_node.identifier))
+                            .map(|(i, _)| i)
+                            .unwrap();
+            
+                        fenetre.graph.set_selected_nodes(vec![selected_node_index]);
+                        fenetre.graph.node_mut(selected_node_index).unwrap().set_selected(true);
+                        fenetre.selected_node =  Some(selected_node);
+                    }
+                }
+            }
+    ui.label(format!("Selected none: {}", fenetre.selected_node.clone().unwrap_or_default().identifier));
     Ok(())
 }
 
@@ -109,7 +107,7 @@ fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applica
         
         if ui.button("Add Node").clicked() {
             let edge =  MyEdge::from(fenetre.create_edge_type.clone());
-            save_relation(Relations{node_out: fenetre.create_node_out.clone() ,edge, node_in: fenetre.create_node_in.clone()})?;
+            MyGraph::save_relation(Relations{node_out: fenetre.create_node_out.clone() ,edge, node_in: fenetre.create_node_in.clone()})?;
             fenetre.graph= reset_graph(ui)?;
         }
         Ok(())
@@ -141,7 +139,7 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) {
 
 fn reset_graph(ui: &mut Ui) -> Result<egui_graphs::Graph<MyNode, MyEdge>, ApplicationError> {
     GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
-    to_egui_graph(get_graph()?)
+    to_egui_graph(MyGraph::get_graph()?)
 }
 
 fn to_egui_graph(graph: StableGraph<MyNode, MyEdge> ) -> Result<egui_graphs::Graph<MyNode, MyEdge>, ApplicationError> {

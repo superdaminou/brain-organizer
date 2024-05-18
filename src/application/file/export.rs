@@ -2,7 +2,7 @@ use std::{fs::{create_dir, File}, io::Write, path::Path};
 
 use log::info;
 
-use crate::application::{error::ApplicationError, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE}, reference::{self, structs::reference::Reference}, reflexion::{self, structs::Reflexion}};
+use crate::application::{error::ApplicationError, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE}, ToCsv}, reference::{service::ReferenceDatabase, structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 const EXPORT_STORAGE: &str = "./export/";
 use anyhow::{Context, Result};
@@ -24,25 +24,19 @@ pub fn export() -> Result<(), ApplicationError> {
 
 fn export_reference() -> Result<(), ApplicationError> {
     info!("Start exporting reference file: {}", REFERENCE_FILE);
-    let mut references_file = File::create(EXPORT_STORAGE.to_string() + REFERENCE_FILE).map_err(ApplicationError::FileWriteError)?;
-    let content = reference::service::get_all()?
-        .iter()
-        .map(Reference::to_csv)
-        .collect::<Vec<String>>()
-        .join("\r\n");
-    
-    references_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)
+    write_file(REFERENCE_FILE, Reference::get_all()?.to_csv())
 }
+
 
 fn export_reflexions() -> Result<(), ApplicationError> {
     info!("Start exporting reflexion entries: {}", REFLEXION_FILE);
-    let mut reflexion_file = File::create(EXPORT_STORAGE.to_string() + REFLEXION_FILE).map_err(ApplicationError::FileWriteError)?;
-    let content = reflexion::service::get_all()?
-        .iter()
-        .map(Reflexion::to_csv)
-        .collect::<Vec<String>>()
-        .join("\r\n");
+    write_file(REFLEXION_FILE, Reflexion::get_all()?.to_csv())
+        .and_then(|_|
+            copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE).map_err(ApplicationError::Other))
+}
 
-    reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)?;
-    copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE).map_err(ApplicationError::Other)
+fn write_file(file: &str, content: String) -> Result<(), ApplicationError>{
+    File::create(EXPORT_STORAGE.to_string() + file)
+        .and_then(|mut f|f.write_all(content.as_bytes()))
+        .map_err(ApplicationError::FileWriteError)
 }

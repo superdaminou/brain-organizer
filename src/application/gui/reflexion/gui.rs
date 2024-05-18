@@ -1,5 +1,6 @@
 use log::info;
-use crate::application::reflexion::service::{create, delete, get_all};
+use crate::application::reflexion::{service::ReflexionDatabase, Reflexion};
+
 use super::structs::{EditText, SectionReflexion};
 use anyhow::{Context, Result};
 
@@ -20,8 +21,8 @@ fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()
     
         let button = egui::Button::new("Créer");
         if ui.add(button).clicked() {
-            return create(&section.reflexion.clone())
-                .and_then(|_| get_all().context("Coulnt get all"))
+            return Reflexion::create(&section.reflexion.clone())
+                .and_then(|_| Reflexion::get_all().context("Coulnt get all"))
                 .map(|result| section.list_reflexions = result);
 
         }
@@ -37,7 +38,7 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
 
     ui.horizontal(|ui| {
         if ui.button("Recharger reflexion").clicked() {
-            match get_all() {
+            match Reflexion::get_all() {
                 Ok(result) => {
                     section.list_reflexions = result;
                 },
@@ -59,8 +60,8 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
                         return Ok(());
                     }
                     if ui.button("Supprimer").clicked() {
-                        return delete(&reflexion.clone())
-                            .and_then(|_| get_all().context("get All"))
+                        return Reflexion::delete(&reflexion.clone())
+                            .and_then(|_| Reflexion::get_all().context("get All"))
                             .map(|result| section.list_reflexions = result);
                     }
                     Ok(())
