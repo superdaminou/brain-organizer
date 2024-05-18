@@ -1,19 +1,22 @@
 use std::fmt;
+
+use super::error::ApplicationError;
+
+#[derive(PartialEq, Debug)]
 pub enum Command {
     Import,
     Gui,
     Export
 }
 
-
-
-impl From<String> for Command {
-    fn from(value: std::string::String) -> Self {
-        match value.to_lowercase().as_str() {
-            "import" => Command::Import,
-            "export" => Command::Export,
-            "gui" => Command::Gui,
-            _ => Command::Gui
+impl TryFrom<String> for Command {
+    type Error = ApplicationError;
+    fn try_from(value: String) -> Result<Self, ApplicationError> {
+        return match value.to_lowercase().as_str() {
+            "import" => Ok(Command::Import),
+            "export" => Ok(Command::Export),
+            "gui" => Ok(Command::Gui),
+            _ => Err(ApplicationError::EnumError(value))
         }
     }
 }
@@ -28,3 +31,34 @@ impl fmt::Display for Command {
     }
 }
 
+impl TryFrom<Vec<String>> for Command {
+    type Error = ApplicationError;
+    fn try_from(value: Vec<String>) -> Result<Self, ApplicationError> {
+
+        value.first()
+            .ok_or(ApplicationError::EnumError("".to_string()))
+            .and_then(|command|Command::try_from(command.to_owned()))
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn command_from_str() {
+        assert_eq!(Command::try_from("ImPoRt".to_string()).unwrap(), Command::Import);
+    }
+
+    #[test]
+    fn command_from_vec_str() {
+        assert_eq!(Command::try_from(vec!["ExPoRt".to_string()]).unwrap(), Command::Export);
+    }
+
+    #[test]
+    fn command_from_string() {
+        assert_eq!(Command::Gui.to_string(), "GUI".to_string());
+    }
+}

@@ -26,8 +26,13 @@ pub fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
     info!("Getting all");
     let db =  get_database()?;
     
-    let vertexs =db.get(indradb::AllVertexQuery.properties().context("With Properties")?).map(indradb::util::extract_vertex_properties)?.expect("Querying all Nodes");
-    let edges = db.get(indradb::AllEdgeQuery).map(indradb::util::extract_edges)?.expect("Querying all Edges");
+    let vertexs =db.get(indradb::AllVertexQuery.properties().context("With Properties")?)
+        .map(indradb::util::extract_vertex_properties)?
+        .expect("Querying all Nodes");
+    
+    let edges = db.get(indradb::AllEdgeQuery)
+        .map(indradb::util::extract_edges)?
+        .expect("Querying all Edges");
 
     let mut graph = StableGraph::<MyNode, MyEdge>::new();
 
@@ -76,7 +81,7 @@ pub fn save_relations(relations: Vec<Relations>) -> Result<(), ApplicationError>
     relations.iter()
         .try_for_each(|relation|{
             let id = indradb::Identifier::new(relation.edge.edge_type.identifier())?;
-            bulk_edges.push(BulkInsertItem::Edge(indradb::Edge::new(relation.node_out.id.expect("Should have an id"), id ,relation.node_in.id.expect("Should have an id"))));
+            bulk_edges.push(BulkInsertItem::Edge(indradb::Edge::new(relation.node_out.id, id ,relation.node_in.id)));
             anyhow::Ok(())
         })?;
     info!("Bulk insert {} relation", bulk_edges.len());
@@ -91,7 +96,7 @@ pub fn save_relation(relation: Relations) -> Result<(), ApplicationError> {
 
     let node_in = get_or_create_vertex(relation.node_in, &db)?;
     let node_out = get_or_create_vertex(relation.node_out, &db)?;
-    
+
     let edge = indradb::Edge::new(node_out.id, indradb::Identifier::new(relation.edge.edge_type.identifier()).context("Creating identifier")?, node_in.id);
     db.create_edge(&edge)?;
 
@@ -110,30 +115,37 @@ pub fn get_node(name: &String) -> Result<MyNode, ApplicationError> {
         .context("Extracting vertex properties")?
         .first()
         .map(MyNode::from)
-        .ok_or(ApplicationError::DefaultError);
+        .ok_or(ApplicationError::NotFoundError(name.clone()));
 }
 
 fn get_or_create_vertex(node: MyNode, db: &Database<RocksdbDatastore>) -> Result<indradb::Vertex, ApplicationError>{
-    let identifier= indradb::Identifier::new(IDENTIFIER).context("Creating idientifier")?;
-    return match db.get(VertexWithPropertyValueQuery::new(identifier, Json::new(json!(node.identifier.clone()))))
+    let key = identifier(IDENTIFIER)?;
+    return match db.get(VertexWithPropertyValueQuery::new(key, Json::new(json!(node.identifier.clone()))))
         .map(indradb::util::extract_vertices)?
         .unwrap_or_default()
         .first() {
             Some(v) => Ok(v.to_owned()),
-            None => {
-                let vertex = indradb::Vertex::new(identifier);
-                db.create_vertex(&vertex)?;
-                db.set_properties(SpecificVertexQuery::single(vertex.id), identifier, &indradb::Json::new(json!(node.identifier)))?;
-                Ok(vertex)
-            }
+            None => create_vertex(db, node).map_err(ApplicationError::Other)
         };
 }
 
+fn create_vertex(db: &indradb::Database<RocksdbDatastore>,node: MyNode) -> Result<indradb::Vertex> {
+    let key = identifier(IDENTIFIER)?;
+    let node_type= identifier(NODE_TYPE)?;
+    let vertex = indradb::Vertex::new(key);
+    db.create_vertex(&vertex)?;
+    db.set_properties(SpecificVertexQuery::single(vertex.id), key, &indradb::Json::new(json!(node.identifier)))?;
+    db.set_properties(SpecificVertexQuery::single(vertex.id), node_type, &indradb::Json::new(json!(node.node_type.to_string())))?;
+    Ok(vertex)
+}
 
+fn identifier(key: &str) -> Result<indradb::Identifier> {
+    indradb::Identifier::new(key).context("Creating identifier")
+}
 pub fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
     info!("Getting {}", node.identifier);
     let db =  get_database()?;
-    let query = SpecificVertexQuery::single(node.id.context("Should have an id")?);
+    let query = SpecificVertexQuery::single(node.id);
 
     let binding = db.get(query.clone().properties().context("Getting node properties")?)
         .map(|output|indradb::util::extract_vertex_properties(output.clone()).unwrap_or_default())?;
@@ -143,11 +155,9 @@ pub fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdg
 
     let outbounds_edges = db.get(query.clone().include().outbound().context("Getting outbound")?)
         .map(|output|indradb::util::extract_edges(output.clone()).unwrap_or_default())?;
-    info!("edges props len: {}", outbounds_edges.len());
 
     let inbound_edges = db.get(query.clone().include().inbound().context("Getting inbound")?)
     .map(|output|indradb::util::extract_edges(output.clone()).unwrap_or_default())?;
-        info!("edges wesh props len: {}", inbound_edges.len());
 
     let mut graph = StableGraph::<MyNode, MyEdge>::new();    
 

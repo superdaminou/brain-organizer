@@ -2,7 +2,7 @@ mod application;
 
 use std::env;
 use application::error::ApplicationError;
-use log::info;
+use log::{info, error};
 use crate::application::{command::Command, database::{ensuring_model, opening_database}, file::{ensuring_storage, export, import}, gui::app::running_gui};
 use dotenv::dotenv;
 
@@ -16,11 +16,17 @@ fn main() -> Result<(), ApplicationError> {
 
 
     // MATCH COMMANDS AND DO WHATS NEEDED
-    let command = env::args().collect::<Vec<String>>()
-        .get(1)
-        .map(|command|Command::from(command.to_owned()))
-        .unwrap_or(Command::Gui);
-    info!("Detected mode: {}", command);
+    let command = match Command::try_from(env::args().skip(1).collect::<Vec<String>>()) {
+        Ok(command) => {
+            info!("Detected mode: {}", command);
+            command
+        },
+        Err(error) => {
+            error!("{}", error);
+            Command::Gui
+        } 
+    };
+    
     match command {
         application::command::Command::Gui => running_gui(),
         application::command::Command::Import => import(),

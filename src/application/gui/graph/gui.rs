@@ -3,7 +3,6 @@ use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_cust
 use log::info;
 use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, stable_graph::StableGraph, Directed};
 use strum::IntoEnumIterator;
-use uuid::Uuid;
 
 
 use crate::application::{error::ApplicationError, graph::{lib::{get_graph, get_node, get_node_with_relation, save_relation}, structs::{edge_type::Type, my_edge::MyEdge, my_node::{MyNode, NodeType}, relation::Relations}}};
@@ -53,12 +52,20 @@ fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationEr
 
 fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
     if !fenetre.graph.selected_nodes().is_empty() {
-         let node = fenetre.graph.selected_nodes().first()
+         let selected_node = fenetre.graph.selected_nodes().first()
             .and_then(|node_index| fenetre.graph.node(*node_index))
-            .map(MyNode::from);
-        fenetre.selected_node = node.clone();
-        if node.is_some() {
-            fenetre.graph = to_egui_graph(get_node_with_relation(&node.unwrap())?)?;
+            .map(MyNode::from)
+            .unwrap();
+        if !selected_node.identifier.eq(&fenetre.selected_node.clone().map(|n|n.identifier).unwrap_or("".to_string())) {
+            fenetre.graph = to_egui_graph(get_node_with_relation(&selected_node)?)?;
+            let selected_node_index = fenetre.graph.nodes_iter()
+                .find(|n| n.1.payload().identifier.eq(&selected_node.identifier))
+                .map(|(i, _)| i)
+                .unwrap();
+
+            fenetre.graph.set_selected_nodes(vec![selected_node_index]);
+            fenetre.graph.node_mut(selected_node_index).unwrap().set_selected(true);
+            fenetre.selected_node =  Some(selected_node);
         }
     } else {
         fenetre.selected_node = None
@@ -72,7 +79,7 @@ fn new_node(node: &mut MyNode, ui:&mut Ui) {
     ui.horizontal(|ui| {
         ui.label("Identifiant");
         ui.text_edit_singleline(&mut node.identifier);
-        egui::ComboBox::from_id_source(Uuid::new_v4()).selected_text(node.node_type.to_string())
+        egui::ComboBox::from_id_source(node.id).selected_text(node.node_type.to_string())
             .show_ui(ui, |ui| {
                 NodeType::iter().for_each(|t| {
                     let type_label = ui.selectable_label(node.node_type == t, t.to_string());
@@ -81,7 +88,7 @@ fn new_node(node: &mut MyNode, ui:&mut Ui) {
                     }
                 });
             }
-        );
+        );    
     });
 }
 

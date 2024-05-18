@@ -38,7 +38,7 @@ pub fn get_all() -> Result<Vec<Reflexion>> {
     database::opening_database()?
             .prepare(query)?
             .query_map([], map_row)?
-            .map(|row| row.context("While mapping"))
+            .map(|row| row.context("Mapping result to Reflexion"))
             .collect::<Result<Vec<Reflexion>>>()
 }
 
@@ -50,4 +50,3 @@ fn map_row(row: &Row) -> Result<Reflexion, Error> {
 
 }
  
-

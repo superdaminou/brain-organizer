@@ -25,7 +25,7 @@ impl TryFrom<String> for Tag {
             "informatique" => Ok(Tag::Informatique),
             "politique" => Ok(Tag::Politique),
             "sociologie" => Ok(Tag::Sociologie),
-            _ => Err(ApplicationError::DefaultError)
+            _ => Err(ApplicationError::EnumError(value))
         }
     }
 }
@@ -41,7 +41,7 @@ impl TryFrom<&str> for Tag {
             "informatique" => Ok(Tag::Informatique),
             "politique" => Ok(Tag::Politique),
             "sociologie" => Ok(Tag::Sociologie),
-            _ => Err(ApplicationError::DefaultError)
+            _ => Err(ApplicationError::EnumError(value.to_string()))
         }
     }
 }
@@ -57,7 +57,7 @@ impl TryFrom<&String> for Tag {
             "informatique" => Ok(Tag::Informatique),
             "politique" => Ok(Tag::Politique),
             "sociologie" => Ok(Tag::Sociologie),
-            _ => Err(ApplicationError::DefaultError)
+            _ => Err(ApplicationError::EnumError(value.to_string()))
         }
     }
 }

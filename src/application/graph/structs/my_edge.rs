@@ -1,5 +1,5 @@
 use crate::application::error::ApplicationError;
-use indradb::{Edge};
+use indradb::Edge;
 
 use super::edge_type::Type;
 

@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 
 embed_migrations!("./src/migration");
 
-const DB_PATH: &str = "whatsNext.db";
+const DB_PATH: &str = "brain_manager.db";
 
 pub fn ensuring_model() -> Result<(), anyhow::Error> {
     info!("Ensuring model and running migration if needed");
@@ -22,6 +22,6 @@ pub fn ensuring_model() -> Result<(), anyhow::Error> {
 
 pub fn opening_database() -> Result<Connection> {
     trace!("Opening Database: {}", DB_PATH);
-    Connection::open(DB_PATH).with_context(||"Couldnt open database")
+    Connection::open(DB_PATH).with_context(||"Couldn't open database")
 }
 

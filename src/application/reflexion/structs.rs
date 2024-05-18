@@ -4,6 +4,8 @@ use uuid::Uuid;
 use crate::application::{error::ApplicationError, reference::structs::reference::CsvLine};
 
 
+const DELIMITER : &str = ";"; 
+
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Reflexion {
     pub id: Option<String>,
@@ -50,9 +52,13 @@ impl TryFrom<CsvLine> for Reflexion {
     /// assert_eq!(Reflexion::try_from("").is_err())
     /// ```
     fn try_from(value: CsvLine) -> Result<Self, ApplicationError> {
-        let split = value.split(';').map(String::from).collect::<Vec<String>>();
+        let split = value.split(DELIMITER).map(String::from).collect::<Vec<String>>();
 
         let sujet = split.first().ok_or(ApplicationError::DefaultError)?;
+
+        if sujet.is_empty() {
+            return Err(ApplicationError::DefaultError);
+        }
 
         Ok(Reflexion {
             id: Some(Uuid::new_v4().to_string()),
@@ -82,7 +88,7 @@ impl ToString for Reflexion {
 
 impl Reflexion {
     pub fn to_csv(&self) -> String {
-        self.sujet.to_string() + ";"
+        self.sujet.to_string() + DELIMITER
     }
 }
 
@@ -93,19 +99,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn reflexion_to_string() {
+        assert_eq!(Reflexion::new().to_string(), "Nouveau sujet".to_string());
+    }
+
+    #[test]
+    fn reflexion_to_csv() {
+        assert_eq!(Reflexion::new().to_csv(), "Nouveau sujet;".to_string());
+    }
+
+    #[test]
     fn init_reflexion() {
         assert_eq!(Reflexion::new(), Reflexion {id: None, sujet: "Nouveau sujet".to_string()});
     }
 
     #[test]
     fn init_reflexion_from_csv_line() -> Result<(), ApplicationError> {
-        assert_eq!(Reflexion::try_from("Un Sujet;")?.sujet, "Un Sujet");
+        assert_eq!(Reflexion::try_from("Un Sujet;".to_string())?.sujet, "Un Sujet");
         Ok(())
     }
 
     #[test]
     fn init_reflexion_from_empty_csv_line() {
-        assert!(Reflexion::try_from("").is_err(), "Should be missing subject");
+        assert!(Reflexion::try_from("".to_string()).is_err(), "Should be \"Missing subject\"");
     }
 
     #[test]

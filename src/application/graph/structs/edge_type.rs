@@ -1,12 +1,12 @@
 use core::fmt;
 
-use indradb::{Identifier};
+use indradb::Identifier;
 
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
 
-use crate::application::{error::ApplicationError};
+use crate::application::error::ApplicationError;
 
 
 
@@ -15,6 +15,7 @@ use crate::application::{error::ApplicationError};
 pub enum Type {
     ALieuA,
     Definie,
+    Default
 }
 
 impl TryFrom<Identifier> for Type {
@@ -24,7 +25,8 @@ impl TryFrom<Identifier> for Type {
         let value: Result<Type, ApplicationError> = match value.to_lowercase().as_str() {
             "definie" => Ok(Type::Definie),
             "alieua" => Ok(Type::ALieuA),
-            _ => Err(ApplicationError::DefaultError)
+            "default" => Ok(Type::Default),
+            _ => Err(ApplicationError::EnumError(value.to_string()))
         };
         value
     }
@@ -34,7 +36,8 @@ impl Type {
     pub fn identifier(&self) -> &'static str {
         match self {
             Type::ALieuA => "a_lieu_a",
-            Type::Definie => "definie"
+            Type::Definie => "definie",
+            Type::Default => "default"
         }
     }
 }
@@ -46,6 +49,7 @@ impl fmt::Display for Type {
         match self {
             Type::ALieuA => write!(f, "A eu lieu a "),
             Type::Definie => write!(f,"Définis"),
+            Type::Default => write!(f, "")
         }
     }
 }

@@ -10,11 +10,11 @@ pub enum ApplicationError
     #[error("An error occured")]
     DefaultError,
 
-    #[error("Not found")]
-    NotFoundError,
+    #[error("Not found: {0}")]
+    NotFoundError(String),
 
     #[error("Could not determine enum from: {0}")]
-    EnumError(&'static str),
+    EnumError(String),
     
     #[error("UnknownError")]
     Unknown,

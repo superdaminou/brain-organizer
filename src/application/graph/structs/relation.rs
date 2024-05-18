@@ -25,8 +25,7 @@ impl TryFrom<&CsvLine> for Relations {
             .ok_or(ApplicationError::DefaultError)
             .map(|s|MyEdge::try_from(s.to_string()))??;
         info!("{}", &edge.edge_type.identifier());
-        let r = Relations{node_out , edge,node_in};
-        Ok(r)
+        Ok(Relations{node_out , edge,node_in})
     }
 
 }

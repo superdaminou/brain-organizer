@@ -17,8 +17,9 @@ pub fn export() -> Result<(), ApplicationError> {
         }
     }
 
-    export_reference()?;
-    export_reflexions()
+    export_reference()
+    .and_then(|_| export_reflexions())
+
 }
 
 fn export_reference() -> Result<(), ApplicationError> {
@@ -45,15 +46,3 @@ fn export_reflexions() -> Result<(), ApplicationError> {
     reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)?;
     copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE).map_err(ApplicationError::Other)
 }
-
-
-// fn export_graph() -> Result<(), ApplicationError> {
-//     info!("Start exporting reflexion entries: {}", NODES_FILE);
-//     let mut node_file = File::create(EXPORT_STORAGE.to_string() + NODES_FILE).map_err(ApplicationError::FileWriteError)?;
-//     let mut relations_file = File::create(EXPORT_STORAGE.to_string() + RELATIONS_FILE).map_err(ApplicationError::FileWriteError)?;
-    
-//     let graph = graph::lib::get_graph()?;
-
-//     let a  = graph.nodes_iter();
-//     reflexion_file.write_all(content.as_bytes()).map_err(ApplicationError::FileWriteError)?;
-// }

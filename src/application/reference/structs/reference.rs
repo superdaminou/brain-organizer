@@ -19,12 +19,12 @@ pub struct Reference {
 
 
 pub type CsvLine = String;
-
+const SEPARATOR : &str = ";";
 
 
 impl TryFrom<CsvLine> for Reference {
     fn try_from(value: CsvLine) -> Result<Self, Self::Error> {
-        let split = value.split(';').map(String::from).collect::<Vec<String>>();
+        let split = value.split(SEPARATOR).map(String::from).collect::<Vec<String>>();
 
         let categorie = split.get(1)
             .expect("Missing tag")
@@ -47,7 +47,7 @@ impl TryFrom<CsvLine> for Reference {
 
 impl TryFrom<&str> for Reference {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let split = value.split(';').map(String::from).collect::<Vec<String>>();
+        let split = value.split(SEPARATOR).map(String::from).collect::<Vec<String>>();
 
         let categorie = split.get(1)
             .expect("Missing tag")
@@ -89,6 +89,36 @@ impl Default for Reference {
 
 impl Reference {
     pub fn to_csv(&self) -> String {
-        self.titre.to_string() + ";" + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + ";" + &self.url.to_string()
+        self.titre.to_string() + SEPARATOR + &self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>().join("\\") + SEPARATOR + &self.url.to_string()
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reference_from_string() {
+        let r = Reference::try_from("Nom;Histoire\\Informatique;www.url.com".to_string()).unwrap();
+        assert_eq!(r.tags.len(), 2);
+        assert_eq!(r.titre, "Nom");
+        assert_eq!(r.url, "www.url.com");
+    }
+
+    #[test]
+    fn reference_from_str() {
+        let r = Reference::try_from("Nom;Histoire\\Informatique;www.url.com").unwrap();
+        assert_eq!(r.tags.len(), 2);
+        assert_eq!(r.titre, "Nom");
+        assert_eq!(r.url, "www.url.com");
+    }
+
+    #[test]
+    fn reference_default() {
+        let r = Reference::default();
+        assert_eq!(r.tags.len(), 0);
+        assert_eq!(r.titre, "Reference");
+        assert_eq!(r.url, "www.url.com");
     }
 }
