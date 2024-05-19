@@ -29,3 +29,4 @@ thiserror ={ version = "1.0"}
 serde_json = { version = "1.0"}
 chrono = { version = "0.4", features = ["serde"]}
 regex ={ version = "1.10"}
+rand = {version = "0.8"}

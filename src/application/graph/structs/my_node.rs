@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use egui::TextBuffer;
-use egui_graphs::Node as EguiNode;
 use indradb::{Identifier, Vertex, VertexProperties};
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -10,7 +9,6 @@ use uuid::Uuid;
 
 use crate::application::{error::ApplicationError, graph::lib::{IDENTIFIER, NODE_TYPE}, reference::structs::reference::CsvLine};
 
-use super::my_edge::MyEdge;
 
 
 #[derive(Clone, Hash, Eq, Ord, PartialEq, PartialOrd)]
@@ -74,15 +72,7 @@ impl From<&VertexProperties> for MyNode {
 }
 
 
-impl From<&EguiNode<MyNode, MyEdge>> for MyNode {
-    fn from(value: &EguiNode<MyNode, MyEdge>) -> Self {
-        MyNode {
-            id: value.payload().id,
-            node_type: NodeType::Autre,
-            identifier: value.label()
-        }
-    }
-}
+
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize,  EnumIter, Display, Hash,Copy, Ord, PartialOrd)]
 pub enum NodeType {

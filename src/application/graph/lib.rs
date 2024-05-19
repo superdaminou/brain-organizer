@@ -9,7 +9,7 @@ use anyhow::{Context, Result};
 
 use crate::application::error::ApplicationError;
 
-use super::structs::{my_edge::MyEdge, my_node::MyNode, relation::Relations};
+use super::structs::{my_edge::MyEdge, my_node::MyNode, relation::Relations, NodeGraph};
 
 
 pub const NODE_TYPE : &str= "NodeType";
@@ -19,8 +19,8 @@ pub const DATABASE_NAME : &str = "graph.h";
 pub struct  Graph {}
 impl GraphDatabase for Graph {
 
-fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
-    info!("Getting all");
+fn get_graph() -> Result<NodeGraph, ApplicationError>{
+    debug!("Getting all");
     let db =  get_database()?;
     
     let vertexs =db.get(indradb::AllVertexQuery.properties().context("With Properties")?)
@@ -52,7 +52,7 @@ fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
         anyhow::Ok::<()>(())
     })?;
 
-    Ok(graph)
+    Ok(NodeGraph(graph))
 }
 
 fn save_nodes(nodes: Vec<MyNode>) -> Result<(), ApplicationError> {
@@ -115,7 +115,7 @@ fn get_node(name: &str) -> Result<MyNode, ApplicationError> {
         .ok_or(ApplicationError::NotFoundError(name.to_string()));
 }
 
-fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>{
+fn get_node_with_relation(node: &MyNode) -> Result<NodeGraph, ApplicationError>{
     info!("Getting {}", node.identifier);
     let db =  get_database()?;
     let query = SpecificVertexQuery::single(node.id);
@@ -158,7 +158,7 @@ fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, 
         anyhow::Ok(())
     })?;
     
-    Ok(graph)
+    Ok(NodeGraph(graph))
 }
 
 }
@@ -195,11 +195,11 @@ fn get_database() -> Result<Database<RocksdbDatastore>, ApplicationError> {
 
 
 pub trait GraphDatabase {
-    fn get_graph() -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>;
+    fn get_graph() -> Result<NodeGraph, ApplicationError>;
     fn save_nodes(nodes: Vec<MyNode>) -> Result<(), ApplicationError>;
     fn save_relations(relations: Vec<Relations>) -> Result<(), ApplicationError>;
     fn save_relation(relation: Relations) -> Result<(), ApplicationError>;
     fn get_node(name: &str) -> Result<MyNode, ApplicationError>;
-    fn get_node_with_relation(node: &MyNode) -> Result<StableGraph<MyNode, MyEdge>, ApplicationError>;
+    fn get_node_with_relation(node: &MyNode) -> Result<NodeGraph, ApplicationError>;
 }
  

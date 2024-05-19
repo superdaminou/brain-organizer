@@ -1,16 +1,14 @@
 use egui::Ui;
 use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
 use log::info;
-use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, stable_graph::StableGraph, Directed};
+use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, Directed};
 use strum::IntoEnumIterator;
 use crate::application::graph::lib::{Graph as MyGraph, GraphDatabase};
 
-use crate::application::{error::ApplicationError, graph::{ structs::{edge_type::Type, my_edge::MyEdge, my_node::{MyNode, NodeType}, relation::Relations}}};
+use crate::application::{error::ApplicationError, graph::structs::{edge_type::Type, my_edge::MyEdge, my_node::{MyNode, NodeType}, relation::Relations}};
 
-use super::structs::FenetreGraph;
+use super::structs::{FenetreGraph, GuiGraph, GuiNode};
 use anyhow::Result;
-
-
 
 pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
 
@@ -29,10 +27,10 @@ fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationEr
         ui.label("Nom du noeud");
         ui.text_edit_singleline(&mut fenetre.search);
         if ui.button("Getting node").clicked() {
-            let node =MyGraph::get_node(&fenetre.search)?;
+            let node =MyGraph::get_node(&fenetre.search).map(GuiNode::from)?;
             fenetre.selected_node = Some(node);
             let gui_node = fenetre.graph.nodes_iter()
-                .find(|node| node.1.payload().identifier == fenetre.search);
+                .find(|node| node.1.payload().node.identifier == fenetre.search);
             match gui_node {
                 Some(node) => {
                     let index  = node.0;
@@ -56,20 +54,23 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicati
             .map(MyNode::from) {
                 None => fenetre.selected_node = None,
                 Some(selected_node) => {
-                    if !selected_node.identifier.eq(&fenetre.selected_node.clone().map(|n|n.identifier).unwrap_or("".to_string())) {
-                        fenetre.graph = to_egui_graph(MyGraph::get_node_with_relation(&selected_node)?)?;
+                    if !selected_node.identifier.eq(&fenetre.selected_node.clone().map(|n|n.node.identifier).unwrap_or("".to_string())) {
+                        fenetre.graph =  MyGraph::get_node_with_relation(&selected_node)
+                            .map(GuiGraph::from)
+                            .and_then(to_egui_graph)?;
+
                         let selected_node_index = fenetre.graph.nodes_iter()
-                            .find(|n| n.1.payload().identifier.eq(&selected_node.identifier))
+                            .find(|n| n.1.payload().node.identifier.eq(&selected_node.identifier))
                             .map(|(i, _)| i)
                             .unwrap();
             
                         fenetre.graph.set_selected_nodes(vec![selected_node_index]);
                         fenetre.graph.node_mut(selected_node_index).unwrap().set_selected(true);
-                        fenetre.selected_node =  Some(selected_node);
+                        fenetre.selected_node =  Some(GuiNode::from(selected_node));
                     }
                 }
             }
-    ui.label(format!("Selected none: {}", fenetre.selected_node.clone().unwrap_or_default().identifier));
+    ui.label(format!("Selected none: {}", fenetre.selected_node.clone().unwrap_or_default().node.identifier));
     Ok(())
 }
 
@@ -114,7 +115,7 @@ fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applica
     }).inner
 }
 
-fn show_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) {
+fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, MyEdge>) {
     ui.add(&mut GraphView::<
         _,
         _,
@@ -125,7 +126,8 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) {
     >::new(graph)
     .with_navigations(
         &SettingsNavigation::new()
-        .with_fit_to_screen_enabled(true))
+        .with_fit_to_screen_enabled(true)
+        .with_zoom_and_pan_enabled(true))
     .with_interactions(
         &SettingsInteraction::new()
         .with_node_clicking_enabled(true)
@@ -137,31 +139,37 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<MyNode, MyEdge>) {
 }
 
 
-fn reset_graph(ui: &mut Ui) -> Result<egui_graphs::Graph<MyNode, MyEdge>, ApplicationError> {
+fn reset_graph(ui: &mut Ui) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, ApplicationError> {
     GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
-    to_egui_graph(MyGraph::get_graph()?)
+
+    MyGraph::get_graph()
+        .map(GuiGraph::from)
+        .and_then(to_egui_graph)
 }
 
-fn to_egui_graph(graph: StableGraph<MyNode, MyEdge> ) -> Result<egui_graphs::Graph<MyNode, MyEdge>, ApplicationError> {
+fn to_egui_graph(graph: GuiGraph ) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, ApplicationError> {
     Ok(to_graph_custom::<>(
-            &graph, 
+            &graph.0, 
             node_transform, 
             edge_transform))
 }
 
+
 pub fn node_transform(
     idx: NodeIndex<u32>,
-    payload: &MyNode,
-) -> ENode<MyNode, MyEdge> {
-    default_node_transform::<MyNode,MyEdge, Directed, u32,DefaultNodeShape>(idx , payload)
-        .with_label(payload.identifier.clone())  
+    payload: &GuiNode,
+) -> ENode<GuiNode, MyEdge> {
+    let mut node = default_node_transform::<GuiNode,MyEdge, Directed, u32,DefaultNodeShape>(idx , payload)
+        .with_label(payload.node.identifier.clone());
+    node.set_location(payload.location);
+    node
 }
 
 pub fn edge_transform(
     idx: EdgeIndex<u32>,
     payload: &MyEdge,
     order: usize,
-) -> Edge<MyNode, MyEdge> {
-    default_edge_transform::<MyNode,MyEdge,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , payload, order)
+) -> Edge<GuiNode, MyEdge> {
+    default_edge_transform::<GuiNode,MyEdge,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , payload, order)
         .with_label(payload.edge_type.to_string())
 }

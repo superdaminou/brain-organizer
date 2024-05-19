@@ -21,7 +21,7 @@ impl TryFrom<Identifier> for Type {
     fn try_from(value: Identifier) -> Result<Self, Self::Error> {
         let value: Result<Type, ApplicationError> = match value.to_lowercase().as_str() {
             "definie" => Ok(Type::Definie),
-            "alieua" => Ok(Type::ALieuA),
+            "a_lieu_a" => Ok(Type::ALieuA),
             "default" => Ok(Type::Default),
             _ => Err(ApplicationError::EnumError(value.to_string()))
         };

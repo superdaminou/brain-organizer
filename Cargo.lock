@@ -299,6 +299,7 @@ dependencies = [
  "indradb-lib",
  "log",
  "petgraph",
+ "rand",
  "refinery",
  "regex",
  "rusqlite",

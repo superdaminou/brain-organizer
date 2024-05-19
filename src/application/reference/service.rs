@@ -90,7 +90,7 @@ impl ReferenceDatabase for Reference {
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
             GROUP BY r.id
-            ORDER BY r.date_creation DESC;";
+            ORDER BY r.date_creation DESC, tag, r.nom";
         Ok(database::opening_database()?
                     .prepare(query)?
                     .query_map([], map_row)?

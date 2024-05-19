@@ -102,8 +102,7 @@ mod tests {
 
     #[test]
     fn to_csv() {
-        let mut r = Reference::default();
-        r.tags = vec![Tag::Histoire, Tag::Informatique];
+        let r = Reference{ tags:  vec![Tag::Histoire, Tag::Informatique], ..Default::default()};
         assert_eq!(r.to_csv(), "Reference;Histoire\\Informatique;www.url.com");
     }
 
@@ -111,7 +110,7 @@ mod tests {
     fn to_csv_vec() {
         let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: vec![Tag::Histoire, Tag::Informatique], ..Default::default() };
         let  second_r = Reference { tags: vec![Tag::Sociologie, Tag::Philosophie], ..Default::default() };
-        assert_eq!(vec![first_r, second_r].to_csv(), "UnAutreTitre;Histoire\\Informatique;www.url.com\\Reference;Sociologie\\Philosophie;www.url.com");
+        assert_eq!(vec![first_r, second_r].to_csv(), "UnAutreTitre;Histoire\\Informatique;www.url.com\r\nReference;Sociologie\\Philosophie;www.url.com");
     }
 
     #[test]
