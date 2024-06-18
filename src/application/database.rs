@@ -3,6 +3,7 @@ use log::{info, trace};
 use rusqlite::Connection;
 use refinery::embed_migrations;
 use anyhow::{Context, Result};
+use uuid::Uuid;
 
 embed_migrations!("./src/migration");
 
@@ -23,3 +24,13 @@ pub fn opening_database() -> Result<Connection> {
     Connection::open(DB_PATH).with_context(||"Couldn't open database")
 }
 
+
+pub trait CRUD<T> {
+    fn create(entity: &T) -> Result<()>;
+    fn get_one(id: Uuid) -> Result<T>;
+    fn get_all() -> Result<Vec<T>>;
+    fn delete(entity: &T) -> Result<usize>;
+    fn update(entity: &T) -> Result<()>;
+    fn create_or_update(entity: &T) -> Result<()>;
+
+}

@@ -3,13 +3,13 @@ use chrono::NaiveDate;
 use log::{error, info};
 use rusqlite::{params_from_iter, Error, Row};
 use uuid::Uuid;
-use crate::application::{database, error::ApplicationError};
+use crate::application::{database::{self, CRUD}, error::ApplicationError};
 
 use super::structs::{reference::Reference, tag::Tag};
 
 use anyhow::Result;
 
-impl ReferenceDatabase for Reference {
+impl CRUD<Reference> for Reference {
     fn create(reference: &Reference) -> Result<()> {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO reference (id, nom, url, date_creation) VALUES (?1, ?2, ?3, ?4);";
@@ -98,30 +98,6 @@ impl ReferenceDatabase for Reference {
                     .collect::<Vec<Reference>>())
     }
 
-    fn filter_by_tags(tags: &[Tag]) -> Result<Vec<Reference>> {
-        if tags.is_empty() {
-            return Self::get_all();
-        }
-        
-        let binding = tags.iter().map(Tag::to_string).collect::<Vec<String>>();
-        let tags_str  = binding.as_slice();
-
-        let query = format!(
-            "WITH ref_ids AS (SELECT reference_id FROM tag WHERE nom IN ({}))
-            SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
-            FROM reference as r 
-            LEFT JOIN tag as t ON t.reference_id = r.id 
-            WHERE r.id IN (SELECT * FROM ref_ids)
-            GROUP BY r.id;", repeat_vars(tags.len()));
-
-        Ok(database::opening_database()?
-                .prepare(&query)?
-                .query_map(params_from_iter(tags_str), map_row)?
-                .map(|row| row.unwrap())
-                .filter(|refe|tags.iter().all(|item| refe.tags.contains(item))) 
-                .collect::<Vec<Reference>>())
-                
-    }
 
     fn get_one(id: Uuid) -> Result<Reference> {
         let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
@@ -139,16 +115,30 @@ impl ReferenceDatabase for Reference {
     }
 }
 
-pub trait ReferenceDatabase {
-    fn create(reference: &Reference) -> Result<()>;
-    fn get_one(id: Uuid) -> Result<Reference>;
-    fn filter_by_tags(tags: &[Tag]) -> Result<Vec<Reference>>;
-    fn get_all() -> Result<Vec<Reference>>;
-    fn delete(reference: &Reference) -> Result<usize>;
-    fn update(reference: &Reference) -> Result<()>;
-    fn create_or_update(reference: &Reference) -> Result<()>;
-}
+pub fn filter_by_tags(tags: &[Tag]) -> Result<Vec<Reference>> {
+    if tags.is_empty() {
+        return Reference::get_all();
+    }
+    
+    let binding = tags.iter().map(Tag::to_string).collect::<Vec<String>>();
+    let tags_str  = binding.as_slice();
 
+    let query = format!(
+        "WITH ref_ids AS (SELECT reference_id FROM tag WHERE nom IN ({}))
+        SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
+        FROM reference as r 
+        LEFT JOIN tag as t ON t.reference_id = r.id 
+        WHERE r.id IN (SELECT * FROM ref_ids)
+        GROUP BY r.id;", repeat_vars(tags.len()));
+
+    Ok(database::opening_database()?
+            .prepare(&query)?
+            .query_map(params_from_iter(tags_str), map_row)?
+            .map(|row| row.unwrap())
+            .filter(|refe|tags.iter().all(|item| refe.tags.contains(item))) 
+            .collect::<Vec<Reference>>())
+            
+}
 
 fn map_row(row: &Row) -> Result<Reference, Error> {
     let tags :String = row.get(3)?;

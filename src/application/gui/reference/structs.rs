@@ -1,4 +1,4 @@
-use crate::application::{error::ApplicationError, gui::structs::Fenetre, reference::{service::ReferenceDatabase, structs::{reference::Reference, tag::Tag}}};
+use crate::application::{database::CRUD, error::ApplicationError, gui::structs::Fenetre, reference::structs::{reference::Reference, tag::Tag}};
 
 use super::reference_gui::section_references;
 

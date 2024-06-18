@@ -2,7 +2,7 @@ use std::{fs::{create_dir, File}, io::Write, path::Path};
 
 use log::info;
 
-use crate::application::{error::ApplicationError, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE}, ToCsv}, reference::{service::ReferenceDatabase, structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::application::{database::CRUD, error::ApplicationError, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE}, ToCsv}, reference::{ structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 const EXPORT_STORAGE: &str = "./export/";
 use anyhow::{Context, Result};

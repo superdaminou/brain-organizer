@@ -3,3 +3,4 @@ mod reference;
 mod reflexion;
 mod structs;
 mod graph;
+mod finance;
