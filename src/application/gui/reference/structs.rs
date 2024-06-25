@@ -8,16 +8,18 @@ use anyhow::Result;
 pub struct SectionReference {
     pub reference: Reference,
     pub list_references: Vec<Reference>,
-    pub tag_filter: Vec<Tag>
+    pub tag_filter: Vec<Tag>,
+    pub search: String
 }
 
 
 impl Default for SectionReference {
     fn default() -> Self {
         Self {
-            reference: Reference::default(),
             list_references: Reference::get_all().unwrap_or_default(),
-            tag_filter: vec![]
+            reference: Reference::default(),
+            tag_filter: vec![],
+            search: String::default()
         }
     }
 }

@@ -140,6 +140,24 @@ pub fn filter_by_tags(tags: &[Tag]) -> Result<Vec<Reference>> {
             
 }
 
+pub fn search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
+    info!("Searching for : {}", name);
+    let query =format!(
+            "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
+            FROM reference as r 
+            LEFT JOIN tag as t ON t.reference_id = r.id
+            WHERE r.nom LIKE '%{}%'
+            GROUP BY r.id
+            ORDER BY r.date_creation DESC, tag, r.nom", name);
+        Ok(database::opening_database()?
+                    .prepare(query.as_str())?
+                    .query_map([], map_row)?
+                    .map(|row| row.unwrap())
+                    .filter(|refe| refe.tags.iter().any(|t| tags.is_empty() || tags.contains(t)))
+                    .collect::<Vec<Reference>>())
+}
+
+
 fn map_row(row: &Row) -> Result<Reference, Error> {
     let tags :String = row.get(3)?;
 

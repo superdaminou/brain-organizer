@@ -10,6 +10,7 @@ pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> 
     ui.heading("Reference");
     create_reference(section, ui)?;
     filter_bar(section, ui)?;
+    search_bar(section, ui)?;
     ui.separator();
     list_references(section, ui)
 }
@@ -25,6 +26,27 @@ fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
         })?;
         Ok(())
     }).inner?;
+    Ok(())
+}
+
+fn search_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
+    ui.horizontal::<Result<()>>(|ui| {
+        ui.label("Nom ");
+        ui.text_edit_singleline(&mut section.search);
+        
+
+        let button = egui::Button::new("Rechercher");
+
+        if ui.add(button).clicked() {
+            return reference::service::search(&section.search.clone(), &section.tag_filter)
+                .map(|list| section.list_references = list)
+                .map(|_| section.reference = Reference::default());
+                    
+        }
+        Ok(())
+    }).inner?;
+
+    
     Ok(())
 }
 

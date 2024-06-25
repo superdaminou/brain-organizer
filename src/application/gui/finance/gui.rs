@@ -3,7 +3,7 @@ use egui::Ui;
 use crate::application::{database::CRUD, error::ApplicationError, finance::depense::Depense};
 
 use super::structs::FenetreFinance;
-use anyhow::{Result};
+use anyhow::Result;
 
 
 pub fn finances_gui(fenetre: &mut FenetreFinance, ui:&mut Ui) -> Result<(), ApplicationError> {
@@ -26,17 +26,18 @@ pub fn finances_gui(fenetre: &mut FenetreFinance, ui:&mut Ui) -> Result<(), Appl
         ui.label("Montant");
         ui.end_row();
 
-        fenetre.depenses.iter().for_each(|depense| {
+        fenetre.depenses.iter().try_for_each(|depense| {
             ui.label(depense.libelle.clone());
             ui.label(depense.montant.to_string());
             let supprimer = egui::Button::new("Supprimer");
             if ui.add(supprimer).clicked() {
-                Depense::delete(depense);
+                Depense::delete(depense)?;
             }
             ui.end_row();
-        });
+            Ok::<(), ApplicationError>(())
+        })?;
         Ok::<(), ApplicationError>(())
-    });
+    }).inner?;
 
 
     ui.label("Total: ".to_string() + &fenetre.depenses.iter().fold(0.0, |acc, x | acc + x.montant).to_string());
@@ -57,10 +58,13 @@ fn create_depense(section: &mut FenetreFinance, ui: &mut egui::Ui) -> Result<()>
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
-            return Depense::create_or_update(&section.depense);
+            Depense::create_or_update(&section.depense)?;
+            section.depense = Depense::default();
+            section.depenses = Depense::get_all()?;
+            
         }
 
-        Ok(())
+        Ok::<(), anyhow::Error>(())
     }).inner?;
 
     Ok(())

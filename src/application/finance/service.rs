@@ -74,7 +74,7 @@ impl CRUD<Depense> for Depense {
 
 fn map_row(row: &Row) -> Result<Depense, Error> {
     let id  = row.get(0)
-        .and_then(|id: String| Uuid::parse_str(id.as_str()).map_err(|e| rusqlite::Error::ExecuteReturnedResults))?;
+        .and_then(|id: String| Uuid::parse_str(id.as_str()).map_err(|_| rusqlite::Error::ExecuteReturnedResults))?;
     
     Ok(Depense {
         id,
