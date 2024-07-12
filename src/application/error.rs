@@ -1,3 +1,4 @@
+use ilmen_http::{http::HTTPResponse, ResponseBuilder};
 use thiserror::Error;
 
 
@@ -33,7 +34,16 @@ pub enum ApplicationError
 
     #[error(transparent)]
     EframeError(#[from] eframe::Error),
+    
+    #[error(transparent)]
+    SerializationError(#[from] serde_json::Error),
 
     #[error(transparent)]
     Indra(#[from] indradb::Error)
+}
+
+impl Into<HTTPResponse> for ApplicationError {
+    fn into(self) -> HTTPResponse {
+        ResponseBuilder::new(500, Some(self.to_string())).build()
+    }
 }

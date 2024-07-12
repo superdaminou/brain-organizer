@@ -1,4 +1,5 @@
 use std::fmt::{self};
+
 use serde::{Deserialize, Serialize};
 use strum_macros::EnumIter;
 
@@ -10,7 +11,8 @@ pub enum Tag {
     Informatique,
     Sociologie,
     Politique,
-    Histoire
+    Histoire,
+    Economie
 }
 
 
@@ -25,6 +27,7 @@ impl TryFrom<String> for Tag {
             "informatique" => Ok(Tag::Informatique),
             "politique" => Ok(Tag::Politique),
             "sociologie" => Ok(Tag::Sociologie),
+            "economie" => Ok(Tag::Economie),
             _ => Err(ApplicationError::EnumError(value))
         }
     }
@@ -41,6 +44,7 @@ impl TryFrom<&str> for Tag {
             "informatique" => Ok(Tag::Informatique),
             "politique" => Ok(Tag::Politique),
             "sociologie" => Ok(Tag::Sociologie),
+            "economie" => Ok(Tag::Economie),
             _ => Err(ApplicationError::EnumError(value.to_string()))
         }
     }
@@ -57,6 +61,7 @@ impl TryFrom<&String> for Tag {
             "informatique" => Ok(Tag::Informatique),
             "politique" => Ok(Tag::Politique),
             "sociologie" => Ok(Tag::Sociologie),
+            "economie" => Ok(Tag::Economie),
             _ => Err(ApplicationError::EnumError(value.to_string()))
         }
     }
@@ -72,7 +77,8 @@ impl fmt::Display for Tag {
             Tag::Histoire => write!(f,"Histoire"),
             Tag::Informatique => write!(f, "Informatique"),
             Tag::Politique => write!(f, "Politique"),
-            Tag::Sociologie => write!(f, "Sociologie")
+            Tag::Sociologie => write!(f, "Sociologie"),
+            Tag::Economie => write!(f, "Economie")
         }
     }
 }
@@ -83,8 +89,9 @@ impl From<Tag> for String {
             Tag::Philosophie => String::from("Philosophie"),
             Tag::Histoire => String::from("Histoire"),
             Tag::Informatique => String::from( "Informatique"),
-            Tag::Politique => String::from("Politque"),
-            Tag::Sociologie => String::from("Sociologie")
+            Tag::Politique => String::from("Politique"),
+            Tag::Sociologie => String::from("Sociologie"),
+            Tag::Economie => String::from("Economie")
         }
     }
 }

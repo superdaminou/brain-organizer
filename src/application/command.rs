@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{self};
 
 use super::error::ApplicationError;
 
@@ -6,7 +6,8 @@ use super::error::ApplicationError;
 pub enum Command {
     Import,
     Gui,
-    Export
+    Export,
+    Web
 }
 
 impl TryFrom<String> for Command {
@@ -16,6 +17,7 @@ impl TryFrom<String> for Command {
             "import" => Ok(Command::Import),
             "export" => Ok(Command::Export),
             "gui" => Ok(Command::Gui),
+            "web" => Ok(Command::Web),
             _ => Err(ApplicationError::EnumError(value))
         }
     }
@@ -27,6 +29,7 @@ impl fmt::Display for Command {
             Command::Import => write!(f, "Import"),
             Command::Gui => write!(f, "GUI"),
             Command::Export => write!(f, "Export"),
+            Command::Web => write!(f, "Web")
         }
     }
 }

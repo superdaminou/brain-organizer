@@ -7,3 +7,4 @@
 /*.h
 *.lua
 /coverage
+.env

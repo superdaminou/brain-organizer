@@ -1,7 +1,7 @@
 mod application;
 
 use std::env;
-use application::error::ApplicationError;
+use application::{error::ApplicationError, web::server::web};
 use log::{info, warn};
 use crate::application::{command::Command, database::{ensuring_model, opening_database}, file::{ensuring_storage, export, import}, gui::app::running_gui};
 use dotenv::dotenv;
@@ -30,7 +30,8 @@ fn main() -> Result<(), ApplicationError> {
     match command {
         application::command::Command::Gui => running_gui(),
         application::command::Command::Import => import(),
-        application::command::Command::Export => export()
+        application::command::Command::Export => export(),
+        application::command::Command::Web => web(),
     }
 }
 
