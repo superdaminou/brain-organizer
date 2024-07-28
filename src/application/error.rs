@@ -8,8 +8,8 @@ pub enum ApplicationError
     #[error("Database Error")]
     DatabaseError(#[from] rusqlite::Error),
 
-    #[error("An error occured")]
-    DefaultError,
+    #[error("An error occured: {0}")]
+    DefaultError(String),
 
     #[error("Not found: {0}")]
     NotFoundError(String),
