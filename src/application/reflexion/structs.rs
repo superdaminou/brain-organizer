@@ -53,10 +53,10 @@ impl TryFrom<&CsvLine> for Reflexion {
     fn try_from(value: &CsvLine) -> Result<Self, ApplicationError> {
         let split = value.split(DELIMITER).map(String::from).collect::<Vec<String>>();
 
-        let sujet = split.first().ok_or(ApplicationError::DefaultError)?;
+        let sujet = split.first().ok_or(ApplicationError::DefaultError("Sujet vide".to_string()))?;
 
         if sujet.is_empty() {
-            return Err(ApplicationError::DefaultError);
+            return Err(ApplicationError::DefaultError("Sujet vide".to_string()));
         }
 
         Ok(Reflexion {

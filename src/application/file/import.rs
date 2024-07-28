@@ -4,10 +4,14 @@ use log::{error, info};
 
 use crate::application::{database::CRUD, error::ApplicationError, file::lib::{copy_recursively, NODES_FILE, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE, RELATIONS_FILE}, graph::{lib::{Graph, GraphDatabase}, structs::{my_node::MyNode, relation::Relations}}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
 use anyhow::{Context,Result};
+
+use super::dot_parser::{dot_parser::import_graph};
 const IMPORT_STORAGE: &str = "./import/";
 
 
 pub fn import() -> Result<(), ApplicationError> {
+    import_graph(IMPORT_STORAGE.to_string() + "graph.dot")?;
+    
     import_reference()
     .and_then(|_| import_reflexion())
     .and_then(|_| import_nodes())
@@ -69,3 +73,5 @@ fn import_relations() -> Result<(), ApplicationError> {
         .collect::<Result<Vec<Relations>, ApplicationError>>()
         .and_then(Graph::save_relations)
 }   
+
+
