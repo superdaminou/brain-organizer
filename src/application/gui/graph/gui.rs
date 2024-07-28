@@ -147,7 +147,7 @@ fn reset_graph(ui: &mut Ui) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, Appli
         .and_then(to_egui_graph)
 }
 
-fn to_egui_graph(graph: GuiGraph ) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, ApplicationError> {
+pub fn to_egui_graph(graph: GuiGraph ) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, ApplicationError> {
     Ok(to_graph_custom::<>(
             &graph.0, 
             node_transform, 

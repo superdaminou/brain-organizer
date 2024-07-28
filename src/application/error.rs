@@ -42,8 +42,8 @@ pub enum ApplicationError
     Indra(#[from] indradb::Error)
 }
 
-impl Into<HTTPResponse> for ApplicationError {
-    fn into(self) -> HTTPResponse {
-        ResponseBuilder::new(500, Some(self.to_string())).build()
+impl From<ApplicationError> for HTTPResponse {
+    fn from(val: ApplicationError) -> Self {
+        ResponseBuilder::new(500, Some(val.to_string())).build()
     }
 }

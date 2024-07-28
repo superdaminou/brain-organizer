@@ -1,7 +1,8 @@
 use anyhow::Context;
 use chrono::NaiveDate;
-use log::{error, info};
-use rusqlite::{params_from_iter, Error, Row};
+use log::{debug, error, info};
+use rusqlite::{Error, Row};
+use strum::IntoEnumIterator;
 use uuid::Uuid;
 use crate::application::{database::{self, CRUD}, error::ApplicationError};
 
@@ -12,13 +13,13 @@ use anyhow::Result;
 impl CRUD<Reference> for Reference {
     fn create(reference: &Reference) -> Result<()> {
         let id =Uuid::new_v4();
-        let ref_query = "INSERT INTO reference (id, nom, url, date_creation) VALUES (?1, ?2, ?3, ?4);";
+        let ref_query = "INSERT INTO reference (id, nom, url, date_creation, to_read) VALUES (?1, ?2, ?3, ?4, ?5);";
         let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
         let connexion = database::opening_database().context("Could not open database")?;
 
 
         info!("Adding new reference: {}", reference.titre);
-        connexion.execute(ref_query, (id.to_string(), reference.titre.clone(), reference.url.clone(), reference.date_creation.to_string()))?;
+        connexion.execute(ref_query, (id.to_string(), reference.titre.clone(), reference.url.clone(), reference.date_creation.to_string(), reference.to_read))?;
 
         reference.tags.iter().map(|cat|
             connexion.execute(tag_query, (Uuid::new_v4().to_string(), cat.to_string(), id.to_string())))
@@ -86,7 +87,7 @@ impl CRUD<Reference> for Reference {
 
 
     fn get_all() -> Result<Vec<Reference>> {
-        let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
+        let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
             GROUP BY r.id
@@ -100,7 +101,7 @@ impl CRUD<Reference> for Reference {
 
 
     fn get_one(id: Uuid) -> Result<Reference> {
-        let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
+        let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
             WHERE r.id = :id 
@@ -115,46 +116,29 @@ impl CRUD<Reference> for Reference {
     }
 }
 
-pub fn filter_by_tags(tags: &[Tag]) -> Result<Vec<Reference>> {
-    if tags.is_empty() {
-        return Reference::get_all();
-    }
-    
-    let binding = tags.iter().map(Tag::to_string).collect::<Vec<String>>();
-    let tags_str  = binding.as_slice();
-
-    let query = format!(
-        "WITH ref_ids AS (SELECT reference_id FROM tag WHERE nom IN ({}))
-        SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
-        FROM reference as r 
-        LEFT JOIN tag as t ON t.reference_id = r.id 
-        WHERE r.id IN (SELECT * FROM ref_ids)
-        GROUP BY r.id;", repeat_vars(tags.len()));
-
-    Ok(database::opening_database()?
-            .prepare(&query)?
-            .query_map(params_from_iter(tags_str), map_row)?
-            .map(|row| row.unwrap())
-            .filter(|refe|tags.iter().all(|item| refe.tags.contains(item))) 
-            .collect::<Vec<Reference>>())
-            
-}
-
 pub fn search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
     info!("Searching for : {}", name);
+    let where_query = if name.trim().is_empty() { "1=1"} else { &format!("r.nom LIKE '%{}%'", name) };
+    let tags_array = if tags.is_empty() {Tag::iter().collect()} else {tags.to_vec()};
+    let tag_query  = tags_array.iter()
+        .map(|t|t.to_string())
+        .reduce(|acc, e| acc + "','" + &e)
+        .unwrap_or_default();
     let query =format!(
-            "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation 
+            "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id
-            WHERE r.nom LIKE '%{}%'
+            WHERE {} 
+            AND t.nom in ('{}')
             GROUP BY r.id
-            ORDER BY r.date_creation DESC, tag, r.nom", name);
-        Ok(database::opening_database()?
-                    .prepare(query.as_str())?
-                    .query_map([], map_row)?
-                    .map(|row| row.unwrap())
-                    .filter(|refe| refe.tags.iter().any(|t| tags.is_empty() || tags.contains(t)))
-                    .collect::<Vec<Reference>>())
+            ORDER BY r.date_creation DESC, tag, r.nom", where_query, tag_query);
+    debug!("{}", query);
+    Ok(database::opening_database()?
+                .prepare(query.as_str())?
+                .query_map([], map_row)?
+                .map(|row| row.unwrap())
+                .filter(|refe| refe.tags.iter().any(|t| tags.is_empty() || tags.contains(t)))
+                .collect::<Vec<Reference>>())
 }
 
 
@@ -182,13 +166,6 @@ fn map_row(row: &Row) -> Result<Reference, Error> {
         url: row.get(2)?,
         tags: categorie,
         date_creation:  date,
+        to_read: row.get(5)?
     })
-}
-
-fn repeat_vars(count: usize) -> String {
-    assert_ne!(count, 0);
-    let mut s = "?,".repeat(count);
-    // Remove trailing comma
-    s.pop();
-    s
 }

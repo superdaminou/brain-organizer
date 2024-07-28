@@ -3,12 +3,12 @@ use std::{fs::{read_to_string, File}, io::Write};
 use egui::{TextEdit, Ui, Window};
 use log::info;
 
-use crate::application::{error::ApplicationError, file::construct_path, gui::structs::Fenetre, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::application::{error::ApplicationError, file::construct_path, gui::structs::Fenetre, reflexion::Reflexion};
 
 use super::gui::section_reflexions;
 use anyhow::Result;
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct SectionReflexion {
     pub reflexion: Reflexion,
     pub list_reflexions: Vec<Reflexion>,
@@ -17,27 +17,16 @@ pub struct SectionReflexion {
 }
 
 
-impl Default for SectionReflexion {
-    fn default() -> Self {
-        Self {
-            reflexion: Reflexion::new(),
-            list_reflexions: Reflexion::get_all().unwrap_or_default(),
-            edit: EditText::default(),
-            edit_reflexion: EditReflexion {show: false, reflexion: Reflexion::new(), contenu: String::from("")}
-            
-        }
-    } 
-}
-
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct EditText {}
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize,Default, Debug, Clone)]
 pub struct EditReflexion {
     pub show: bool,
     pub reflexion: Reflexion,
     pub contenu: String
 }
+
 
 
 impl EditText {

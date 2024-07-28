@@ -110,8 +110,6 @@ impl Fenetre for FenetreGraph {
             },
             None => Ok(())
         }
-
-
     }
 }
 

@@ -17,7 +17,7 @@ pub fn get_one(params: ParamsHandler) -> HTTPResponse {
     params.params.get("id")
         .context("Missing Params")
         .and_then(|id| Uuid::try_parse(id.as_str()).context("Cannot parse id to UUID"))
-        .and_then(|id |Reference::get_one(id))
+        .and_then(Reference::get_one)
         .and_then(|refs| serde_json::to_string(&refs).context("Could not serialize body"))
         .map(|body| ResponseBuilder::new(200, Some(body)).build())
         .unwrap_or_else(|err|ApplicationError::from(err).into())

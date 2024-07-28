@@ -1,27 +1,15 @@
-use crate::application::{database::CRUD, error::ApplicationError, gui::structs::Fenetre, reference::structs::{reference::Reference, tag::Tag}};
+use crate::application::{error::ApplicationError, gui::structs::Fenetre, reference::structs::{reference::Reference, tag::Tag}};
 
 use super::reference_gui::section_references;
 
 use anyhow::Result;
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct SectionReference {
     pub reference: Reference,
     pub list_references: Vec<Reference>,
     pub tag_filter: Vec<Tag>,
     pub search: String
-}
-
-
-impl Default for SectionReference {
-    fn default() -> Self {
-        Self {
-            list_references: Reference::get_all().unwrap_or_default(),
-            reference: Reference::default(),
-            tag_filter: vec![],
-            search: String::default()
-        }
-    }
 }
 
 

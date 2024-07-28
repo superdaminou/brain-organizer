@@ -34,4 +34,3 @@ fn main() -> Result<(), ApplicationError> {
         application::command::Command::Web => web(),
     }
 }
-

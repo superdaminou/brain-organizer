@@ -2,7 +2,7 @@ use std::fs::read_to_string;
 
 use log::{error, info};
 
-use crate::application::{database::CRUD, error::ApplicationError, file::lib::{copy_recursively, NODES_FILE, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE, RELATIONS_FILE}, graph::{lib::{Graph, GraphDatabase}, structs::{my_node::MyNode, relation::Relations}}, reference::{ structs::reference::{CsvLine, Reference}}, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::application::{database::CRUD, error::ApplicationError, file::lib::{copy_recursively, NODES_FILE, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE, RELATIONS_FILE}, graph::{lib::{Graph, GraphDatabase}, structs::{my_node::MyNode, relation::Relations}}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
 use anyhow::{Context,Result};
 const IMPORT_STORAGE: &str = "./import/";
 
@@ -35,7 +35,6 @@ fn import_reflexion() -> Result<(), ApplicationError> {
     info!("Start importing reflexion file: {}", REFLEXION_FILE);
     read_to_string(IMPORT_STORAGE.to_string() + REFLEXION_FILE).context("Read file")?  
         .lines()  
-        .map(CsvLine::from)
         .map(Reflexion::try_from)
         .collect::<Result<Vec<Reflexion>, ApplicationError>>()?
         .iter()
@@ -55,7 +54,6 @@ fn import_nodes() -> Result<(), ApplicationError> {
     read_to_string(IMPORT_STORAGE.to_string() + NODES_FILE)
         .with_context(|| format!("Reading file {}", NODES_FILE))?  
         .lines() 
-        .map(CsvLine::from)
         .map(MyNode::try_from)
         .collect::<Result<Vec<MyNode>, ApplicationError>>()
         .and_then(Graph::save_nodes)
@@ -67,8 +65,7 @@ fn import_relations() -> Result<(), ApplicationError> {
     read_to_string(IMPORT_STORAGE.to_string() + RELATIONS_FILE)
         .with_context(|| format!("Reading file {}", NODES_FILE))?  
         .lines()  // split the string into an iterator of string slices
-        .map(CsvLine::from)
-        .map(|line |Relations::try_from(&line))
+        .map(Relations::try_from)
         .collect::<Result<Vec<Relations>, ApplicationError>>()
         .and_then(Graph::save_relations)
 }   

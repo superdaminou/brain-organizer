@@ -3,7 +3,6 @@ name = "brain_manager"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rusqlite= {version = "0.31.0", features = ["bundled"]}
@@ -31,3 +30,4 @@ chrono = { version = "0.4", features = ["serde"]}
 regex ={ version = "1.10"}
 rand = {version = "0.8"}
 ilmen-http = { version = "0.0.3"}
+

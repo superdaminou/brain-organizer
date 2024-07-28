@@ -12,7 +12,7 @@ pub enum Tag {
     Sociologie,
     Politique,
     Histoire,
-    Economie
+    Economie   
 }
 
 

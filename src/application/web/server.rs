@@ -20,9 +20,9 @@ pub fn routes() -> Vec<Route> {
         Route {verb: Verb::GET, route: "/references/{id}".to_string(),method: get_one, need_security: true},
         ];
 
-    return routes;
+    routes
 }
 
 fn base_auth(couple: (String, String)) -> bool {
-    return couple.0 == "admin" && couple.1 == std::env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD must be set for baseAuth");
+    couple.0 == "admin" && couple.1 == std::env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD must be set for baseAuth")
 }

@@ -28,9 +28,9 @@ impl Default for MyNode {
     }
 }
 
-impl TryFrom<CsvLine> for MyNode {
+impl TryFrom<&CsvLine> for MyNode {
     type Error = ApplicationError;
-    fn try_from(value: CsvLine) -> Result<Self, ApplicationError> {
+    fn try_from(value: &CsvLine) -> Result<Self, ApplicationError> {
         let split: Vec<_> = value.split(';').collect();
         Ok(Self {
             id: Uuid::new_v4(),

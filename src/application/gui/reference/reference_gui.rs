@@ -57,7 +57,7 @@ fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<()>{
         section.tag_filter.push(tag.clone());
     }
 
-    reference::service::filter_by_tags(&section.tag_filter)
+    reference::service::search(&section.search, &section.tag_filter)
         .map(|references |section.list_references = references)
 }
 
@@ -84,11 +84,13 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
         ui.label("URL");
         ui.text_edit_singleline(&mut section.reference.url);
 
+        ui.checkbox(&mut section.reference.to_read, "Non Consulté");
+
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
             return Reference::create_or_update(&section.reference.clone())
-                .and_then(|_|reference::service::filter_by_tags(&section.tag_filter))
+                .and_then(|_|reference::service::search(&section.search, &section.tag_filter))
                 .map(|list| section.list_references = list)
                 .map(|_| section.reference = Reference::default());
                     
@@ -110,6 +112,7 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                     ui.hyperlink_to(&reference.titre, &reference.url);
                     ui.label(reference.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
                     ui.label(reference.date_creation.to_string());
+                    ui.label(if reference.to_read {"Test".to_string()} else {"Un autre test".to_string()});
                     if ui.button("Modifier").clicked() {
                         section.reference = reference.clone();
                     }

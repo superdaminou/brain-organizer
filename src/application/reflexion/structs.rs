@@ -27,22 +27,19 @@ impl Reflexion {
             .collect::<Vec<String>>().join("_");
         clean_path.to_string() + ".txt"
     }
+}
 
-    /// Initialize a new Reflexion
-    /// # Examples
-    /// ```
-    /// assert_eq!(Reflexion::new(), Reflexion {id: None, sujet: "Nouveau sujet".to_string()});
-    /// ```
-    pub fn new() -> Self {
-        Reflexion {
+impl Default for Reflexion {
+    fn default() -> Self {
+        Self { 
             id: None,
             sujet: String::from("Nouveau sujet")
-        }
+         }
     }
 }
 
 
-impl TryFrom<CsvLine> for Reflexion {
+impl TryFrom<&CsvLine> for Reflexion {
     /// Trying to create Reflexion from a CSV Line
     /// # Examples
     /// ```
@@ -53,7 +50,7 @@ impl TryFrom<CsvLine> for Reflexion {
     /// ```
     /// assert_eq!(Reflexion::try_from("").is_err())
     /// ```
-    fn try_from(value: CsvLine) -> Result<Self, ApplicationError> {
+    fn try_from(value: &CsvLine) -> Result<Self, ApplicationError> {
         let split = value.split(DELIMITER).map(String::from).collect::<Vec<String>>();
 
         let sujet = split.first().ok_or(ApplicationError::DefaultError)?;
@@ -71,16 +68,6 @@ impl TryFrom<CsvLine> for Reflexion {
     type Error = ApplicationError;
 }
 
-impl TryFrom<&str> for Reflexion {
-    fn try_from(value: &str) -> Result<Self, ApplicationError> {
-        Ok(Reflexion {
-            id: Some(Uuid::new_v4().to_string()),
-            sujet: value.to_string()
-        })
-    }
-    
-    type Error = ApplicationError;
-}
 
 impl Display for Reflexion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -111,33 +98,27 @@ mod tests {
 
     #[test]
     fn reflexion_to_string() {
-        assert_eq!(Reflexion::new().to_string(), "Nouveau sujet".to_string());
+        assert_eq!(Reflexion::default().to_string(), "Nouveau sujet".to_string());
     }
 
     #[test]
     fn reflexion_to_csv() {
-        assert_eq!(Reflexion::new().to_csv(), "Nouveau sujet;".to_string());
+        assert_eq!(Reflexion::default().to_csv(), "Nouveau sujet;".to_string());
     }
 
     #[test]
     fn init_reflexion() {
-        assert_eq!(Reflexion::new(), Reflexion {id: None, sujet: "Nouveau sujet".to_string()});
+        assert_eq!(Reflexion::default(), Reflexion {id: None, sujet: "Nouveau sujet".to_string()});
     }
 
     #[test]
     fn init_reflexion_from_csv_line() -> Result<(), ApplicationError> {
-        assert_eq!(Reflexion::try_from("Un Sujet;".to_string())?.sujet, "Un Sujet");
+        assert_eq!(Reflexion::try_from("Un Sujet;")?.sujet, "Un Sujet");
         Ok(())
     }
 
     #[test]
     fn init_reflexion_from_empty_csv_line() {
-        assert!(Reflexion::try_from("".to_string()).is_err(), "Should be \"Missing subject\"");
-    }
-
-    #[test]
-    fn get_path() {
-        let reflexion = Reflexion::try_from("t';e,\"()a").unwrap();
-        assert_eq!(reflexion.filename(), String::from("tea.txt"));
+        assert!(Reflexion::try_from("").is_err(), "Should be \"Missing subject\"");
     }
 }
