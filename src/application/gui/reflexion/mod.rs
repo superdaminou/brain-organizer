@@ -1,2 +1,2 @@
 pub mod gui;
-pub mod structs;
+pub mod section_reflexion;

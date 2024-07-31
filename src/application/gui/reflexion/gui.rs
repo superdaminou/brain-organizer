@@ -1,7 +1,7 @@
 use log::info;
-use crate::application::reflexion::{service::ReflexionDatabase, Reflexion};
+use crate::application::{gui::composant::EditText, reflexion::{service::ReflexionDatabase, Reflexion}};
 
-use super::structs::{EditText, SectionReflexion};
+use super::section_reflexion::{SectionReflexion};
 use anyhow::{Context, Result};
 
 
@@ -55,7 +55,7 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
                 ui.horizontal(|ui| {
                     ui.label(&reflexion.sujet);
                     if ui.button("Ouvrir").clicked() {
-                        section.edit.open(reflexion.clone(), &mut section.edit_reflexion);
+                        section.edit.open(reflexion.filename().clone(), &mut section.edit_reflexion);
                         section.edit_reflexion.show = true;
                         return Ok(());
                     }

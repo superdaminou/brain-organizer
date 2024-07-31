@@ -8,3 +8,4 @@ pub mod file;
 mod graph;
 mod finance;
 pub mod web;
+mod dot_parser;

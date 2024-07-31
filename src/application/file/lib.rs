@@ -1,39 +1,25 @@
 use std::{fs::{self, create_dir}, path::Path};
 use log::info;
-use crate::application::{graph::lib::{DATABASE_NAME, IDENTIFIER, NODE_TYPE}, reflexion::Reflexion};
-
 use anyhow::Result;
 
-pub const REFLEXION_STORAGE: &str = "./storage/";
+pub const STORAGE: &str = "./storage/";
 pub const REFLEXION_FILE: &str = "reflexion.csv";
-pub const NODES_FILE: &str = "nodes.csv";
-pub const RELATIONS_FILE: &str = "relations.csv";
 pub const REFERENCE_FILE: &str = "reference.csv";
 
 
 pub fn ensuring_storage() -> Result<()> {
     info!("Ensuring storage presence");
-    match Path::new(REFLEXION_STORAGE).exists() {
-        true => info!("Storage directory present - skipping creation"),
-        false => {
-            info!("Creating storage directory: {}", REFLEXION_STORAGE);
-            create_dir(REFLEXION_STORAGE)?
-        }
-    }
-    
-    match Path::new(DATABASE_NAME).exists() {
+    match Path::new(STORAGE).exists() {
         true => {
-            info!("Graph database already exists");
+            info!("Storage directory present - skipping creation");
             Ok(())
         },
         false => {
-            info!("Creating graph database directory: {}", DATABASE_NAME);
-            let db = indradb::RocksdbDatastore::new_db(DATABASE_NAME)?;
-            db.index_property(indradb::Identifier::new(IDENTIFIER)?)?;
-            db.index_property(indradb::Identifier::new(NODE_TYPE)?)?;
-            Ok(())
+            info!("Creating storage directory: {}", STORAGE);
+            Ok(create_dir(STORAGE)?)
         }
     }
+
 }
 
 pub fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>) -> Result<()> {
@@ -50,6 +36,6 @@ pub fn copy_recursively(source: impl AsRef<Path>, destination: impl AsRef<Path>)
     Ok(())
 }
 
-pub fn construct_path(reflexion: &Reflexion) -> String {
-    REFLEXION_STORAGE.to_string() + &reflexion.filename()
+pub fn construct_path(filename: &String) -> String {
+    STORAGE.to_string() + filename
 }

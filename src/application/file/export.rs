@@ -2,7 +2,7 @@ use std::{fs::{create_dir, File}, io::Write, path::Path};
 
 use log::info;
 
-use crate::application::{database::CRUD, error::ApplicationError, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE}, ToCsv}, reference::{ structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::application::{database::CRUD, error::ApplicationError, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv}, reference::{ structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 const EXPORT_STORAGE: &str = "./export/";
 use anyhow::{Context, Result};
@@ -32,7 +32,7 @@ fn export_reflexions() -> Result<(), ApplicationError> {
     info!("Start exporting reflexion entries: {}", REFLEXION_FILE);
     write_file(REFLEXION_FILE, Reflexion::get_all()?.to_csv())
         .and_then(|_|
-            copy_recursively(REFLEXION_STORAGE, EXPORT_STORAGE.to_string() + REFLEXION_STORAGE).map_err(ApplicationError::Other))
+            copy_recursively(STORAGE, EXPORT_STORAGE.to_string() + STORAGE).map_err(ApplicationError::Other))
 }
 
 fn write_file(file: &str, content: String) -> Result<(), ApplicationError>{

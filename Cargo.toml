@@ -22,7 +22,6 @@ env_logger = "0.11"
 dotenv = "0.15"
 egui_graphs = { version = "0", features = ["egui_persistence", "serde"]}
 petgraph = {version = "0.6", features = ["serde-1"]}
-indradb-lib = { version = "4.0", features = ["rocksdb-datastore"]}
 anyhow = {version = "1.0"}
 thiserror ={ version = "1.0"}
 serde_json = { version = "1.0"}
@@ -31,3 +30,5 @@ regex ={ version = "1.10"}
 rand = {version = "0.8"}
 ilmen-http = { version = "0.0.3"}
 
+[dev-dependencies]
+env_logger = "*"

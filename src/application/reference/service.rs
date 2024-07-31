@@ -33,12 +33,6 @@ impl CRUD<Reference> for Reference {
         Ok(())
     }
 
-    fn create_or_update(reference: &Reference) -> Result<()>  {
-        match &reference.id {
-            Some(_) => Self::update(reference),
-            None => Self::create(reference)
-        }
-    }
 
 
     fn update(reference: &Reference) -> Result<()> {
@@ -115,6 +109,14 @@ impl CRUD<Reference> for Reference {
                 .context("Not found")
     }
 }
+
+pub fn create_or_update(reference: &Reference) -> Result<()>  {
+    match &reference.id {
+        Some(_) => Reference::update(reference),
+        None => Reference::create(reference)
+    }
+}
+
 
 pub fn search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
     info!("Searching for : {}", name);

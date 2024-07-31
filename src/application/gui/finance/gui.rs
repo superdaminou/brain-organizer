@@ -1,8 +1,8 @@
 use egui::Ui;
 
-use crate::application::{database::CRUD, error::ApplicationError, finance::depense::Depense};
+use crate::application::{database::CRUD, error::ApplicationError, finance::{depense::Depense, service}};
 
-use super::structs::FenetreFinance;
+use super::fenetre_finance::FenetreFinance;
 use anyhow::Result;
 
 
@@ -58,7 +58,7 @@ fn create_depense(section: &mut FenetreFinance, ui: &mut egui::Ui) -> Result<()>
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
-            Depense::create_or_update(&section.depense)?;
+            service::create_or_update(&section.depense)?;
             section.depense = Depense::default();
             section.depenses = Depense::get_all()?;
             

@@ -31,6 +31,5 @@ pub trait CRUD<T> {
     fn get_all() -> Result<Vec<T>>;
     fn delete(entity: &T) -> Result<usize>;
     fn update(entity: &T) -> Result<()>;
-    fn create_or_update(entity: &T) -> Result<()>;
 
 }

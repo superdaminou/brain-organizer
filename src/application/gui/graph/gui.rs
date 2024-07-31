@@ -1,121 +1,71 @@
+use std::collections::HashMap;
+
 use egui::Ui;
 use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
-use log::info;
-use petgraph::{csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, Directed};
-use strum::IntoEnumIterator;
-use crate::application::graph::lib::{Graph as MyGraph, GraphDatabase};
+use petgraph::{ graph::{EdgeIndex, NodeIndex}, prelude::StableGraph, Directed};
 
-use crate::application::{error::ApplicationError, graph::structs::{edge_type::Type, my_edge::MyEdge, my_node::{MyNode, NodeType}, relation::Relations}};
+use crate::application::{ database::CRUD, dot_parser::{attribute::Attribut, dot_graph::DotGraph}, gui::composant::EditText};
 
-use super::structs::{FenetreGraph, GuiGraph, GuiNode};
+use crate::application::error::ApplicationError;
+use crate::application::graph::structs::my_graph::Graph as MyGraph;
+use crate::application::dot_parser::node::Node as DotNode;
+use super::{fenetre_graph::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};
 use anyhow::Result;
 
 pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
-
-    create_relation(fenetre, ui)?;
-    find_node(fenetre, ui)?;
+    new_graph(fenetre, ui)?;
+    
+    selected_graph(fenetre, ui)?;
     selected_node(fenetre, ui)?;
-    if ui.button("Load graph").clicked() {
-        fenetre.graph = reset_graph(ui)?;
-    }
-    show_graph(ui, &mut fenetre.graph);
-    Ok(())
-}
+    EditText::default().show(ui, &mut fenetre.edit_graph)?;
+    
+    
 
-fn find_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
-    ui.horizontal(|ui| {
-        ui.label("Nom du noeud");
-        ui.text_edit_singleline(&mut fenetre.search);
-        if ui.button("Getting node").clicked() {
-            let node =MyGraph::get_node(&fenetre.search).map(GuiNode::from)?;
-            fenetre.selected_node = Some(node);
-            let gui_node = fenetre.graph.nodes_iter()
-                .find(|node| node.1.payload().node.identifier == fenetre.search);
-            match gui_node {
-                Some(node) => {
-                    let index  = node.0;
-                    fenetre.graph.set_selected_nodes(vec![index]);
-                    fenetre.graph
-                        .node_mut(index)
-                        .unwrap()
-                        .set_selected(true);
-                },
-                None => info!("Node not found in gui graph: {}", fenetre.search)
-            }
-        };
-        Ok::<(), ApplicationError>(())
-    }).inner?;
-    Ok(())
-}
-
-fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
-    match fenetre.graph.selected_nodes().first()
-            .and_then(|node_index| fenetre.graph.node(*node_index))
-            .map(MyNode::from) {
-                None => fenetre.selected_node = None,
-                Some(selected_node) => {
-                    if !selected_node.identifier.eq(&fenetre.selected_node.clone().map(|n|n.node.identifier).unwrap_or("".to_string())) {
-                        fenetre.graph =  MyGraph::get_node_with_relation(&selected_node)
-                            .map(GuiGraph::from)
-                            .and_then(to_egui_graph)?;
-
-                        let selected_node_index = fenetre.graph.nodes_iter()
-                            .find(|n| n.1.payload().node.identifier.eq(&selected_node.identifier))
-                            .map(|(i, _)| i)
-                            .unwrap();
-            
-                        fenetre.graph.set_selected_nodes(vec![selected_node_index]);
-                        fenetre.graph.node_mut(selected_node_index).unwrap().set_selected(true);
-                        fenetre.selected_node =  Some(GuiNode::from(selected_node));
-                    }
-                }
-            }
-    ui.label(format!("Selected none: {}", fenetre.selected_node.clone().unwrap_or_default().node.identifier));
-    Ok(())
-}
-
-fn new_node(node: &mut MyNode, ui:&mut Ui) {
-    ui.horizontal(|ui| {
-        ui.label("Identifiant");
-        ui.text_edit_singleline(&mut node.identifier);
-        egui::ComboBox::from_id_source(node.id).selected_text(node.node_type.to_string())
+    ui.horizontal(|ui: &mut egui::Ui| {
+        egui::ComboBox::from_label("Graph")
+            .selected_text(format!("{:?}", fenetre.graph.filename))
             .show_ui(ui, |ui| {
-                NodeType::iter().for_each(|t| {
-                    let type_label = ui.selectable_label(node.node_type == t, t.to_string());
-                    if type_label.clicked() {
-                        node.node_type = t;
-                    }
-                });
-            }
-        );    
-    });
-}
-
-fn create_relation(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError> {
-    ui.horizontal(|ui| {
-        new_node(&mut fenetre.create_node_out, ui);
-        egui::ComboBox::from_id_source("Tags").selected_text(fenetre.create_edge_type.to_string())
-            .show_ui(ui, |ui| {
-                Type::iter().for_each(|t| {
-                    let type_label = ui.selectable_label(fenetre.create_edge_type == t, t.to_string());
-                    if type_label.clicked() {
-                        fenetre.create_edge_type= t;
-                    }
-                });
+                fenetre.graphs.iter().for_each(|g| {
+                    let value = ui.selectable_value(&mut &fenetre.graph, g, g.filename.clone());
+                    if value.clicked() {
+                        fenetre.graph = g.clone();
+                    };
+                    
+                })
             }
         );
-        new_node(&mut fenetre.create_node_in, ui);
+
         
-        if ui.button("Add Node").clicked() {
-            let edge =  MyEdge::from(fenetre.create_edge_type.clone());
-            MyGraph::save_relation(Relations{node_out: fenetre.create_node_out.clone() ,edge, node_in: fenetre.create_node_in.clone()})?;
-            fenetre.graph= reset_graph(ui)?;
-        }
-        Ok(())
-    }).inner
+
+        Ok::<(), ApplicationError>(())
+    }).inner?;
+    
+    show_graph(ui, &mut fenetre.loaded_graph);
+    
+    Ok(())
 }
 
-fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, MyEdge>) {
+fn new_graph(section: &mut FenetreGraph, ui: &mut egui::Ui) -> Result<()> {
+    ui.horizontal(|ui: &mut egui::Ui| {
+        ui.heading("New Graph File: ");
+        ui.label("filename");
+        ui.text_edit_singleline(&mut section.creating_graph);
+    
+        let button = egui::Button::new("Créer");
+        if ui.add(button).clicked() {
+            let graph = MyGraph::from(&section.creating_graph);
+            MyGraph::create(&graph)?;
+            section.graph = graph;
+            section.graphs = MyGraph::get_all().unwrap_or_default();
+        }
+        anyhow::Ok(())
+    }).inner?;
+
+    Ok(())
+
+}
+
+fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, String>) {
     ui.add(&mut GraphView::<
         _,
         _,
@@ -126,7 +76,7 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, MyEdge>) {
     >::new(graph)
     .with_navigations(
         &SettingsNavigation::new()
-        .with_fit_to_screen_enabled(true)
+        .with_fit_to_screen_enabled(false)
         .with_zoom_and_pan_enabled(true))
     .with_interactions(
         &SettingsInteraction::new()
@@ -139,37 +89,103 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, MyEdge>) {
 }
 
 
-fn reset_graph(ui: &mut Ui) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, ApplicationError> {
-    GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
+pub fn to_egui_graph(dot_graph: DotGraph ) -> Result<egui_graphs::Graph<GuiNode, String>, ApplicationError> {
+    let mut graph = StableGraph::<DotNode, String>::new();
+        let mut index_by_node = dot_graph
+            .nodes()
+            .iter()
+            .map(|n| (n.0.clone(), graph.add_node(n.clone())))
+            .collect::<HashMap<String, NodeIndex>>();
+        
+        let edges = dot_graph.edges();
 
-    MyGraph::get_graph()
-        .map(GuiGraph::from)
-        .and_then(to_egui_graph)
-}
+        edges.iter()
+            .try_for_each(|e| {
+            
+            let left = index_by_node.get(&e.left_node).copied()
+                .unwrap_or_else(|| insert_and_get_index(&e.left_node, &mut graph, &mut index_by_node));
+            
+            let right = index_by_node.get(&e.right_node).copied()
+                .unwrap_or_else(|| insert_and_get_index(&e.right_node, &mut graph, &mut index_by_node));
+            
+            graph.add_edge(left, right, e.relation.clone());
+            Ok::<(), ApplicationError>(())
+        })?;
 
-pub fn to_egui_graph(graph: GuiGraph ) -> Result<egui_graphs::Graph<GuiNode, MyEdge>, ApplicationError> {
     Ok(to_graph_custom::<>(
-            &graph.0, 
+            &mut GuiGraph::from(graph).0, 
             node_transform, 
             edge_transform))
 }
 
+fn insert_and_get_index(node: &String, graph:&mut StableGraph::<DotNode, String>, index_by_node:&mut HashMap<String, NodeIndex>) -> NodeIndex{
+    let node_index = graph.add_node(DotNode::new(node.as_str()));
+    index_by_node.insert(node.clone(), node_index);
+    node_index
+}
 
 pub fn node_transform(
     idx: NodeIndex<u32>,
     payload: &GuiNode,
-) -> ENode<GuiNode, MyEdge> {
-    let mut node = default_node_transform::<GuiNode,MyEdge, Directed, u32,DefaultNodeShape>(idx , payload)
-        .with_label(payload.node.identifier.clone());
-    node.set_location(payload.location);
+) -> ENode<GuiNode, String> {
+    let mut node = default_node_transform::<GuiNode,String, Directed, u32,DefaultNodeShape>(idx , payload)
+        .with_label(payload.0.0.clone());
+    node.set_location(payload.1);
     node
 }
 
 pub fn edge_transform(
     idx: EdgeIndex<u32>,
-    payload: &MyEdge,
+    payload: &String,
     order: usize,
-) -> Edge<GuiNode, MyEdge> {
-    default_edge_transform::<GuiNode,MyEdge,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , payload, order)
-        .with_label(payload.edge_type.to_string())
+) -> Edge<GuiNode, String> {
+    default_edge_transform::<GuiNode,String,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , payload, order)
+        .with_label(payload.clone())
+}
+
+
+fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
+    match fenetre.loaded_graph.selected_nodes().first()
+    .and_then(|node_index| fenetre.loaded_graph.node(*node_index).cloned())
+     {
+        None => fenetre.selected_node = None,
+        Some(selected_node) => {
+            if !selected_node.payload().0.0.eq(&fenetre.selected_node.clone().map(|n|n.0).unwrap_or("".to_string())) {
+                let selected_node_index = fenetre.loaded_graph.nodes_iter()
+                    .find(|n| n.1.payload().0.0.eq(&selected_node.payload().0.0))
+                    .map(|(i, _)| i)
+                    .unwrap();
+    
+                    fenetre.loaded_graph.set_selected_nodes(vec![selected_node_index]);
+                    fenetre.loaded_graph.node_mut(selected_node_index).unwrap().set_selected(true);
+                fenetre.selected_node =  Some(selected_node.payload().0.clone());
+            }
+        }
+    }
+
+
+
+    
+    let selectectd_node = fenetre.selected_node.clone().unwrap_or_default();
+    ui.label(format!("Selected none: {} with attributes: {}", selectectd_node.0, selectectd_node.1.iter().map(Attribut::to_string).collect::<Vec<String>>().join(",")));
+    Ok(())
+}
+
+fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
+    ui.horizontal(|ui: &mut egui::Ui| {
+        ui.label(format!("Current graph: {}", fenetre.graph.filename));
+        if ui.button("Ouvrir").clicked() {
+            fenetre.edit.open(fenetre.graph.filename.clone(), &mut fenetre.edit_graph);
+            fenetre.edit_graph.show = true;
+        }
+
+        if ui.button("Charger").clicked() {
+            fenetre.graph = MyGraph::get_one(fenetre.graph.id)?;
+            fenetre.loaded_graph = to_egui_graph(fenetre.graph.load_graph()?)?;
+        }
+        Ok::<(), ApplicationError>(())
+     });
+
+    
+    Ok(())
 }

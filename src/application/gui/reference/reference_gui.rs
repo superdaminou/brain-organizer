@@ -2,7 +2,7 @@ use strum::IntoEnumIterator;
 
 use crate::application::{database::CRUD, error::ApplicationError, reference::{self, structs::{reference::Reference, tag::Tag}}};
 
-use super::structs::SectionReference;
+use super::section_reference::SectionReference;
 use anyhow::Result;
 
 
@@ -89,7 +89,7 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
-            return Reference::create_or_update(&section.reference.clone())
+            return reference::service::create_or_update(&section.reference.clone())
                 .and_then(|_|reference::service::search(&section.search, &section.tag_filter))
                 .map(|list| section.list_references = list)
                 .map(|_| section.reference = Reference::default());

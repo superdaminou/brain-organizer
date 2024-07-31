@@ -37,9 +37,6 @@ pub enum ApplicationError
     
     #[error(transparent)]
     SerializationError(#[from] serde_json::Error),
-
-    #[error(transparent)]
-    Indra(#[from] indradb::Error)
 }
 
 impl From<ApplicationError> for HTTPResponse {

@@ -5,7 +5,7 @@ use rusqlite::{Error, Row};
 use uuid::Uuid;
 use crate::application::{database, file::construct_path};
 
-use super::structs::Reflexion;
+use super::reflexion::Reflexion;
 use anyhow::{Context, Result};
 
 impl ReflexionDatabase for Reflexion {
@@ -14,7 +14,7 @@ impl ReflexionDatabase for Reflexion {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO reflexion (id, sujet) VALUES (?1, ?2);";
         database::opening_database().map(|connexion| connexion.execute(ref_query, (id.to_string(), reflexion.sujet.clone())))
-            .and_then(|_| File::create(construct_path(reflexion)).context("Creating file"))?;
+            .and_then(|_| File::create(construct_path(&reflexion.filename())).context("Creating file"))?;
 
         Ok(())
     }
@@ -25,7 +25,7 @@ impl ReflexionDatabase for Reflexion {
             .and_then(|_| database::opening_database())?
             .execute("DELETE FROM reflexion WHERE id=?1", [reflexion.id.clone()])
             .context("Failed to delete")
-            .and_then(|_| remove_file(construct_path(reflexion)).context("failed to remove file"))
+            .and_then(|_| remove_file(construct_path(&reflexion.filename())).context("failed to remove file"))
             .with_context(|| "An error occured")
             
     }

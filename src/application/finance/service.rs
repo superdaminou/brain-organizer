@@ -63,14 +63,14 @@ impl CRUD<Depense> for Depense {
     }
 
 
-    fn create_or_update(depense: &Depense) -> Result<()>  {
-        match Self::get_one(depense.id) {
-            Ok(_) => Self::update(depense),
-            Err(_) => Self::create(depense)
-        }
-    }
 }
 
+pub fn create_or_update(depense: &Depense) -> Result<()>  {
+    match Depense::get_one(depense.id) {
+        Ok(_) => Depense::update(depense),
+        Err(_) => Depense::create(depense)
+    }
+}
 
 fn map_row(row: &Row) -> Result<Depense, Error> {
     let id  = row.get(0)

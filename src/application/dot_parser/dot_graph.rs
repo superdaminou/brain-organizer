@@ -1,18 +1,19 @@
+
 use egui::TextBuffer;
 use log::debug;
 
 use crate::application::error::ApplicationError;
 
-use super::{attribute::Attribut, edge::Edge, node::Node, struts::GraphType};
+use super::{attribute::Attribut, edge::{Edge}, node::Node, graph_type::GraphType};
 
-#[derive(PartialEq)]
+#[derive(PartialEq,Clone)]
 pub struct DotGraph {
-    pub family: GraphType, 
-    pub nodes: Vec<Node>,
-    pub edges: Vec<Edge>,
-    pub sous_graphes: Vec<DotGraph>,
-    pub attributs: Vec<Attribut>,
-    pub name: String
+    family: GraphType, 
+    nodes: Vec<Node>,
+    edges: Vec<Edge>,
+    sous_graphes: Vec<DotGraph>,
+    attributs: Vec<Attribut>,
+    name: String
 }
 
 impl Default for DotGraph {
@@ -22,31 +23,48 @@ impl Default for DotGraph {
 }
 
 
+// Create A graph from a valid DOT content
+impl TryFrom<&str> for DotGraph {
+    type Error = ApplicationError;
+    fn try_from(content: &str) -> Result<Self, Self::Error> {
+        let mut cleaned_content = content.lines()
+        .map(clean_line)
+        .filter(|l| !l.is_empty() && !l.starts_with("//"))
+        .collect::<String>();
+
+        Self::create_graph(&mut cleaned_content, None)
+    }
+}
+
+
+
 impl DotGraph {
 
-    fn get_type_graph(content: &str, parent: Option<GraphType>) -> Result<GraphType, ApplicationError> {
-        if content.starts_with("digraph") {
-            return Ok(GraphType::Digraph);
-        }
+    pub fn nodes(&self) ->Vec<Node> {
+        let mut nodes = self.nodes.clone();  
+        
+        nodes
+        .extend(
+            self.sous_graphes.iter().flat_map(|g| g.nodes.clone()));
 
-        if content.starts_with("graph") {
-            return Ok(GraphType::Graph);
-        }
+        nodes
+    }
 
-        if content.starts_with("subgraph") {
-            return parent.ok_or(ApplicationError::DefaultError("Should have a parent".to_string()));
-        }
-
-        Err(ApplicationError::DefaultError("No graph type detected".to_string()))
-    } 
+    pub fn edges(&self) -> Vec<Edge> {
+        let mut edges = self.edges.clone();  
+        edges.extend(self.sous_graphes.iter().flat_map(|g| g.edges.clone()));
+        edges
+    }
 
     fn create_graph(content: &mut String, parent: Option<GraphType>)  -> Result<DotGraph, ApplicationError>{
         debug!("creating graph from: {}", content);
-        let type_graph = Self::get_type_graph(content, parent)?;
     
         let head_and_body = content.split_once("{").ok_or(ApplicationError::DefaultError("Pas de corps ?".to_string()))?;
         let head = head_and_body.0;
+        
+        let type_graph = get_type_graph(head, parent)?;
         let name = head.split_once(" ").map(|(gtype,name)| name).unwrap_or("").trim();
+        
         let mut body = head_and_body.1.to_string();
 
         let sous_graphes = Self::extract_subgraphes(&mut body, type_graph)?; 
@@ -55,10 +73,12 @@ impl DotGraph {
         let mut attributs = vec![];
         let mut nodes =vec![];
         let mut edges =vec![];
+        let mut default_node_attribute = vec![];
+        let mut default_edge_attribute = vec![];
         
         body
             .split(";")
-            .map(DotGraph::clean_line)
+            .map(clean_line)
             .filter(|l| !l.is_empty())
             .try_for_each(|line| {
                 if line.contains("->") {
@@ -69,7 +89,13 @@ impl DotGraph {
     
                 if line.contains("[") || !line.contains("=") {
                     let node = Node::try_from(&line.to_string())?;
-                    nodes.push(node);
+                    if node.0 == "node" {
+                        default_node_attribute=node.1
+                    } else if node.0 == "edge" {
+                        default_edge_attribute=node.1
+                    } else {
+                        nodes.push(node);   
+                    }
                     return Ok(());
                 }
     
@@ -81,19 +107,14 @@ impl DotGraph {
             Ok(DotGraph {name: name.to_string(), family: type_graph, sous_graphes, nodes, edges, attributs })
     }
     
-    fn clean_line(line: &str) -> &str {
-        line.split_once("//").map(|(declatation,_comment)|declatation).unwrap_or(line).trim()
-    }
-
     fn extract_subgraphes(body: &mut String, parent: GraphType) -> Result<Vec<DotGraph>, ApplicationError> {
-        let mut sous_graphes_position = DotGraph::extract_subgraphes_position(body)?;
+        let mut sous_graphes_position = extract_subgraphes_position(body)?;
     
         let sous_graphes = sous_graphes_position
                 .iter()
                 .map(|(start,end)|Self::create_graph(&mut body.char_range(*start..*end+1).to_string(), Some(parent)))
                 .collect::<Result<Vec<DotGraph>, ApplicationError>>()?;
     
-        println!("Ma foi il  ya : {}", sous_graphes.len());
         sous_graphes_position.reverse();
         for i in sous_graphes_position {
 
@@ -103,79 +124,86 @@ impl DotGraph {
         Ok(sous_graphes)
     }
 
-    fn extract_subgraphes_position(inside_block: &str) -> Result<Vec<(usize, usize)>, ApplicationError> {
-
-        let mut remaining = inside_block.to_string();
-
-        let mut sub_graphes_ranges = vec![];
-        let mut stack = 0;
-        while remaining.contains("subgraph"){
-            let start = remaining.find("subgraph").unwrap();
-            let end = DotGraph::next_block_range(&remaining)?.1;
-            sub_graphes_ranges.push((start+stack, end+stack));
-            stack =end+1;
-
-            remaining = remaining.split_at(end+1).1.to_string();
-        } 
-        Ok(sub_graphes_ranges)
+    pub fn name(&self) -> &String {
+        &self.name
     }
-
-    fn next_block_range(block: &str) -> Result<(usize, usize), ApplicationError>{
-        let mut stack = 0;
-        let mut index = 0;
-
-        let mut range : (Option<usize>, Option<usize>)= (None, None);
-        
-        let mut chars = block.chars();
-        let mut next= chars.next();
-        while next.is_some() {
-            let char = next.unwrap();
-            
-            if char == '{' {
-                stack+=1;
-                if range.0.is_none() {
-                    range.0 = Some(index);
-                }
-            }
     
-            if char == '}' {
-                stack -= 1;
-                if stack == 0 {
-                    return match range.0 {
-                        Some(start) => Ok((start, index)),
-                        None => Err(ApplicationError::DefaultError("Parsing exception error: no starting brackets".to_string()))
-                    }
-                }
-                if stack < 0 {
-                    return Err(ApplicationError::DefaultError("Too many }".to_string()));
-                }
-            } 
-            index +=1;
-            next = chars.next();
-        }
-    
-        Err(ApplicationError::DefaultError("Missing ending }".to_string()))
-    }
 }
 
 
-impl TryFrom<&str> for DotGraph {
-    type Error = ApplicationError;
-    fn try_from(content: &str) -> Result<Self, Self::Error> {
-        let mut cleaned_content = content.lines()
-        .map(clean_line)
-        .filter(|l| !l.is_empty() && !l.starts_with("//"))
-        .collect::<String>();
-
-        println!("clean content: {}", cleaned_content);
-        Self::create_graph(&mut cleaned_content, None)
+// Get the graph type from the first chars of content
+fn get_type_graph(content: &str, parent: Option<GraphType>) -> Result<GraphType, ApplicationError> {
+    if content.starts_with("digraph") {
+        return Ok(GraphType::Digraph);
     }
-}
 
+    if content.starts_with("graph") {
+        return Ok(GraphType::Graph);
+    }
 
+    if content.starts_with("subgraph") {
+        return parent.ok_or(ApplicationError::DefaultError("Should have a parent".to_string()));
+    }
 
+    Err(ApplicationError::DefaultError("No graph type detected".to_string()))
+} 
+
+// Removing comments and trimming
 fn clean_line(line: &str) -> &str {
     line.split_once("//").map(|a|a.0).unwrap_or(line).trim()
+}
+
+fn extract_subgraphes_position(inside_block: &str) -> Result<Vec<(usize, usize)>, ApplicationError> {
+
+    let mut remaining = inside_block.to_string();
+
+    let mut sub_graphes_ranges = vec![];
+    let mut stack = 0;
+    while remaining.contains("subgraph"){
+        let start = remaining.find("subgraph").unwrap();
+        let end = next_block_range(&remaining)?.1;
+        sub_graphes_ranges.push((start+stack, end+stack));
+        stack =end+1;
+
+        remaining = remaining.split_at(end+1).1.to_string();
+    } 
+    Ok(sub_graphes_ranges)
+}
+
+fn next_block_range(block: &str) -> Result<(usize, usize), ApplicationError>{
+    let mut stack = 0;
+    let mut index = 0;
+
+    let mut range : (Option<usize>, Option<usize>)= (None, None);
+    let mut chars = block.chars();
+    let mut next= chars.next();
+    while next.is_some() {
+        let char = next.unwrap();
+        
+        if char == '{' {
+            stack+=1;
+            if range.0.is_none() {
+                range.0 = Some(index);
+            }
+        }
+
+        if char == '}' {
+            stack -= 1;
+            if stack == 0 {
+                return match range.0 {
+                    Some(start) => Ok((start, index)),
+                    None => Err(ApplicationError::DefaultError("Parsing exception error: no starting brackets".to_string()))
+                }
+            }
+            if stack < 0 {
+                return Err(ApplicationError::DefaultError("Too many }".to_string()));
+            }
+        } 
+        index +=1;
+        next = chars.next();
+    }
+
+    Err(ApplicationError::DefaultError("Missing ending }".to_string()))
 }
 
 
@@ -184,6 +212,8 @@ mod tests {
     use std::vec;
 
     use super::*;
+
+    
 
     #[test]
     fn test_find_ending_pos_combinations() {
@@ -196,7 +226,7 @@ mod tests {
             ("graph Test {A;subgraph{D;}A->C}", (11, 30))
             ];
             
-        combinations.iter().for_each(|combinaisons| assert_eq!(DotGraph::next_block_range(combinaisons.0).unwrap(), combinaisons.1));
+        combinations.iter().for_each(|combinaisons| assert_eq!(next_block_range(combinaisons.0).unwrap(), combinaisons.1));
     }
 
     #[test]
@@ -207,9 +237,10 @@ mod tests {
             ("{test{}", "Missing ending }")
             ];
             
-        combinations.iter().for_each(|combinaisons| assert_eq!(DotGraph::next_block_range(combinaisons.0).unwrap_err().to_string(), ApplicationError::DefaultError(combinaisons.1.to_string()).to_string()));
+        combinations.iter().for_each(|combinaisons| assert_eq!(next_block_range(combinaisons.0).unwrap_err().to_string(), ApplicationError::DefaultError(combinaisons.1.to_string()).to_string()));
 
     } 
+
 
     #[test]
     fn graph_try_from() {
@@ -221,8 +252,8 @@ mod tests {
             vec![
                 Node("A".to_string(), vec![]),
                 Node("B".to_string(), vec![
-                    Attribut("label".to_string(), "test".to_string()),
-                    Attribut("encore".to_string(), "toto".to_string())])]);
+                    Attribut{ key:"label".to_string(), value: "test".to_string()},
+                    Attribut{ key:"encore".to_string(),value: "toto".to_string()}])]);
         assert_eq!(result.edges, 
             vec![
                 Edge::try_from(("A->B", "->")).unwrap(),
@@ -247,7 +278,7 @@ mod tests {
         combinations.iter()
             .for_each(|combinaisons| 
                 {
-                    let result = DotGraph::extract_subgraphes_position(combinaisons.0).unwrap();
+                    let result = extract_subgraphes_position(combinaisons.0).unwrap();
                     assert_eq!(result, combinaisons.1);
                 }
             );

@@ -2,20 +2,15 @@ use std::fs::read_to_string;
 
 use log::{error, info};
 
-use crate::application::{database::CRUD, error::ApplicationError, file::lib::{copy_recursively, NODES_FILE, REFERENCE_FILE, REFLEXION_FILE, REFLEXION_STORAGE, RELATIONS_FILE}, graph::{lib::{Graph, GraphDatabase}, structs::{my_node::MyNode, relation::Relations}}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::application::{database::CRUD, error::ApplicationError, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
 use anyhow::{Context,Result};
 
-use super::dot_parser::{dot_parser::import_graph};
 const IMPORT_STORAGE: &str = "./import/";
 
 
 pub fn import() -> Result<(), ApplicationError> {
-    import_graph(IMPORT_STORAGE.to_string() + "graph.dot")?;
-    
     import_reference()
     .and_then(|_| import_reflexion())
-    .and_then(|_| import_nodes())
-    .and_then(|_| import_relations())
 }
 
 fn import_reference() -> Result<(), ApplicationError> {
@@ -49,29 +44,5 @@ fn import_reflexion() -> Result<(), ApplicationError> {
                 Err(e) => error!("error while inserting reflexion: {}", e)
             }
         });
-    copy_recursively(IMPORT_STORAGE.to_string() + REFLEXION_STORAGE, REFLEXION_STORAGE).map_err(ApplicationError::Other)
+    copy_recursively(IMPORT_STORAGE.to_string() + STORAGE, STORAGE).map_err(ApplicationError::Other)
 }
-
-
-fn import_nodes() -> Result<(), ApplicationError> {
-    info!("Start importing nodes file: {}", NODES_FILE);
-    read_to_string(IMPORT_STORAGE.to_string() + NODES_FILE)
-        .with_context(|| format!("Reading file {}", NODES_FILE))?  
-        .lines() 
-        .map(MyNode::try_from)
-        .collect::<Result<Vec<MyNode>, ApplicationError>>()
-        .and_then(Graph::save_nodes)
-
-}
-
-fn import_relations() -> Result<(), ApplicationError> {
-    info!("Start importing relations file: {}", RELATIONS_FILE);
-    read_to_string(IMPORT_STORAGE.to_string() + RELATIONS_FILE)
-        .with_context(|| format!("Reading file {}", NODES_FILE))?  
-        .lines()  // split the string into an iterator of string slices
-        .map(Relations::try_from)
-        .collect::<Result<Vec<Relations>, ApplicationError>>()
-        .and_then(Graph::save_relations)
-}   
-
-

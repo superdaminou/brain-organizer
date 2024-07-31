@@ -1,8 +1,8 @@
 use crate::application::error::ApplicationError;
 
-use super::attribute::{extract_attributes, Attribut};
+use super::attribute::{ new_from_array, Attribut};
 
-#[derive(Default, PartialEq, Eq, Debug)]
+#[derive(Default, PartialEq, Eq, Debug, Clone)]
 pub struct Edge{
     pub left_node: NodeId,
     pub right_node: NodeId,
@@ -28,8 +28,12 @@ impl TryFrom<(&str, &str)> for Edge {
             .unwrap_or((splitted.1, "")).0
             .trim()
             .to_string();
-        let attributs = extract_attributes(splitted.1)?;
-        
+
+        let attributs = match splitted.1.split_once("[") {
+            Some((_, "")) => vec![],
+            Some((_,b)) => new_from_array(&b.replace("]",""))?,
+            None => vec![]
+        };
 
         Ok(Self{left_node, right_node, relation, attributs})
     }

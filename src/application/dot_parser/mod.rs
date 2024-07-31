@@ -1,5 +1,5 @@
 pub mod dot_parser;
-pub mod struts;
+pub mod graph_type;
 pub mod dot_graph;
 pub mod node;
 pub mod edge;
