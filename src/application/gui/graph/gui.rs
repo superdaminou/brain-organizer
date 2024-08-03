@@ -1,15 +1,16 @@
 use std::collections::HashMap;
 
 use egui::Ui;
-use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, DefaultEdgeShape, DefaultNodeShape, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
-use petgraph::{ graph::{EdgeIndex, NodeIndex}, prelude::StableGraph, Directed};
+use egui_graphs::{ default_edge_transform, default_node_transform, to_graph, to_graph_custom, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
+use log::info;
+use petgraph::{ csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, prelude::StableGraph, Directed};
 
 use crate::application::{ database::CRUD, dot_parser::{attribute::Attribut, dot_graph::DotGraph}, gui::composant::EditText};
 
 use crate::application::error::ApplicationError;
-use crate::application::graph::structs::my_graph::Graph as MyGraph;
+use crate::application::graph::my_graph::Graph as MyGraph;
 use crate::application::dot_parser::node::Node as DotNode;
-use super::{fenetre_graph::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};
+use super::{fenetre::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};
 use anyhow::Result;
 
 pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
@@ -18,15 +19,13 @@ pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applic
     selected_graph(fenetre, ui)?;
     selected_node(fenetre, ui)?;
     EditText::default().show(ui, &mut fenetre.edit_graph)?;
-    
-    
 
     ui.horizontal(|ui: &mut egui::Ui| {
         egui::ComboBox::from_label("Graph")
-            .selected_text(format!("{:?}", fenetre.graph.filename))
+            .selected_text(format!("{:?}", fenetre.graph.filename()))
             .show_ui(ui, |ui| {
                 fenetre.graphs.iter().for_each(|g| {
-                    let value = ui.selectable_value(&mut &fenetre.graph, g, g.filename.clone());
+                    let value = ui.selectable_value(&mut &fenetre.graph, g, g.filename());
                     if value.clicked() {
                         fenetre.graph = g.clone();
                     };
@@ -34,9 +33,6 @@ pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applic
                 })
             }
         );
-
-        
-
         Ok::<(), ApplicationError>(())
     }).inner?;
     
@@ -71,8 +67,8 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, String>) {
         _,
         _,
         _,
-        DefaultNodeShape,
-        DefaultEdgeShape,
+        _,
+        _,
     >::new(graph)
     .with_navigations(
         &SettingsNavigation::new()
@@ -90,6 +86,7 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, String>) {
 
 
 pub fn to_egui_graph(dot_graph: DotGraph ) -> Result<egui_graphs::Graph<GuiNode, String>, ApplicationError> {
+    info!("Transforming to egui graph: {}", dot_graph.name());
     let mut graph = StableGraph::<DotNode, String>::new();
         let mut index_by_node = dot_graph
             .nodes()
@@ -128,7 +125,7 @@ pub fn node_transform(
     idx: NodeIndex<u32>,
     payload: &GuiNode,
 ) -> ENode<GuiNode, String> {
-    let mut node = default_node_transform::<GuiNode,String, Directed, u32,DefaultNodeShape>(idx , payload)
+    let mut node = default_node_transform::<GuiNode,String, Directed, u32,_>(idx , payload)
         .with_label(payload.0.0.clone());
     node.set_location(payload.1);
     node
@@ -139,7 +136,7 @@ pub fn edge_transform(
     payload: &String,
     order: usize,
 ) -> Edge<GuiNode, String> {
-    default_edge_transform::<GuiNode,String,Directed,u32, DefaultNodeShape, DefaultEdgeShape>(idx , payload, order)
+    default_edge_transform::<GuiNode,String,Directed,u32, _, _>(idx , payload, order)
         .with_label(payload.clone())
 }
 
@@ -173,13 +170,14 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicati
 
 fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
     ui.horizontal(|ui: &mut egui::Ui| {
-        ui.label(format!("Current graph: {}", fenetre.graph.filename));
-        if ui.button("Ouvrir").clicked() {
-            fenetre.edit.open(fenetre.graph.filename.clone(), &mut fenetre.edit_graph);
+        ui.label(format!("Current graph: {}", fenetre.graph.filename()));
+        if ui.button("Editer").clicked() {
+            fenetre.edit.open(fenetre.graph.filename(), &mut fenetre.edit_graph)?;
             fenetre.edit_graph.show = true;
         }
 
-        if ui.button("Charger").clicked() {
+        if ui.button("Charger Graph").clicked() {
+            GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
             fenetre.graph = MyGraph::get_one(fenetre.graph.id)?;
             fenetre.loaded_graph = to_egui_graph(fenetre.graph.load_graph()?)?;
         }

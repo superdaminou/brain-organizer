@@ -4,7 +4,7 @@ use log::debug;
 
 use crate::application::error::ApplicationError;
 
-use super::{attribute::Attribut, edge::{Edge}, node::Node, graph_type::GraphType};
+use super::{attribute::Attribut, edge::Edge, node::Node, graph_type::GraphType};
 
 #[derive(PartialEq,Clone)]
 pub struct DotGraph {
@@ -28,9 +28,9 @@ impl TryFrom<&str> for DotGraph {
     type Error = ApplicationError;
     fn try_from(content: &str) -> Result<Self, Self::Error> {
         let mut cleaned_content = content.lines()
-        .map(clean_line)
-        .filter(|l| !l.is_empty() && !l.starts_with("//"))
-        .collect::<String>();
+            .map(clean_line)
+            .filter(|l| !l.is_empty() && !l.starts_with("//"))
+            .collect::<String>();
 
         Self::create_graph(&mut cleaned_content, None)
     }
@@ -63,7 +63,7 @@ impl DotGraph {
         let head = head_and_body.0;
         
         let type_graph = get_type_graph(head, parent)?;
-        let name = head.split_once(" ").map(|(gtype,name)| name).unwrap_or("").trim();
+        let name = head.split_once(" ").map(|(_gtype,name)| name).unwrap_or("NoName").trim();
         
         let mut body = head_and_body.1.to_string();
 

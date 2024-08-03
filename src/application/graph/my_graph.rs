@@ -11,7 +11,7 @@ use anyhow::{Context, Result};
 #[derive(PartialEq, Eq, Clone)]
 pub struct  Graph {
     pub id: Uuid,
-    pub filename: String,
+    filename: String,
 }
 
 
@@ -44,7 +44,7 @@ impl CRUD<Graph> for Graph {
         info!("Adding new graph: {}", my_graph.filename);
         connexion.execute(query, (id.to_string(), my_graph.filename.clone()))?;
 
-        File::create(construct_path(&(my_graph.filename.to_string() +".dot"))).context("Creating file")?;
+        File::create(construct_path(&(my_graph.filename()))).context("Creating file")?;
         Ok(())
     }
 
@@ -109,12 +109,14 @@ fn map_row(row: &Row) -> Result<Graph, Error> {
     })
 }
 
-
-
 impl Graph {
+
+    pub fn filename(&self) -> String {
+        self.filename.clone() + ".dot"
+    }
     
     pub  fn load_graph(&self) -> Result<DotGraph, ApplicationError> {
-        graph_from_file(&construct_path(&self.filename))
+        graph_from_file(&construct_path(&self.filename()))
      }
 }
 

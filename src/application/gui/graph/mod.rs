@@ -1,4 +1,3 @@
-pub mod fenetre_graph;
+pub mod fenetre;
 mod gui;
-mod node_shape;
 mod gui_graph;

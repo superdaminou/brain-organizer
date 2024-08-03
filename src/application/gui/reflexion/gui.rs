@@ -1,11 +1,11 @@
 use log::info;
-use crate::application::{gui::composant::EditText, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::application::{error::ApplicationError, gui::composant::EditText, reflexion::{service::ReflexionDatabase, Reflexion}};
 
-use super::section_reflexion::{SectionReflexion};
+use super::section_reflexion::SectionReflexion;
 use anyhow::{Context, Result};
 
 
-pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()> {
+pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     EditText::default().show(ui, &mut section.edit_reflexion)?;
     new_reflexion(section, ui)?;
     list_reflexions(section, ui)?;
@@ -34,7 +34,7 @@ fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()
 }
 
 
-fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()> {
+fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
 
     ui.horizontal(|ui| {
         if ui.button("Recharger reflexion").clicked() {
@@ -51,23 +51,24 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
     egui::ScrollArea::vertical()
         .id_source("reflexion")
         .show(ui, |ui| {
-            for reflexion in &section.list_reflexions.clone() {
+            section.list_reflexions.clone().iter().try_for_each(|reflexion| {
                 ui.horizontal(|ui| {
                     ui.label(&reflexion.sujet);
                     if ui.button("Ouvrir").clicked() {
-                        section.edit.open(reflexion.filename().clone(), &mut section.edit_reflexion);
+                        section.edit.open(reflexion.filename().clone(), &mut section.edit_reflexion)?;
                         section.edit_reflexion.show = true;
-                        return Ok(());
+                        return Ok::<(), ApplicationError>(());
                     }
                     if ui.button("Supprimer").clicked() {
-                        return Reflexion::delete(&reflexion.clone())
+                        return Ok(Reflexion::delete(&reflexion.clone())
                             .and_then(|_| Reflexion::get_all().context("get All"))
-                            .map(|result| section.list_reflexions = result);
+                            .map(|result| section.list_reflexions = result)?);
                     }
-                    Ok(())
+                    Ok::<(), ApplicationError>(())
                 });
-            }
-        });
+                Ok::<(), ApplicationError>(())
+            })
+        }).inner?;
 
         Ok(())
 }

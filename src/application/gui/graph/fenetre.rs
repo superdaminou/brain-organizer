@@ -8,7 +8,7 @@ use rand::Rng;
 use crate::application::database::CRUD;
 use crate::application::dot_parser::node::Node as DotNode;
 
-use crate::application::graph::structs::my_graph::Graph as MyGraph;
+use crate::application::graph::my_graph::Graph as MyGraph;
 use crate::application::gui::composant::EditFile;
 use crate::application::gui::composant::EditText;
 use crate::application::{error::ApplicationError, gui::structs::Fenetre};

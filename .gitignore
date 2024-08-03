@@ -8,3 +8,4 @@
 *.lua
 /coverage
 .env
+/.vscode

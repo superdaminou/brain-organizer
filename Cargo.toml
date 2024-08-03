@@ -29,6 +29,3 @@ chrono = { version = "0.4", features = ["serde"]}
 regex ={ version = "1.10"}
 rand = {version = "0.8"}
 ilmen-http = { version = "0.0.3"}
-
-[dev-dependencies]
-env_logger = "*"

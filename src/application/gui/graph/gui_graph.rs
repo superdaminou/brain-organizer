@@ -5,7 +5,7 @@ use petgraph::{prelude::StableGraph, visit::{EdgeRef, IntoEdgeReferences}};
 use rand::Rng;
 use crate::application::dot_parser::node::Node as DotNode;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct GuiNode(pub DotNode,pub Pos2);
 
 impl From<&DotNode> for GuiNode {
