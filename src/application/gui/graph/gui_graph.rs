@@ -3,15 +3,25 @@ use std::collections::HashMap;
 use egui::{emath::Numeric, Pos2};
 use petgraph::{prelude::StableGraph, visit::{EdgeRef, IntoEdgeReferences}};
 use rand::Rng;
-use crate::application::dot_parser::node::Node as DotNode;
+use ilmen_dot_parser::Node as DotNode;
 
 #[derive(Clone, Default)]
 pub struct GuiNode(pub DotNode,pub Pos2);
 
 impl From<&DotNode> for GuiNode {
     fn from(value: &DotNode) -> Self {
-        Self(value.clone(), Pos2::from(value))
+        Self(value.clone(), node_to_pos(value))
     }
+}
+
+fn node_to_pos(node: &DotNode) -> Pos2 {
+    let mut rng = rand::thread_rng();
+        
+    let rand = rng.gen_range(0..100);
+
+    let x = f32::from_f64(rand.to_f64().cos() * 50.0);
+    let y = f32::from_f64(rand.to_f64().sin() * 50.0);
+    Pos2::new(x, y)
 }
 pub struct GuiGraph(pub StableGraph<GuiNode, String>);
 
@@ -25,7 +35,7 @@ impl From<StableGraph<DotNode, String>> for GuiGraph {
             .iter()
             .for_each(|n| {
                 let index = graph.add_node(GuiNode::from(*n));
-                map_vertex_indice.insert(n.0.clone(), index);
+                map_vertex_indice.insert(n.identifier.clone(), index);
             });
 
         value.edge_references().for_each(|edge| {

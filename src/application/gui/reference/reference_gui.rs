@@ -112,7 +112,7 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                     ui.hyperlink_to(&reference.titre, &reference.url);
                     ui.label(reference.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
                     ui.label(reference.date_creation.to_string());
-                    ui.label(if reference.to_read {"Test".to_string()} else {"Un autre test".to_string()});
+                    ui.label(if reference.to_read {"Non Lu".to_string()} else {"Lu".to_string()});
                     if ui.button("Modifier").clicked() {
                         section.reference = reference.clone();
                     }

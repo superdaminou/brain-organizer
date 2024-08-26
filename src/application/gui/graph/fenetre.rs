@@ -3,10 +3,11 @@ use egui::emath::Numeric;
 use egui::Pos2;
 use egui_graphs::Node as EguiNode;
 use egui_graphs::Graph;
+use ilmen_dot_parser::Attributs;
 use petgraph::stable_graph::StableGraph;
 use rand::Rng;
 use crate::application::database::CRUD;
-use crate::application::dot_parser::node::Node as DotNode;
+use ilmen_dot_parser::Node as DotNode;
 
 use crate::application::graph::my_graph::Graph as MyGraph;
 use crate::application::gui::composant::EditFile;
@@ -15,7 +16,7 @@ use crate::application::{error::ApplicationError, gui::structs::Fenetre};
 
 use super::gui::graph_window;
 use super::gui_graph::GuiNode;
-use crate::application::dot_parser::node::Node as MyNode;
+use ilmen_dot_parser::Node as MyNode;
 
 use anyhow::{Context, Result};
 
@@ -35,24 +36,12 @@ impl Debug for FenetreGraph {
     }
 }
 
-impl From<&EguiNode<DotNode, String>> for DotNode {
-    fn from(value: &EguiNode<DotNode, String>) -> Self {
-        DotNode(value.label(), vec![])
-    }
+
+fn egui_node_to_dot_node(value: &EguiNode<DotNode, String>) -> DotNode {
+    DotNode::new(&value.label(), Attributs::default())
 }
 
 
-impl From<&DotNode> for Pos2 {
-    fn from(_: &DotNode) -> Self {
-        let mut rng = rand::thread_rng();
-        
-        let rand = rng.gen_range(0..100);
-
-        let x = f32::from_f64(rand.to_f64().cos() * 50.0);
-        let y = f32::from_f64(rand.to_f64().sin() * 50.0);
-        Pos2::new(x, y)
-    }
-}
 
 impl Default for FenetreGraph {
     fn default() -> Self {

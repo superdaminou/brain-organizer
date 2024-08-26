@@ -5,11 +5,11 @@ use egui_graphs::{ default_edge_transform, default_node_transform, to_graph, to_
 use log::info;
 use petgraph::{ csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, prelude::StableGraph, Directed};
 
-use crate::application::{ database::CRUD, dot_parser::{attribute::Attribut, dot_graph::DotGraph}, gui::composant::EditText};
-
+use crate::application::{ database::CRUD, gui::composant::EditText};
+use ilmen_dot_parser::{Attributs, DotGraph};
+use ilmen_dot_parser::Node as DotNode;
 use crate::application::error::ApplicationError;
 use crate::application::graph::my_graph::Graph as MyGraph;
-use crate::application::dot_parser::node::Node as DotNode;
 use super::{fenetre::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};
 use anyhow::Result;
 
@@ -91,7 +91,7 @@ pub fn to_egui_graph(dot_graph: DotGraph ) -> Result<egui_graphs::Graph<GuiNode,
         let mut index_by_node = dot_graph
             .nodes()
             .iter()
-            .map(|n| (n.0.clone(), graph.add_node(n.clone())))
+            .map(|n| (n.identifier.clone(), graph.add_node(n.clone())))
             .collect::<HashMap<String, NodeIndex>>();
         
         let edges = dot_graph.edges();
@@ -99,13 +99,13 @@ pub fn to_egui_graph(dot_graph: DotGraph ) -> Result<egui_graphs::Graph<GuiNode,
         edges.iter()
             .try_for_each(|e| {
             
-            let left = index_by_node.get(&e.left_node).copied()
-                .unwrap_or_else(|| insert_and_get_index(&e.left_node, &mut graph, &mut index_by_node));
+            let left = index_by_node.get(&e.node_out).copied()
+                .unwrap_or_else(|| insert_and_get_index(&e.node_out, &mut graph, &mut index_by_node));
             
-            let right = index_by_node.get(&e.right_node).copied()
-                .unwrap_or_else(|| insert_and_get_index(&e.right_node, &mut graph, &mut index_by_node));
+            let right = index_by_node.get(&e.node_in).copied()
+                .unwrap_or_else(|| insert_and_get_index(&e.node_in, &mut graph, &mut index_by_node));
             
-            graph.add_edge(left, right, e.relation.clone());
+            graph.add_edge(left, right, e.relation.to_string());
             Ok::<(), ApplicationError>(())
         })?;
 
@@ -116,7 +116,7 @@ pub fn to_egui_graph(dot_graph: DotGraph ) -> Result<egui_graphs::Graph<GuiNode,
 }
 
 fn insert_and_get_index(node: &String, graph:&mut StableGraph::<DotNode, String>, index_by_node:&mut HashMap<String, NodeIndex>) -> NodeIndex{
-    let node_index = graph.add_node(DotNode::new(node.as_str()));
+    let node_index = graph.add_node(DotNode::new(node.as_str(), Attributs::default()));
     index_by_node.insert(node.clone(), node_index);
     node_index
 }
@@ -126,7 +126,7 @@ pub fn node_transform(
     payload: &GuiNode,
 ) -> ENode<GuiNode, String> {
     let mut node = default_node_transform::<GuiNode,String, Directed, u32,_>(idx , payload)
-        .with_label(payload.0.0.clone());
+        .with_label(payload.0.identifier.clone());
     node.set_location(payload.1);
     node
 }
@@ -147,9 +147,9 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicati
      {
         None => fenetre.selected_node = None,
         Some(selected_node) => {
-            if !selected_node.payload().0.0.eq(&fenetre.selected_node.clone().map(|n|n.0).unwrap_or("".to_string())) {
+            if !selected_node.payload().0.identifier.eq(&fenetre.selected_node.clone().map(|n|n.identifier).unwrap_or("".to_string())) {
                 let selected_node_index = fenetre.loaded_graph.nodes_iter()
-                    .find(|n| n.1.payload().0.0.eq(&selected_node.payload().0.0))
+                    .find(|n| n.1.payload().0.identifier.eq(&selected_node.payload().0.identifier))
                     .map(|(i, _)| i)
                     .unwrap();
     
@@ -164,7 +164,12 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicati
 
     
     let selectectd_node = fenetre.selected_node.clone().unwrap_or_default();
-    ui.label(format!("Selected none: {} with attributes: {}", selectectd_node.0, selectectd_node.1.iter().map(Attribut::to_string).collect::<Vec<String>>().join(",")));
+    ui.label(format!("Selected none: {} with attributes: {}", selectectd_node.identifier, 
+        selectectd_node.attributes.attributs()
+            .unwrap_or_default()
+            .iter()
+            .map(|attribut| attribut.0.to_string() + ": " + attribut.1)
+            .collect::<Vec<String>>().join(",")));
     Ok(())
 }
 

@@ -1,11 +1,11 @@
 use std::fs::File;
 
+use ilmen_dot_parser::DotGraph;
 use log::info;
 use rusqlite::{ Error, Row};
 use uuid::Uuid;
-use crate::application::dot_parser::dot_graph::DotGraph;
 use crate::application::file::construct_path;
-use crate::application::{database::{self, CRUD}, dot_parser::dot_parser::graph_from_file, error::ApplicationError};
+use crate::application::{database::{self, CRUD}, error::ApplicationError};
 use anyhow::{Context, Result};
 
 #[derive(PartialEq, Eq, Clone)]
@@ -116,9 +116,8 @@ impl Graph {
     }
     
     pub  fn load_graph(&self) -> Result<DotGraph, ApplicationError> {
-        graph_from_file(&construct_path(&self.filename()))
+        DotGraph::graph_from_file(&construct_path(&self.filename())).map_err(|e| ApplicationError::DefaultError("While parsing".to_string()))
      }
 }
-
 
  
