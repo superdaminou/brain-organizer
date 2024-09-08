@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use egui::Ui;
-use egui_graphs::{ default_edge_transform, default_node_transform, to_graph, to_graph_custom, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
+use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
 use log::info;
 use petgraph::{ csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, prelude::StableGraph, Directed};
 

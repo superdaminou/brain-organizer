@@ -55,7 +55,7 @@ impl Default for Reference {
             titre: String::from("Reference"),
             url: String::from("www.url.com"),
             date_creation: Local::now().date_naive(),
-            to_read: true
+            to_read: false
         }
     }
 }

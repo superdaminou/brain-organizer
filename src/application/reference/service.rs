@@ -120,18 +120,22 @@ pub fn create_or_update(reference: &Reference) -> Result<()>  {
 
 pub fn search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
     info!("Searching for : {}", name);
-    let where_query = if name.trim().is_empty() { "1=1"} else { &format!("r.nom LIKE '%{}%'", name) };
-    let tags_array = if tags.is_empty() {Tag::iter().collect()} else {tags.to_vec()};
-    let tag_query  = tags_array.iter()
-        .map(|t|t.to_string())
-        .reduce(|acc, e| acc + "','" + &e)
-        .unwrap_or_default();
+    let where_query = if name.trim().is_empty() { ""} else { &format!("AND r.nom LIKE '%{}%'", name) };
+    let mut tag_query = String::default();
+    if !tags.is_empty() {
+        tag_query  = "AND t.nom in ('".to_string() + &tags.iter()
+            .map(|t|t.to_string())
+            .reduce(|acc, e| acc + "','" + &e)
+            .unwrap_or_default() + "')";
+    }
+
     let query =format!(
             "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id
-            WHERE {} 
-            AND t.nom in ('{}')
+            WHERE 1=1
+            {} 
+            {}
             GROUP BY r.id
             ORDER BY r.date_creation DESC, tag, r.nom", where_query, tag_query);
     debug!("{}", query);
@@ -139,7 +143,7 @@ pub fn search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
                 .prepare(query.as_str())?
                 .query_map([], map_row)?
                 .map(|row| row.unwrap())
-                .filter(|refe| refe.tags.iter().any(|t| tags.is_empty() || tags.contains(t)))
+                //.filter(|refe| refe.tags.iter().any(|t| tags.is_empty() || tags.contains(t)))
                 .collect::<Vec<Reference>>())
 }
 

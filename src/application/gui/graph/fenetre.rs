@@ -1,11 +1,8 @@
 use std::fmt::Debug;
-use egui::emath::Numeric;
-use egui::Pos2;
 use egui_graphs::Node as EguiNode;
 use egui_graphs::Graph;
 use ilmen_dot_parser::Attributs;
 use petgraph::stable_graph::StableGraph;
-use rand::Rng;
 use crate::application::database::CRUD;
 use ilmen_dot_parser::Node as DotNode;
 
