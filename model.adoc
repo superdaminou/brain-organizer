@@ -1,7 +1,20 @@
 = Model
 
-
+----
 @startuml
-    object firstObject
-    object "My Second Object" as o2
-@enduml
+object tag
+tag : id
+tag : nom
+tag : reference_id
+
+object reference
+reference : id
+reference : nom
+reference : url
+reference : categorie
+reference : date_creation
+reference : to_read
+
+tag  "1" -- "n"  reference
+@enduml 
+----

@@ -39,14 +39,14 @@ impl From<StableGraph<DotNode, String>> for GuiGraph {
             });
 
         value.edge_references().for_each(|edge| {
-            graph.add_edge(edge.source(), edge.target(), edge.weight().clone());
+            graph.add_edge(edge.source(), edge.target(), String::default());
             let source_node_pos = graph.node_weight(edge.source()).expect("Source node").1;
             let mut rng = rand::thread_rng();
                     
             let rand = rng.gen_range(0..100);
 
-            let new_x_pos = f32::from_f64(source_node_pos.x.to_f64() + (rand.to_f64().cos() * value.node_count().to_f64().max(5.0) * 10.));
-            let new_y_pos = f32::from_f64(source_node_pos.y.to_f64() + (rand.to_f64().sin() * value.node_count().to_f64().max(5.0) * 10.));
+            let new_x_pos = f32::from_f64(source_node_pos.x.to_f64() + (rand.to_f64().cos() * value.node_count().to_f64().max(5.0) * 4.));
+            let new_y_pos = f32::from_f64(source_node_pos.y.to_f64() + (rand.to_f64().sin() * value.node_count().to_f64().max(5.0) * 4.));
 
             graph.node_weight_mut(edge.target()).expect("Should have a node").1 = Pos2::new(new_x_pos, new_y_pos);
         });

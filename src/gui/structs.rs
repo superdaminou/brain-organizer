@@ -4,6 +4,7 @@ use crate::error::ApplicationError;
 
 use super::{app::central_panel, finance::fenetre_finance::FenetreFinance, graph::fenetre::FenetreGraph, reference::panel::PanelReference, reflexion::section_reflexion::SectionReflexion};
 use anyhow::Result;
+use eframe::egui::Context;
 pub struct TemplateApp {
     pub fenetres: Vec<Box<dyn Fenetre>>,
     pub error: AppError,
@@ -53,7 +54,7 @@ impl eframe::App for TemplateApp {
     
 
     /// Called each time the UI needs repainting, which may be many times per second.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
         // For inspiration and more examples, go to https://emilk.github.io/egui
 

@@ -22,7 +22,7 @@ pub fn running_gui() -> Result<(), ApplicationError>{
     eframe::run_native(
         "brain manager",
         native_options,
-        Box::new(|cc| Box::new(TemplateApp::new(cc))),
+        Box::new(|cc| Ok(Box::new(TemplateApp::new(cc)))),
         ).map_err(ApplicationError::from)
 }
 
