@@ -21,8 +21,8 @@ impl CRUD<Reference> for Reference {
         info!("Adding new reference: {}", reference.titre);
         connexion.execute(ref_query, (id.to_string(), reference.titre.clone(), reference.url.clone(), reference.date_creation.to_string(), reference.to_read))?;
 
-        reference.tags.iter().map(|cat|
-            connexion.execute(tag_query, (Uuid::new_v4().to_string(), cat.to_string(), id.to_string())))
+        reference.tags.iter().map(|tag|
+            connexion.execute(tag_query, (Uuid::new_v4().to_string(), tag.to_string(), id.to_string())))
                 .for_each(|result|  {
                     match result {
                         Err(e) => error!("Error while insertion: {}", e),

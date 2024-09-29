@@ -1,18 +1,18 @@
 use crate::application::{error::ApplicationError, gui::structs::Fenetre, reference::{service, structs::{reference::Reference, tag::Tag}}};
 
-use super::reference_gui::section_references;
+use super::panel_gui::section_references;
 
 use anyhow::Result;
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct SectionReference {
+pub struct PanelReference {
     pub reference: Reference,
     pub list_references: Vec<Reference>,
     pub tag_filter: Vec<Tag>,
     pub search: String
 }
 
-impl Default for SectionReference {
+impl Default for PanelReference {
     fn default() -> Self {
         let references = service::search(&String::default(), &[]).unwrap_or_default();
         Self { 
@@ -25,7 +25,7 @@ impl Default for SectionReference {
 }
 
 
-impl Fenetre for SectionReference {
+impl Fenetre for PanelReference {
     fn name(&self) -> &'static str {
         "References"
     }

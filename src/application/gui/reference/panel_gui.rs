@@ -2,11 +2,11 @@ use strum::IntoEnumIterator;
 
 use crate::application::{database::CRUD, error::ApplicationError, reference::{self, structs::{reference::Reference, tag::Tag}}};
 
-use super::section_reference::SectionReference;
+use super::panel::PanelReference;
 use anyhow::Result;
 
 
-pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
+pub fn section_references(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
     ui.heading("Reference");
     create_reference(section, ui)?;
     filter_bar(section, ui)?;
@@ -15,7 +15,7 @@ pub fn section_references(section: &mut SectionReference, ui: &mut egui::Ui) -> 
     list_references(section, ui)
 }
 
-fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
+fn filter_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
     ui.horizontal::<Result<()>>(|ui| {
         Tag::iter().try_for_each(|t| {
             let tag_label = ui.selectable_label(section.tag_filter.contains(&t), t.to_string());
@@ -29,7 +29,7 @@ fn filter_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
     Ok(())
 }
 
-fn search_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
+fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
     ui.horizontal::<Result<()>>(|ui| {
         ui.label("Nom ");
         ui.text_edit_singleline(&mut section.search);
@@ -50,7 +50,7 @@ fn search_bar(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
     Ok(())
 }
 
-fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<()>{
+fn update_tag_filter(tag: &Tag, section: &mut PanelReference) -> Result<()>{
     if section.tag_filter.contains(tag) {
         section.tag_filter.retain(|tag| !tag.eq(tag));
     } else {
@@ -61,7 +61,7 @@ fn update_tag_filter(tag: &Tag, section: &mut SectionReference) -> Result<()>{
         .map(|references |section.list_references = references)
 }
 
-fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()> {
+fn create_reference(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Titre ");
         ui.text_edit_singleline(&mut section.reference.titre);
@@ -103,7 +103,7 @@ fn create_reference(section: &mut SectionReference, ui: &mut egui::Ui) -> Result
 }
 
 
-fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result<()>{
+fn list_references (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>{
     egui::ScrollArea::vertical()
         .id_source("reference")
         .show(ui, |ui| {
@@ -113,12 +113,18 @@ fn list_references (section: &mut SectionReference, ui: &mut egui::Ui) -> Result
                     ui.label(reference.tags.iter().map(Tag::to_string).collect::<Vec<String>>().join(", "));
                     ui.label(reference.date_creation.to_string());
                     ui.label(if reference.to_read {"Non Lu".to_string()} else {"Lu".to_string()});
-                    if ui.button("Modifier").clicked() {
+                    
+                    if ui.button("Copier").clicked() {
+                        let link_copy =  format!("[{}]({})",reference.titre.to_string(), reference.url);
+                        let mut clipboard = clippers::Clipboard::get();
+                        clipboard.write_text(link_copy).unwrap();
+                    }if ui.button("Modifier").clicked() {
                         section.reference = reference.clone();
                     }
                     if ui.button("Supprimer").clicked() {
                         Reference::delete(reference)?;
                     }
+                    
                     ui.allocate_space(ui.available_size());
                     Ok::<(),anyhow::Error>(())
                 });

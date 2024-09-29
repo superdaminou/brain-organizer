@@ -5,3 +5,4 @@ mod structs;
 mod graph;
 mod finance;
 mod composant;
+mod tags;
