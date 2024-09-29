@@ -1,10 +1,23 @@
-mod application;
+mod reference;
+mod tag;
+mod reflexion;
+mod graph;
+mod finance;
+mod database;
+mod command;
+mod error;
+mod file;
+mod gui;
+mod web;
 
 use std::env;
-use application::{error::ApplicationError, web::server::web};
+use command::Command;
+use error::ApplicationError;
+use file::{ensuring_storage, export, import};
+use gui::app::running_gui;
 use log::{info, warn};
-use crate::application::{command::Command, database::{ensuring_model, opening_database}, file::{ensuring_storage, export, import}, gui::app::running_gui};
 use dotenv::dotenv;
+use {database::{ensuring_model, opening_database}};
 
 fn main() -> Result<(), ApplicationError> {
     dotenv().ok();
@@ -28,9 +41,9 @@ fn main() -> Result<(), ApplicationError> {
     };
     
     match command {
-        application::command::Command::Gui => running_gui(),
-        application::command::Command::Import => import(),
-        application::command::Command::Export => export(),
-        application::command::Command::Web => web(),
+        command::Command::Gui => running_gui(),
+        command::Command::Import => import(),
+        command::Command::Export => export(),
+        command::Command::Web => web::server::web(),
     }
 }
