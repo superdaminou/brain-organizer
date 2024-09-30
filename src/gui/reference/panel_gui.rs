@@ -1,5 +1,3 @@
-use strum::IntoEnumIterator;
-
 use crate::{database::CRUD, error::ApplicationError, reference::{self, structs::reference::Reference}, tag::Tag};
 
 use super::panel::PanelReference;
@@ -118,6 +116,7 @@ fn create_reference(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<(
         adding_boutons.iter().try_for_each(|tag| {
             if tag.0.clicked() {
                 section.creation_reference.reference.tags.insert(tag.1.clone());
+                section.creation_reference.existing_tags = crate::tag::service::get_all_distinct()?;
             };
             Ok::<(), anyhow::Error>(())
         })?;
@@ -137,7 +136,6 @@ fn create_reference(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<(
 
     Ok(())
 }
-
 
 fn list_references (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>{
     egui::ScrollArea::vertical()

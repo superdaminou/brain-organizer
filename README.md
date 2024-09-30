@@ -4,7 +4,7 @@ Functionnality:
 
 - Save your web references and associate them with tags to better retrieve them
 - Create and write your thoughts, each one saved on a simple text file.
-- Manage your graph [REWORKING]
+- read, write and visualize dot graphs.
 - Export all your data in a single repository 
 - Import From a directory
 - Expose it as a web server
@@ -16,7 +16,7 @@ How to run:
 How to release:
 
 - cargo build --release 
-- retrieve under ./target/release/brain_manager.exe and run
+- retrieve executable under ./target/release/ and run
 
 Modes:
 - [DEFAULT] GUI: Visualize and manager all through a simple gui 
