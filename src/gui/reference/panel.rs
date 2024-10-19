@@ -1,6 +1,8 @@
+use std::collections::HashSet;
+
 use crate::{error::ApplicationError, gui::structs::Fenetre, reference::{self, structs::reference::Reference}, tag::{self, Tag}};
 
-use super::panel_gui::section_references;
+use super::{create_reference::{self, CreationReference}, list_reference};
 
 use anyhow::Result;
 
@@ -10,25 +12,14 @@ pub struct PanelReference {
     pub list_references: Vec<Reference>,
     pub tag_filter: Vec<Tag>,
     pub search: String,
-    pub tags: Vec<Tag>
+    pub tags: Vec<Tag>,
+    evenements: HashSet<Evenement> 
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct CreationReference {
-    pub reference: Reference,
-    pub tag: Tag,
-    pub existing_tags: Vec<Tag>
-}
-
-impl Default for CreationReference {
-    fn default() -> Self {
-        tag::service::get_all_distinct().unwrap_or_default();
-        Self { reference: 
-            Default::default(), 
-            tag: Default::default(), 
-            existing_tags: tag::service::get_all_distinct().unwrap_or_default() 
-        }
-    }
+#[derive(serde::Deserialize, serde::Serialize, PartialEq, Eq, Hash)]
+enum Evenement {
+    Reset,
+    Modifier(Reference)
 }
 
 impl Default for PanelReference {
@@ -40,7 +31,8 @@ impl Default for PanelReference {
             list_references: references, 
             tag_filter: Default::default(), 
             search: Default::default(),
-            tags
+            tags,
+            evenements: HashSet::default()
         }
     }
 }
@@ -54,9 +46,16 @@ impl Fenetre for PanelReference {
     fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), ApplicationError> {
         let visible =  egui::Window::new(self.name())
         .open(is_open)
-        .scroll2(true)
+        .scroll(true)
         .show(ctx, |ui| {
             section_references(self, ui)
+        });
+
+        self.evenements.iter().for_each(|e| {
+            match e {
+                Evenement::Reset => self.creation_reference.reference = Reference::default(),
+                Evenement::Modifier(reference) => self.creation_reference.reference = reference.clone(),
+            }
         });
 
         match visible {
@@ -68,3 +67,10 @@ impl Fenetre for PanelReference {
         }
     }
 }
+
+fn section_references(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
+    create_reference::show(section, ui)?;
+    ui.separator();
+    list_reference::show(section, ui)
+}
+

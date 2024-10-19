@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 
 use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
@@ -8,12 +8,12 @@ use crate::{error::ApplicationError, file::ToCsv, tag::Tag};
 
 
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
 pub struct Reference {
     pub id: Option<String>,
     pub titre: String,
     pub url: String,
-    pub tags: HashSet<Tag>,
+    pub tags: BTreeSet<Tag>,
     pub date_creation: NaiveDate<>,
     pub to_read: bool
 }
@@ -31,7 +31,8 @@ impl TryFrom<&str> for Reference {
             .expect("Missing tag")
             .split('\\')
             .map(str::to_string)
-            .collect::<HashSet<Tag>>();
+            .map(|t| Tag(t))
+            .collect::<BTreeSet<Tag>>();
 
         Ok(Reference {
             id: Some(Uuid::new_v4().to_string()),
@@ -50,7 +51,7 @@ impl TryFrom<&str> for Reference {
 impl Default for Reference {
     fn default() -> Self {
         Self {
-            tags: HashSet::new(),
+            tags: BTreeSet::new(),
             id: None,
             titre: String::from("Reference"),
             url: String::from("www.url.com"),
@@ -62,7 +63,7 @@ impl Default for Reference {
 
 impl ToCsv for Reference {
     fn to_csv(&self) -> String {
-        let mut tags = self.tags.iter().map(|t| t.to_string()).collect::<Vec<String>>();
+        let mut tags = self.tags.iter().map(|t| t.0.clone()).collect::<Vec<String>>();
         tags.sort();
         self.titre.to_string() + SEPARATOR + &tags.join("\\") + SEPARATOR + &self.url.to_string()
     }
@@ -84,14 +85,14 @@ mod tests {
 
     #[test]
     fn to_csv() {
-        let r = Reference{ tags:  HashSet::from(["Histoire".to_string(), "Informatique".to_string()]), ..Default::default()};
+        let r = Reference{ tags:  BTreeSet::from([Tag("Histoire".to_string()), Tag("Informatique".to_string())]), ..Default::default()};
         assert_eq!(r.to_csv(), "Reference;Histoire\\Informatique;www.url.com");
     }
 
     #[test]
     fn to_csv_vec() {
-        let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: HashSet::from(["Informatique".to_string(), "Histoire".to_string()]), ..Default::default() };
-        let  second_r = Reference { tags: HashSet::from(["Philosophie".to_string(), "Sociologie".to_string()]), ..Default::default() };
+        let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: BTreeSet::from([Tag("Informatique".to_string()), Tag("Histoire".to_string())]), ..Default::default() };
+        let  second_r = Reference { tags: BTreeSet::from([Tag("Philosophie".to_string()), Tag("Sociologie".to_string())]), ..Default::default() };
         assert_eq!(vec![first_r, second_r].to_csv(), "UnAutreTitre;Histoire\\Informatique;www.url.com\r\nReference;Philosophie\\Sociologie;www.url.com");
     }
 
