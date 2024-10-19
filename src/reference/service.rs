@@ -1,15 +1,14 @@
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 
 use anyhow::Context;
 use chrono::NaiveDate;
 use log::{debug, error, info};
 use rusqlite::{Error, Row};
-use strum::IntoEnumIterator;
 use uuid::Uuid;
 
-use crate::{database::{self, CRUD}, error::ApplicationError, tag::Tag};
+use crate::{database::{self, CRUD}, application_error::ApplicationError, tag::Tag};
 
-use super::structs::{reference::Reference};
+use super::structs::reference::Reference;
 
 use anyhow::Result;
 
@@ -157,7 +156,7 @@ fn map_row(row: &Row) -> Result<Reference, Error> {
     if !tags.is_empty() {
         categorie = tags.split(',')
             .map(str::to_string)
-            .map(|t| Tag(t))
+            .map(Tag)
             .collect::<BTreeSet<Tag>>()
     }
 

@@ -3,7 +3,7 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{error::ApplicationError, {file::ToCsv, reference::structs::reference::CsvLine}};
+use crate::{application_error::ApplicationError, {file::ToCsv, reference::structs::reference::CsvLine}};
 
 const DELIMITER : &str = ";"; 
 

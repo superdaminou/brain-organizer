@@ -1,9 +1,12 @@
-use crate::{database::CRUD, error::ApplicationError, reference::{self, structs::reference::Reference}, tag::Tag};
+use std::collections::BTreeSet;
+
+use crate::{database::CRUD, application_error::ApplicationError, reference::{self, structs::reference::Reference}, tag::Tag};
 use anyhow::Result;
-use super::panel::PanelReference;
+use super::panel::{Evenement, PanelReference};
 
 
-pub fn show (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>{
+pub fn show (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<BTreeSet<Evenement>, ApplicationError>{
+    let evenements = BTreeSet::default();
     ui.heading("Liste References");
     filter_bar(section, ui)?;
     search_bar(section, ui)?;
@@ -37,7 +40,7 @@ pub fn show (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>{
                 Ok::<(),ApplicationError>(())
             })
         });
-    Ok(())
+    Ok(evenements)
 }
 
 
@@ -50,7 +53,7 @@ fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
         let button = egui::Button::new("Rechercher");
 
         if ui.add(button).clicked() {
-            return reference::service::search(&section.search.clone(), &section.tag_filter)
+            return reference::service::search(&section.search.clone(), &section.filtre_tag)
                 .map(|list| section.list_references = list)
                 .map(|_| section.creation_reference.reference = Reference::default());
                     
@@ -63,13 +66,13 @@ fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
 }
 
 fn update_tag_filter(tag: &Tag, section: &mut PanelReference) -> Result<()>{
-    if section.tag_filter.contains(tag) {
-        section.tag_filter.retain(|tag| !tag.eq(tag));
+    if section.filtre_tag.contains(tag) {
+        section.filtre_tag.retain(|tag| !tag.eq(tag));
     } else {
-        section.tag_filter.push(tag.clone());
+        section.filtre_tag.push(tag.clone());
     }
 
-    reference::service::search(&section.search, &section.tag_filter)
+    reference::service::search(&section.search, &section.filtre_tag)
         .map(|references |section.list_references = references)
 }
 
@@ -78,7 +81,7 @@ fn filter_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
     let mut selectables_tag = vec![];
     ui.horizontal::<Result<()>>(|ui| {
         section.tags.iter().try_for_each(|tag| {
-            selectables_tag.push((ui.selectable_label(section.tag_filter.contains(tag), tag.0.clone()), tag.clone()));
+            selectables_tag.push((ui.selectable_label(section.filtre_tag.contains(tag), tag.0.clone()), tag.clone()));
             Ok::<(), anyhow::Error>(())
         })?;
         Ok(())

@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::error::ApplicationError;
+use crate::application_error::ApplicationError;
 
 use super::{app::central_panel, finance::fenetre_finance::FenetreFinance, graph::fenetre::FenetreGraph, reference::panel::PanelReference, reflexion::section_reflexion::SectionReflexion};
 use anyhow::Result;
@@ -73,7 +73,7 @@ impl eframe::App for TemplateApp {
                     ui.add_space(16.0);
                 }
 
-                egui::widgets::global_dark_light_mode_buttons(ui);
+                egui::widgets::global_theme_preference_buttons(ui);
             });
         });
 

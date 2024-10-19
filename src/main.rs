@@ -5,14 +5,14 @@ mod graph;
 mod finance;
 mod database;
 mod command;
-mod error;
+mod application_error;
 mod file;
 mod gui;
 mod web;
 
 use std::env;
 use command::Command;
-use error::ApplicationError;
+use application_error::ApplicationError;
 use file::{ensuring_storage, export, import};
 use gui::app::running_gui;
 use log::{info, warn};

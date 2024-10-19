@@ -6,7 +6,7 @@ use petgraph::stable_graph::StableGraph;
 use ilmen_dot_parser::Node as DotNode;
 
 use crate::database::CRUD;
-use crate::error::ApplicationError;
+use crate::application_error::ApplicationError;
 use crate::graph::my_graph::Graph as MyGraph;
 use crate::gui::composant::EditFile;
 use crate::gui::composant::EditText;

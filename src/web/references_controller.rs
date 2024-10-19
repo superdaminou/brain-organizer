@@ -2,7 +2,7 @@ use anyhow::Context;
 use ilmen_http::{http::HTTPResponse, ParamsHandler, ResponseBuilder};
 use uuid::Uuid;
 
-use crate::{database::CRUD, error::ApplicationError, reference::structs::reference::Reference};
+use crate::{database::CRUD, application_error::ApplicationError, reference::structs::reference::Reference};
 
 
 pub fn get_all(_: ParamsHandler) -> HTTPResponse {

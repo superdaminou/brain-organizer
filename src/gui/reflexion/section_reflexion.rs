@@ -1,6 +1,6 @@
 
 
-use crate::{error::ApplicationError, gui::{composant::{EditFile, EditText}, structs::Fenetre}, reflexion::Reflexion};
+use crate::{application_error::ApplicationError, gui::{composant::{EditFile, EditText}, structs::Fenetre}, reflexion::Reflexion};
 
 use super::gui::section_reflexions;
 use anyhow::Result;

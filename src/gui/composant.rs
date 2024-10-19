@@ -4,7 +4,7 @@ use egui::{TextEdit, Ui, Window};
 use anyhow::Result;
 use log::info;
 
-use crate::{error::ApplicationError, file::construct_path};
+use crate::{application_error::ApplicationError, file::construct_path};
 
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct EditText {}
@@ -51,7 +51,7 @@ impl EditText {
     pub fn open(&mut self ,filename: String, edit_reflexion:&mut EditFile) -> Result<(), ApplicationError> {
         info!("Opening: {}", construct_path(&filename));
         edit_reflexion.contenu = read_to_string(construct_path(&filename))
-            .map_err(|e| ApplicationError::DefaultError("Could not open find".to_string()))?;
+            .map_err(|_| ApplicationError::DefaultError("Could not open find".to_string()))?;
         edit_reflexion.show = !edit_reflexion.show;
         edit_reflexion.filename = filename;
         Ok(())

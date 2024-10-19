@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use log::{error, info};
 
 
-use crate::error::ApplicationError;
+use crate::application_error::ApplicationError;
 
 use super::structs::TemplateApp;
 use anyhow::Result;

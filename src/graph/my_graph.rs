@@ -6,7 +6,7 @@ use rusqlite::{ Error, Row};
 use uuid::Uuid;
 use anyhow::{Context, Result};
 
-use crate::{error::ApplicationError, {database::{self, CRUD}, file::construct_path}};
+use crate::{application_error::ApplicationError, {database::{self, CRUD}, file::construct_path}};
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct  Graph {

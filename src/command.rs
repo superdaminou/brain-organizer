@@ -1,6 +1,6 @@
 use std::fmt::{self};
 
-use crate::error::ApplicationError;
+use crate::application_error::ApplicationError;
 
 
 #[derive(PartialEq, Debug)]

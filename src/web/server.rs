@@ -1,6 +1,6 @@
 use ilmen_http::{http::security::service::SecurityProtocol, HttpServer, Route, Verb};
 
-use crate::error::ApplicationError;
+use crate::application_error::ApplicationError;
 
 use super::references_controller::{get_all, get_one};
 

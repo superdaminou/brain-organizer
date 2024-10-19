@@ -8,7 +8,7 @@ use petgraph::{ csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, prelude::StableGr
 
 use ilmen_dot_parser::{Attributs, DotGraph};
 use ilmen_dot_parser::Node as DotNode;
-use crate::{database::CRUD, error::ApplicationError, gui::composant::EditText};
+use crate::{database::CRUD, application_error::ApplicationError, gui::composant::EditText};
 use crate::graph::my_graph::Graph as MyGraph;
 
 use super::{fenetre::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};

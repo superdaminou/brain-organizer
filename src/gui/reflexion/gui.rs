@@ -1,6 +1,6 @@
 use log::info;
 
-use crate::{error::ApplicationError, gui::composant::EditText, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::{application_error::ApplicationError, gui::composant::EditText, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 use super::section_reflexion::SectionReflexion;
 use anyhow::{Context, Result};

@@ -1,5 +1,5 @@
 use anyhow::Context;
-use crate::{error::ApplicationError, gui::structs::Fenetre, finance::depense::Depense};
+use crate::{application_error::ApplicationError, gui::structs::Fenetre, finance::depense::Depense};
 
 use super::gui::finances_gui;
 

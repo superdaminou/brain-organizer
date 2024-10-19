@@ -1,14 +1,14 @@
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 
 use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{error::ApplicationError, file::ToCsv, tag::Tag};
+use crate::{application_error::ApplicationError, file::ToCsv, tag::Tag};
 
 
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Reference {
     pub id: Option<String>,
     pub titre: String,
@@ -31,7 +31,7 @@ impl TryFrom<&str> for Reference {
             .expect("Missing tag")
             .split('\\')
             .map(str::to_string)
-            .map(|t| Tag(t))
+            .map(Tag)
             .collect::<BTreeSet<Tag>>();
 
         Ok(Reference {

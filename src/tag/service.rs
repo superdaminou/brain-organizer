@@ -17,5 +17,5 @@ pub fn get_all_distinct() -> anyhow::Result<Vec<Tag>>{
 }
 
 fn map_row(row: &Row) -> Result<Tag, Error> {
-    row.get(0).map(|t|Tag(t)) 
+    row.get(0).map(Tag) 
 }

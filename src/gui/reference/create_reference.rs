@@ -1,6 +1,8 @@
-use crate::{reference::{self, structs::reference::Reference}, tag::{self, Tag}};
+use std::collections::BTreeSet;
 
-use super::panel::PanelReference;
+use crate::{application_error::ApplicationError, reference::{self, structs::reference::Reference}, tag::{self, Tag}};
+
+use super::panel::{Evenement, PanelReference};
 use anyhow::Result;
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -14,11 +16,11 @@ pub struct CreationReference {
 
 impl Default for CreationReference {
     fn default() -> Self {
-        tag::service::get_all_distinct().unwrap_or_default();
-        Self { reference: 
-            Default::default(), 
+        let tags = tag::service::get_all_distinct().unwrap_or_default();
+        Self {
+            reference: Default::default(), 
             tag: Default::default(), 
-            existing_tags: tag::service::get_all_distinct().unwrap_or_default(),
+            existing_tags: tags,
             markdown_name: String::default(),
             mode: Mode::Classique
         }
@@ -31,8 +33,16 @@ pub enum Mode {
     Classique
 }
 
+impl CreationReference {
+    pub fn set_tags(&mut self, tags: Vec<Tag> ){
+            self.existing_tags = tags
+    }
+}
 
-pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
+
+pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<BTreeSet<Evenement>, ApplicationError> {
+    let mut evenements = BTreeSet::default();
+
     ui.heading("Nouvelle Reference");
 
     ui.horizontal(|ui: &mut egui::Ui| {
@@ -105,14 +115,15 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
                 .collect();
         }
         
-        return reference::service::create_or_update(&section.creation_reference.reference.clone())
-            .and_then(|_|reference::service::search(&section.search, &section.tag_filter))
+        reference::service::create_or_update(&section.creation_reference.reference.clone())
+            .and_then(|_|reference::service::search(&section.search, &section.filtre_tag))
             .map(|list| section.list_references = list)
-            .map(|_| reset(&mut section.creation_reference));
+            .map(|_| reset(&mut section.creation_reference))?;
+        evenements.insert(Evenement::Reset);
                 
     }
 
-    Ok(())
+    Ok(evenements)
 }
 
 fn reset(creation_reference: &mut CreationReference) {

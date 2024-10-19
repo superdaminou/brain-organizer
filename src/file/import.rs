@@ -4,7 +4,7 @@ use log::{error, info};
 
 use anyhow::{Context,Result};
 
-use crate::{database::CRUD, error::ApplicationError, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::{database::CRUD, application_error::ApplicationError, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 const IMPORT_STORAGE: &str = "./import/";
 

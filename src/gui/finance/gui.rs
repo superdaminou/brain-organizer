@@ -1,6 +1,6 @@
 use egui::Ui;
 
-use crate::{database::CRUD, error::ApplicationError, finance::{self, depense::Depense}};
+use crate::{database::CRUD, application_error::ApplicationError, finance::{self, depense::Depense}};
 
 use super::fenetre_finance::FenetreFinance;
 use anyhow::Result;

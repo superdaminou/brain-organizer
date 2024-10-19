@@ -1,4 +1,4 @@
-use crate::{error::ApplicationError, gui::structs::Fenetre, tag::Tag};
+use crate::{application_error::ApplicationError, gui::structs::Fenetre, tag::Tag};
 
 use super::panel_gui::panel_tags;
 
