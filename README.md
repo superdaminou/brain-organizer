@@ -1,9 +1,9 @@
 Welcome to my brain manager. 
 
-Functionnality:
+Features:
 
 - Save your web references and associate them with tags to better retrieve them
-- Create and write your thoughts, each one saved on a simple text file.
+- Write whatever you want in a simple text file.
 - read, write and visualize dot graphs.
 - Export all your data in a single repository 
 - Import From a directory

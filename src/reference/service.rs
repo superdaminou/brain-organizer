@@ -1,14 +1,15 @@
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 
 use anyhow::Context;
 use chrono::NaiveDate;
 use log::{debug, error, info};
 use rusqlite::{Error, Row};
+use strum::IntoEnumIterator;
 use uuid::Uuid;
 
-use crate::{database::{self, CRUD}, application_error::ApplicationError, tag::Tag};
+use crate::{database::{self, CRUD}, application_error::ApplicationError};
 
-use super::structs::reference::Reference;
+use super::{structs::reference::Reference, tag::Tag, ModeTags};
 
 use anyhow::Result;
 
@@ -119,45 +120,89 @@ pub fn create_or_update(reference: &Reference) -> Result<()>  {
     }
 }
 
-pub fn search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
+pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
     info!("Searching for : {}", name);
-    let where_query = if name.trim().is_empty() { ""} else { &format!("AND r.nom LIKE '%{}%'", name) };
+    let where_query = if name.trim().is_empty() {""} else { &format!("AND r.nom LIKE '%{}%'", name) };
+
     let mut tag_query = String::default();
     if !tags.is_empty() {
-        tag_query  = "AND t.nom in ('".to_string() + &tags.iter()
-            .map(|t|t.0.clone())
-            .reduce(|acc, e| acc + "','" + &e)
-            .unwrap_or_default() + "')";
+        tag_query  = format!("where r.tag = '{}';", tags.iter().map(|t|t.0.clone()).collect::<Vec<_>>().join(","))
     }
 
     let query =format!(
-            "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
+            "WITH results as (SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id
             WHERE 1=1
             {} 
+            GROUP BY r.id)
+
+            SELECT r.id, r.nom, r.url, r.tag, r.date_creation, r.to_read from results as r
             {}
-            GROUP BY r.id
-            ORDER BY r.date_creation DESC, tag, r.nom", where_query, tag_query);
+            ORDER BY r.date_creation DESC, tag, r.nom", where_query,tag_query);
     debug!("{}", query);
     Ok(database::opening_database()?
                 .prepare(query.as_str())?
                 .query_map([], map_row)?
                 .map(|row| row.unwrap())
-                //.filter(|refe| refe.tags.iter().any(|t| tags.is_empty() || tags.contains(t)))
                 .collect::<Vec<Reference>>())
 }
+
+pub fn search(name: &String, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+    info!("Searching for : {}", name);
+    let where_query = if name.trim().is_empty() {""} else { &format!("AND r.nom LIKE '%{}%'", name) };
+    let inclusive_tag_query = inclusive_query(tags, mode);
+    
+    let query =format!(
+            "WITH results as (SELECT r.id
+            FROM reference as r 
+            LEFT JOIN tag as t ON t.reference_id = r.id 
+            WHERE 1=1
+            {}
+            {} 
+            GROUP BY r.id)
+            SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read from reference as r
+            LEFT JOIN tag as t ON t.reference_id = r.id
+            WHERE r.id IN (SELECT id from results)
+            GROUP BY r.id
+            ORDER BY r.date_creation DESC, tag, r.nom",inclusive_tag_query.unwrap_or_default(), where_query);
+    debug!("{}", query);
+    Ok(database::opening_database()?
+                .prepare(query.as_str())?
+                .query_map([], map_row)?
+                .map(|row| row.unwrap())
+                .filter(|r| is_exclusive(mode, r, tags))
+                .collect::<Vec<Reference>>())
+}
+
+fn is_exclusive(mode: ModeTags, reference: &Reference, tags: &HashSet<Tag>) -> bool {
+    if mode == ModeTags::EXCLUS {
+        return reference.tags.is_superset(tags)
+    }
+    true
+}
+
+fn inclusive_query(tags: &HashSet<Tag>, mode: ModeTags) -> Option<String>
+{
+    let mut inclusive_tag_query = None;
+    if !tags.is_empty() && mode == ModeTags::INCLUS {
+        let tags_string = tags.iter().map(|t| format!("'{}'",t.0.clone()) ).collect::<Vec<_>>().join(",");
+        inclusive_tag_query = format!("AND t.nom in ({})" , tags_string).into();
+    }
+    inclusive_tag_query
+}
+
 
 
 fn map_row(row: &Row) -> Result<Reference, Error> {
     let tags :String = row.get(3)?;
 
-    let mut categorie = BTreeSet::default();
+    let mut categorie = HashSet::default();
     if !tags.is_empty() {
         categorie = tags.split(',')
             .map(str::to_string)
             .map(Tag)
-            .collect::<BTreeSet<Tag>>()
+            .collect::<HashSet<Tag>>()
     }
 
     let date: String = row.get(4)?;

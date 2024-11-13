@@ -1,8 +1,8 @@
 
 use log::{info, trace};
-use rusqlite::Connection;
 use refinery::embed_migrations;
 use anyhow::{Context, Result};
+use rusqlite::Connection;
 use uuid::Uuid;
 
 embed_migrations!("./src/migration");
@@ -23,6 +23,8 @@ pub fn opening_database() -> Result<Connection> {
     trace!("Opening Database: {}", DB_PATH);
     Connection::open(DB_PATH).with_context(||"Couldn't open database")
 }
+
+
 
 
 pub trait CRUD<T> {

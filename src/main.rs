@@ -1,5 +1,4 @@
 mod reference;
-mod tag;
 mod reflexion;
 mod graph;
 mod finance;
@@ -17,7 +16,7 @@ use file::{ensuring_storage, export, import};
 use gui::app::running_gui;
 use log::{info, warn};
 use dotenv::dotenv;
-use {database::{ensuring_model, opening_database}};
+use database::{ensuring_model, opening_database};
 
 fn main() -> Result<(), ApplicationError> {
     dotenv().ok();

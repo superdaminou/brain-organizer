@@ -1,6 +1,5 @@
-use std::collections::BTreeSet;
 
-use crate::{application_error::ApplicationError, reference::{self, structs::reference::Reference}, tag::{self, Tag}};
+use crate::{application_error::ApplicationError, reference::{self, structs::reference::Reference, tag::{self, Tag}}};
 
 use super::panel::{Evenement, PanelReference};
 use anyhow::Result;
@@ -40,8 +39,8 @@ impl CreationReference {
 }
 
 
-pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<BTreeSet<Evenement>, ApplicationError> {
-    let mut evenements = BTreeSet::default();
+pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evenement>, ApplicationError> {
+    let mut evenements = Vec::default();
 
     ui.heading("Nouvelle Reference");
 
@@ -91,7 +90,7 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<BTreeSet<
         adding_boutons.iter().try_for_each(|tag| {
             if tag.0.clicked() {
                 section.creation_reference.reference.tags.insert(tag.1.clone());
-                section.creation_reference.existing_tags = crate::tag::service::get_all_distinct()?;
+                section.creation_reference.existing_tags = tag::service::get_all_distinct()?;
             };
             Ok::<(), anyhow::Error>(())
         })?;
@@ -116,10 +115,10 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<BTreeSet<
         }
         
         reference::service::create_or_update(&section.creation_reference.reference.clone())
-            .and_then(|_|reference::service::search(&section.search, &section.filtre_tag))
+            .and_then(|_|reference::service::search(&section.search, &section.filtre_tag.tags, section.filtre_tag.mode))
             .map(|list| section.list_references = list)
             .map(|_| reset(&mut section.creation_reference))?;
-        evenements.insert(Evenement::Reset);
+        evenements.push(Evenement::Reset);
                 
     }
 

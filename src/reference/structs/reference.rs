@@ -1,19 +1,18 @@
-use std::collections::BTreeSet;
-
+use std::collections::HashSet;
 use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, file::ToCsv, tag::Tag};
+use crate::{application_error::ApplicationError, file::ToCsv, reference::tag::Tag};
 
 
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Reference {
     pub id: Option<String>,
     pub titre: String,
     pub url: String,
-    pub tags: BTreeSet<Tag>,
+    pub tags: HashSet<Tag>,
     pub date_creation: NaiveDate<>,
     pub to_read: bool
 }
@@ -32,7 +31,7 @@ impl TryFrom<&str> for Reference {
             .split('\\')
             .map(str::to_string)
             .map(Tag)
-            .collect::<BTreeSet<Tag>>();
+            .collect::<HashSet<Tag>>();
 
         Ok(Reference {
             id: Some(Uuid::new_v4().to_string()),
@@ -51,7 +50,7 @@ impl TryFrom<&str> for Reference {
 impl Default for Reference {
     fn default() -> Self {
         Self {
-            tags: BTreeSet::new(),
+            tags: HashSet::new(),
             id: None,
             titre: String::from("Reference"),
             url: String::from("www.url.com"),
@@ -85,14 +84,14 @@ mod tests {
 
     #[test]
     fn to_csv() {
-        let r = Reference{ tags:  BTreeSet::from([Tag("Histoire".to_string()), Tag("Informatique".to_string())]), ..Default::default()};
+        let r = Reference{ tags:  HashSet::from([Tag("Histoire".to_string()), Tag("Informatique".to_string())]), ..Default::default()};
         assert_eq!(r.to_csv(), "Reference;Histoire\\Informatique;www.url.com");
     }
 
     #[test]
     fn to_csv_vec() {
-        let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: BTreeSet::from([Tag("Informatique".to_string()), Tag("Histoire".to_string())]), ..Default::default() };
-        let  second_r = Reference { tags: BTreeSet::from([Tag("Philosophie".to_string()), Tag("Sociologie".to_string())]), ..Default::default() };
+        let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: HashSet::from([Tag("Informatique".to_string()), Tag("Histoire".to_string())]), ..Default::default() };
+        let  second_r = Reference { tags: HashSet::from([Tag("Philosophie".to_string()), Tag("Sociologie".to_string())]), ..Default::default() };
         assert_eq!(vec![first_r, second_r].to_csv(), "UnAutreTitre;Histoire\\Informatique;www.url.com\r\nReference;Philosophie\\Sociologie;www.url.com");
     }
 
