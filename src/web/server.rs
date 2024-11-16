@@ -1,8 +1,6 @@
 use ilmen_http::{http::security::service::SecurityProtocol, HttpServer, Route, Verb};
-
 use crate::application_error::ApplicationError;
-
-use super::references_controller::{get_all, get_one};
+use super::references_controller;
 
 
 pub fn web() -> Result<(), ApplicationError> {
@@ -16,8 +14,10 @@ pub fn web() -> Result<(), ApplicationError> {
 
 pub fn routes() -> Vec<Route> {
     let routes = vec![
-        Route {verb: Verb::GET, route: "/references".to_string(),method: get_all, need_security: true},
-        Route {verb: Verb::GET, route: "/references/{id}".to_string(),method: get_one, need_security: true},
+        Route::new(&Verb::GET, "/references" ,references_controller::get_all, true),
+        Route::new(&Verb::GET, "/references/{id}", references_controller::get_one, true),
+        Route::new(&Verb::POST, "/references" ,  references_controller::post_one, true),
+        Route::new(&Verb::POST, "/references/search", references_controller::search, true),
         ];
 
     routes

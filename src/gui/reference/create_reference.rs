@@ -115,7 +115,7 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evene
         }
         
         reference::service::create_or_update(&section.creation_reference.reference.clone())
-            .and_then(|_|reference::service::search(&section.search, &section.filtre_tag.tags, section.filtre_tag.mode))
+            .and_then(|_|reference::service::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
             .map(|list| section.list_references = list)
             .map(|_| reset(&mut section.creation_reference))?;
         evenements.push(Evenement::Reset);

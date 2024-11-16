@@ -29,7 +29,7 @@ pub struct FiltreTag {
 
 impl Default for PanelReference {
     fn default() -> Self {
-        let references = reference::service::search(&String::default(), &HashSet::default(), reference::ModeTags::INCLUS).unwrap_or_default();
+        let references = reference::service::search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
         let tags =  tag::service::get_all_distinct().unwrap_or_default();
         let mut creation_ref = CreationReference::default();
         creation_ref.set_tags(tags.clone());

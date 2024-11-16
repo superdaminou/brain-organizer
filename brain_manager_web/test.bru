@@ -1,16 +1,23 @@
 meta {
-  name: GET reference
+  name: test
   type: http
   seq: 1
 }
 
-get {
+post {
   url: http://localhost:8080/references
-  body: none
+  body: json
   auth: basic
 }
 
 auth:basic {
   username: admin
-  password: mysecretpassword
+  password: mypassword
+}
+
+body:json {
+  {
+    "test": "test"
+  }
+  
 }

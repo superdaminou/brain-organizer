@@ -148,9 +148,8 @@ pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
                 .collect::<Vec<Reference>>())
 }
 
-pub fn search(name: &String, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
-    info!("Searching for : {}", name);
-    let where_query = if name.trim().is_empty() {""} else { &format!("AND r.nom LIKE '%{}%'", name) };
+pub fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+    let where_query = if name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
     let inclusive_tag_query = inclusive_query(tags, mode);
     
     let query =format!(
@@ -176,7 +175,7 @@ pub fn search(name: &String, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<
 }
 
 fn is_exclusive(mode: ModeTags, reference: &Reference, tags: &HashSet<Tag>) -> bool {
-    if mode == ModeTags::EXCLUS {
+    if mode == ModeTags::FERME {
         return reference.tags.is_superset(tags)
     }
     true
@@ -185,7 +184,7 @@ fn is_exclusive(mode: ModeTags, reference: &Reference, tags: &HashSet<Tag>) -> b
 fn inclusive_query(tags: &HashSet<Tag>, mode: ModeTags) -> Option<String>
 {
     let mut inclusive_tag_query = None;
-    if !tags.is_empty() && mode == ModeTags::INCLUS {
+    if !tags.is_empty() && mode == ModeTags::OUVERT {
         let tags_string = tags.iter().map(|t| format!("'{}'",t.0.clone()) ).collect::<Vec<_>>().join(",");
         inclusive_tag_query = format!("AND t.nom in ({})" , tags_string).into();
     }

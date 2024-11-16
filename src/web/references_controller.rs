@@ -1,11 +1,14 @@
+use std::collections::HashSet;
+
 use anyhow::Context;
-use ilmen_http::{http::HTTPResponse, ParamsHandler, ResponseBuilder};
+use ilmen_http::{http::HTTPResponse, RequestHandler, ResponseBuilder};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{database::CRUD, application_error::ApplicationError, reference::structs::reference::Reference};
+use crate::{application_error::ApplicationError, database::CRUD, reference::{self, structs::reference::Reference, tag::Tag, ModeTags}};
 
 
-pub fn get_all(_: ParamsHandler) -> HTTPResponse {
+pub fn get_all(_: &RequestHandler) -> HTTPResponse {
     Reference::get_all()
         .map_err(ApplicationError::from)
         .and_then(|refs| serde_json::to_string(&refs).map_err(ApplicationError::from))
@@ -13,8 +16,26 @@ pub fn get_all(_: ParamsHandler) -> HTTPResponse {
         .unwrap_or_else(ApplicationError::into)
 }
 
-pub fn get_one(params: ParamsHandler) -> HTTPResponse {
-    params.params.get("id")
+#[derive(Serialize, Deserialize)]
+struct SearchParams {
+    pub name: Option<String>,
+    pub tags: Option<HashSet<Tag>>,
+    pub mode: Option<ModeTags>
+}
+
+pub fn search(search_params: &RequestHandler) -> HTTPResponse {
+    search_params.body()
+        .map(|body|serde_json::from_str::<SearchParams>(&body))
+        .expect("Missing search params")
+        .map_err(ApplicationError::from)
+        .and_then(|sp| reference::service::search(sp.name.as_ref(), &sp.tags.unwrap_or_default(), sp.mode.unwrap_or_default()).map_err(ApplicationError::from))
+        .and_then(|r| serde_json::to_string(&r).map_err(ApplicationError::from))
+        .map(|response| ResponseBuilder::new(200, Some(response)).build())
+        .unwrap_or_else(|e|e.into())
+}
+
+pub fn get_one(params: &RequestHandler) -> HTTPResponse {
+    params.path_params().get("id")
         .context("Missing Params")
         .and_then(|id| Uuid::try_parse(id.as_str()).context("Cannot parse id to UUID"))
         .and_then(Reference::get_one)
@@ -22,4 +43,35 @@ pub fn get_one(params: ParamsHandler) -> HTTPResponse {
         .map(|body| ResponseBuilder::new(200, Some(body)).build())
         .unwrap_or_else(|err|ApplicationError::from(err).into())
         
+}
+
+pub fn post_one(params: &RequestHandler) -> HTTPResponse {
+    params.body()
+        .map(|b|serde_json::from_str::<CreateReference>(&b))
+        .expect("Missing body")
+        .map_err(ApplicationError::from)
+        .and_then(|reference|Reference::create(&reference.into()).map_err(ApplicationError::from))
+        .map(|_| ResponseBuilder::new(200, None).build())
+        .unwrap_or_else(|e| e.into())
+}
+
+
+#[derive(Serialize, Deserialize)]
+struct CreateReference {
+    pub titre: String,
+    pub url: String,
+    pub tags: HashSet<Tag>,
+    pub to_read: bool
+}
+
+impl From<CreateReference> for Reference {
+    fn from(value: CreateReference) -> Self {
+        Reference {
+            tags: value.tags,
+            titre: value.titre,
+            to_read: value.to_read,
+            url: value.url,
+            ..Default::default()
+        }
+    }
 }

@@ -8,8 +8,8 @@ pub mod tag;
 #[derive(serde::Deserialize, serde::Serialize, Default, Display, Clone, Copy, PartialEq, Eq)]
 pub enum ModeTags {
     #[default]
-    #[strum(to_string = "Inclus")]
-    INCLUS,
-    #[strum(to_string = "Exclus")]
-    EXCLUS
+    #[strum(to_string = "Ouvert")]
+    OUVERT,
+    #[strum(to_string = "Fermé")]
+    FERME
 }

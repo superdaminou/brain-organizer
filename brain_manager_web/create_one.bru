@@ -1,0 +1,27 @@
+meta {
+  name: create_one
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8080/references
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: admin
+  password: mypassword
+}
+
+body:json {
+  {
+    "titre": "test",
+    "url": "test",
+    "tags": [
+      "test"
+    ],
+    "to_read": true
+  }
+}
