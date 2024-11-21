@@ -27,7 +27,7 @@ thiserror ={ version = "2.0"}
 serde_json = { version = "1.0"}
 chrono = { version = "0.4", features = ["serde"]}
 rand = {version = "0.8"}
-ilmen-http = { path = "e://Tech/Projet/rust_libs/rustyttp" }
-ilmen-dot-parser = { path = "e://Tech/Projet/rust_libs/ilmen-dot-parser" }
+ilmen-http = { version="0.0.4" }
+ilmen-dot-parser = { version="0.0.1" }
 clippers = "0.1.2"
 cargo-watch = "8.5.3"
