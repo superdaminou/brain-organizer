@@ -4,7 +4,8 @@ use super::references_controller;
 
 
 pub fn web() -> Result<(), ApplicationError> {
-    let configuration = ilmen_http::Config::new(8080, SecurityProtocol::Basic(base_auth));
+    let port = std::env::var("PORT").expect("PORT must be set for baseAuth").parse::<i32>().expect("PORT non valide");
+    let configuration = ilmen_http::Config::new( port, SecurityProtocol::Basic(base_auth));
     let server = HttpServer::new(configuration, routes());
     server.start();
     Ok(())
@@ -24,5 +25,5 @@ pub fn routes() -> Vec<Route> {
 }
 
 fn base_auth(couple: (String, String)) -> bool {
-    couple.0 == "admin" && couple.1 == std::env::var("ADMIN_PASSWORD").expect("ADMIN_PASSWORD must be set for baseAuth")
+    couple.0 == std::env::var("USER").expect("USER must be set for baseAuth") && couple.1 == std::env::var("PASSWORD").expect("PASSWORD must be set for baseAuth")
 }

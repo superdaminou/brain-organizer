@@ -23,10 +23,9 @@ dotenv = "0.15"
 egui_graphs = { version = "0.22", features = ["egui_persistence", "serde"]}
 petgraph = {version = "0.6", features = ["serde-1"]}
 anyhow = {version = "1.0"}
-thiserror ={ version = "1.0"}
+thiserror ={ version = "2.0"}
 serde_json = { version = "1.0"}
 chrono = { version = "0.4", features = ["serde"]}
-regex ={ version = "1.10"}
 rand = {version = "0.8"}
 ilmen-http = { path = "e://Tech/Projet/rust_libs/rustyttp" }
 ilmen-dot-parser = { path = "e://Tech/Projet/rust_libs/ilmen-dot-parser" }
