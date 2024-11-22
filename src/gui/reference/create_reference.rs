@@ -1,5 +1,5 @@
 
-use crate::{application_error::ApplicationError, reference::{self, client_db::ClientDatabaseReference, client_web::ConnecteurReference, structs::reference::Reference, tag::{self, Tag}}};
+use crate::{application_error::ApplicationError, reference::{self,  client_web::{ClientWebReference, ConnecteurReference}, structs::reference::Reference, tag::{self, Tag}}};
 
 use super::panel::{Evenement, PanelReference};
 use anyhow::Result;
@@ -115,7 +115,7 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evene
         }
         
         reference::client_db::create_or_update(&section.creation_reference.reference.clone())
-            .and_then(|_|ClientDatabaseReference::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
+            .and_then(|_|ClientWebReference::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
             .map(|list| section.list_references = list)
             .map(|_| reset(&mut section.creation_reference))?;
         evenements.push(Evenement::Reset);

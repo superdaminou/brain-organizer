@@ -111,7 +111,7 @@ impl ConnecteurReference for ClientDatabaseReference {
     }
 
     fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
-        let where_query = if name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
+        let where_query = if name.is_none() || name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
         let inclusive_tag_query = inclusive_query(tags, mode);
         
         let query =format!(

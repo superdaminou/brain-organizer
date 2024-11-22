@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, f64::consts::E};
 
 use anyhow::{Context, Result};
 use log::info;
@@ -21,7 +21,7 @@ impl ClientWebReference {
         let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
-        client.get(format!("{}/{}", url, path))
+        client.get(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
             .send()
@@ -40,7 +40,7 @@ impl ClientWebReference {
         let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
-        client.post(format!("{}/{}", url, path))
+        client.post(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
             .body(body)
@@ -61,7 +61,7 @@ impl ClientWebReference {
         let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
-        client.delete(format!("{}/{}", url, path))
+        client.delete(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
             .send()
@@ -80,7 +80,7 @@ impl ClientWebReference {
         let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
-        client.put(format!("{}/{}", url, path))
+        client.put(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
             .body(body)
@@ -111,12 +111,12 @@ impl ConnecteurReference for ClientWebReference {
     }
 
     fn delete(entity_id: &Uuid) -> Result<usize> {
-        let path = format!("/references");
+        let path = format!("/references/{}", entity_id);
         ClientWebReference::delete(&path)
     }
 
     fn update(entity: &Reference) -> Result<()> {
-        let path = format!("/references");
+        let path = format!("/references/{}", entity.id.clone().unwrap());
         ClientWebReference::update(&path, Body::from(serde_json::to_string(entity).unwrap()))
     }
     
