@@ -19,6 +19,8 @@ pub fn routes() -> Vec<Route> {
         Route::new(&Verb::GET, "/references/{id}", references_controller::get_one, true),
         Route::new(&Verb::POST, "/references" ,  references_controller::post_one, true),
         Route::new(&Verb::POST, "/references/search", references_controller::search, true),
+        Route::new(&Verb::PUT, "/references/{id}", references_controller::update_one, true),
+        Route::new(&Verb::DELETE, "/references/{id}", references_controller::delete, true),
         ];
 
     routes

@@ -1,4 +1,4 @@
-use crate::{gui::reference::panel::PanelReference, reference::{self, structs::reference::Reference, tag::Tag, ModeTags}};
+use crate::{gui::reference::panel::PanelReference, reference::{self, client_db::ClientDatabaseReference, client_web::ConnecteurReference, structs::reference::Reference, tag::Tag, ModeTags}};
 use anyhow::Result;
 
 
@@ -10,7 +10,7 @@ pub fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>
         let button = egui::Button::new("Rechercher");
 
         if ui.add(button).clicked() {
-            return reference::service::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode)
+            return ClientDatabaseReference::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode)
                 .map(|list| section.list_references = list)
                 .map(|_| section.creation_reference.reference = Reference::default());
                     
@@ -32,7 +32,7 @@ pub fn update_tag_filter(tag: &Tag, section: &mut PanelReference) -> Result<()>{
         section.filtre_tag.tags.insert(tag.clone());
     }
 
-    reference::service::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode)
+    ClientDatabaseReference::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode)
         .map(|references |section.list_references = references)
 }
 
@@ -48,7 +48,7 @@ pub fn filter_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()
             ModeTags::FERME => ModeTags::OUVERT,
         };
 
-        return reference::service::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode)
+        return ClientDatabaseReference::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode)
                 .map(|list| section.list_references = list)
                 .map(|_| section.creation_reference.reference = Reference::default());
                 

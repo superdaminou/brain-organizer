@@ -52,7 +52,7 @@ impl CRUD<Graph> for Graph {
     fn update(graph: &Graph) -> Result<()> {
 
         let id = graph.id;
-        Self::get_one(id)?;
+        Self::get_one(&id)?;
         
         let ref_query = "UPDATE reference SET nom = ?1 WHERE id = ?3;";
         let connexion = database::opening_database()?;
@@ -64,10 +64,10 @@ impl CRUD<Graph> for Graph {
     }
 
 
-    fn delete(graph: &Graph) -> Result<usize> {
-        info!("Start deleting: {}", &graph.filename);
+    fn delete(graph: &Uuid) -> Result<usize> {
+        info!("Start deleting: {}", &graph);
         database::opening_database()?
-            .execute("DELETE FROM graph WHERE id=?1", [graph.id.to_string()])
+            .execute("DELETE FROM graph WHERE id=?1", [graph.to_string()])
             .context("While executing delete graph")
     }
 
@@ -83,7 +83,7 @@ impl CRUD<Graph> for Graph {
     }
 
 
-    fn get_one(id: Uuid) -> Result<Graph> {
+    fn get_one(id: &Uuid) -> Result<Graph> {
         let query = "SELECT g.id, g.filename
             FROM graph as g 
             WHERE g.id = :id 

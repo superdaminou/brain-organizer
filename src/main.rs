@@ -7,7 +7,7 @@ mod command;
 mod application_error;
 mod file;
 mod gui;
-mod web;
+mod server;
 
 use std::env;
 use command::Command;
@@ -43,6 +43,6 @@ fn main() -> Result<(), ApplicationError> {
         command::Command::Gui => running_gui(),
         command::Command::Import => import(),
         command::Command::Export => export(),
-        command::Command::Web => web::server::web(),
+        command::Command::Web => server::server::web(),
     }
 }

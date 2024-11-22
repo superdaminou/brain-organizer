@@ -29,9 +29,9 @@ pub fn opening_database() -> Result<Connection> {
 
 pub trait CRUD<T> {
     fn create(entity: &T) -> Result<()>;
-    fn get_one(id: Uuid) -> Result<T>;
+    fn get_one(id: &Uuid) -> Result<T>;
     fn get_all() -> Result<Vec<T>>;
-    fn delete(entity: &T) -> Result<usize>;
+    fn delete(entity: &Uuid) -> Result<usize>;
     fn update(entity: &T) -> Result<()>;
 
 }

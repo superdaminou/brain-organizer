@@ -1,7 +1,9 @@
 
+use anyhow::Context;
 use list_reference::search_bar;
+use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, database::CRUD, reference::structs::reference::Reference};
+use crate::{application_error::ApplicationError, reference::{client_db::ClientDatabaseReference, client_web::ConnecteurReference, structs::reference::Reference}};
 
 use super::panel::{Evenement, PanelReference};
 
@@ -33,7 +35,9 @@ pub fn show (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Even
                         section.creation_reference.reference = reference.clone();
                     }
                     if ui.button("Supprimer").clicked() {
-                        Reference::delete(reference)?;
+                        reference.id.clone().context("Pas d'id".to_string())
+                        .and_then(|id| Uuid::parse_str(&id).context("context"))
+                        .and_then(|id|ClientDatabaseReference::delete(&id))?;
                     }
                     
                     ui.allocate_space(ui.available_size());

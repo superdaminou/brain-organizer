@@ -4,16 +4,17 @@ use anyhow::Context;
 use chrono::NaiveDate;
 use log::{debug, error, info};
 use rusqlite::{Error, Row};
-use strum::IntoEnumIterator;
 use uuid::Uuid;
 
 use crate::{database::{self, CRUD}, application_error::ApplicationError};
 
-use super::{structs::reference::Reference, tag::Tag, ModeTags};
+use super::{client_web::ConnecteurReference, structs::reference::Reference, tag::Tag, ModeTags};
 
 use anyhow::Result;
 
-impl CRUD<Reference> for Reference {
+pub struct ClientDatabaseReference;
+
+impl ConnecteurReference for ClientDatabaseReference {
     fn create(reference: &Reference) -> Result<()> {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO reference (id, nom, url, date_creation, to_read) VALUES (?1, ?2, ?3, ?4, ?5);";
@@ -36,13 +37,8 @@ impl CRUD<Reference> for Reference {
         Ok(())
     }
 
-
-
     fn update(reference: &Reference) -> Result<()> {
-
         let id = Uuid::parse_str(reference.id.clone().unwrap().as_str())?;
-        Self::get_one(id)?;
-        
         let ref_query = "UPDATE reference SET nom = ?1, url = ?2 WHERE id = ?3;";
         let delete_tag_query = "DELETE FROM tag WHERE reference_id = ?1;";
         let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
@@ -68,7 +64,9 @@ impl CRUD<Reference> for Reference {
     }
 
 
-    fn delete(reference: &Reference) -> Result<usize> {
+    fn delete(id: &Uuid) -> Result<usize> {
+        let reference = ClientDatabaseReference::get_one(id)?;
+        
         info!("Start deleting: {}", &reference.id.clone().unwrap_or("No Id".to_string()));
         reference.id.clone()
             .context("pas d'id")
@@ -97,7 +95,7 @@ impl CRUD<Reference> for Reference {
     }
 
 
-    fn get_one(id: Uuid) -> Result<Reference> {
+    fn get_one(id: &Uuid) -> Result<Reference> {
         let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
@@ -111,12 +109,39 @@ impl CRUD<Reference> for Reference {
                 .transpose()?
                 .context("Not found")
     }
+
+    fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+        let where_query = if name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
+        let inclusive_tag_query = inclusive_query(tags, mode);
+        
+        let query =format!(
+                "WITH results as (SELECT r.id
+                FROM reference as r 
+                LEFT JOIN tag as t ON t.reference_id = r.id 
+                WHERE 1=1
+                {}
+                {} 
+                GROUP BY r.id)
+                SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read from reference as r
+                LEFT JOIN tag as t ON t.reference_id = r.id
+                WHERE r.id IN (SELECT id from results)
+                GROUP BY r.id
+                ORDER BY r.date_creation DESC, tag, r.nom",inclusive_tag_query.unwrap_or_default(), where_query);
+        debug!("{}", query);
+        Ok(database::opening_database()?
+                    .prepare(query.as_str())?
+                    .query_map([], map_row)?
+                    .map(|row| row.unwrap())
+                    .filter(|r| is_exclusive(mode, r, tags))
+                    .collect::<Vec<Reference>>())
+    }
+    
 }
 
 pub fn create_or_update(reference: &Reference) -> Result<()>  {
     match &reference.id {
-        Some(_) => Reference::update(reference),
-        None => Reference::create(reference)
+        Some(_) => ClientDatabaseReference::update(reference),
+        None => ClientDatabaseReference::create(reference)
     }
 }
 
@@ -148,31 +173,6 @@ pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
                 .collect::<Vec<Reference>>())
 }
 
-pub fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
-    let where_query = if name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
-    let inclusive_tag_query = inclusive_query(tags, mode);
-    
-    let query =format!(
-            "WITH results as (SELECT r.id
-            FROM reference as r 
-            LEFT JOIN tag as t ON t.reference_id = r.id 
-            WHERE 1=1
-            {}
-            {} 
-            GROUP BY r.id)
-            SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read from reference as r
-            LEFT JOIN tag as t ON t.reference_id = r.id
-            WHERE r.id IN (SELECT id from results)
-            GROUP BY r.id
-            ORDER BY r.date_creation DESC, tag, r.nom",inclusive_tag_query.unwrap_or_default(), where_query);
-    debug!("{}", query);
-    Ok(database::opening_database()?
-                .prepare(query.as_str())?
-                .query_map([], map_row)?
-                .map(|row| row.unwrap())
-                .filter(|r| is_exclusive(mode, r, tags))
-                .collect::<Vec<Reference>>())
-}
 
 fn is_exclusive(mode: ModeTags, reference: &Reference, tags: &HashSet<Tag>) -> bool {
     if mode == ModeTags::FERME {

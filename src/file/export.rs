@@ -5,7 +5,7 @@ use log::info;
 const EXPORT_STORAGE: &str = "./export/";
 use anyhow::{Context, Result};
 
-use crate::{database::CRUD, application_error::ApplicationError, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv}, reference::structs::reference::Reference, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::{application_error::ApplicationError, database::CRUD, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv}, reference::{client_db::ClientDatabaseReference, client_web::ConnecteurReference, structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 pub fn export() -> Result<(), ApplicationError> {
     match Path::new(EXPORT_STORAGE).exists() {
@@ -24,7 +24,7 @@ pub fn export() -> Result<(), ApplicationError> {
 
 fn export_reference() -> Result<(), ApplicationError> {
     info!("Start exporting reference file: {}", REFERENCE_FILE);
-    write_file(REFERENCE_FILE, Reference::get_all()?.to_csv())
+    write_file(REFERENCE_FILE, ClientDatabaseReference::get_all()?.to_csv())
 }
 
 

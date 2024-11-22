@@ -31,7 +31,7 @@ pub fn finances_gui(fenetre: &mut FenetreFinance, ui:&mut Ui) -> Result<(), Appl
             ui.label(depense.montant.to_string());
             let supprimer = egui::Button::new("Supprimer");
             if ui.add(supprimer).clicked() {
-                Depense::delete(depense)?;
+                Depense::delete(&depense.id)?;
             }
             ui.end_row();
             Ok::<(), ApplicationError>(())

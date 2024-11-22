@@ -11,7 +11,7 @@ use super::depense::Depense;
 
 impl CRUD<Depense> for Depense {
     
-    fn get_one(id: Uuid) -> Result<Depense> {
+    fn get_one(id: &Uuid) -> Result<Depense> {
         let query = "SELECT d.id, d.libelle, d.montant 
                 FROM depense as d LIMIT 1";
         database::opening_database()?
@@ -34,10 +34,10 @@ impl CRUD<Depense> for Depense {
                     .collect::<Vec<Depense>>())
     }
 
-    fn delete(entity: &Depense) -> Result<usize> {
+    fn delete(entity: &Uuid) -> Result<usize> {
         let query = "DELETE FROM depense WHERE id = ?1";
         let connexion = database::opening_database().context("Could not open database")?;
-        connexion.execute(query, [String::from(entity.id)]).context("While deleting")
+        connexion.execute(query, [entity.to_string()]).context("While deleting")
     }
 
     
@@ -67,7 +67,7 @@ impl CRUD<Depense> for Depense {
 }
 
 pub fn create_or_update(depense: &Depense) -> Result<()>  {
-    match Depense::get_one(depense.id) {
+    match Depense::get_one(&depense.id) {
         Ok(_) => Depense::update(depense),
         Err(_) => Depense::create(depense)
     }

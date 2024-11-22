@@ -184,7 +184,7 @@ fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicat
 
         if ui.button("Charger Graph").clicked() {
             GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
-            fenetre.graph = MyGraph::get_one(fenetre.graph.id)?;
+            fenetre.graph = MyGraph::get_one(&fenetre.graph.id)?;
             fenetre.loaded_graph = to_egui_graph(fenetre.graph.load_graph()?)?;
         }
         Ok::<(), ApplicationError>(())

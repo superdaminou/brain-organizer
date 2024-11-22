@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{application_error::ApplicationError, gui::structs::Fenetre, reference::{self, structs::reference::Reference, tag::{self, Tag}, ModeTags}};
+use crate::{application_error::ApplicationError, gui::structs::Fenetre, reference::{self, client_db::ClientDatabaseReference, client_web::ConnecteurReference, structs::reference::Reference, tag::{self, Tag}, ModeTags}};
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
 use strum::{IntoEnumIterator};
@@ -29,7 +29,7 @@ pub struct FiltreTag {
 
 impl Default for PanelReference {
     fn default() -> Self {
-        let references = reference::service::search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
+        let references = ClientDatabaseReference::search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
         let tags =  tag::service::get_all_distinct().unwrap_or_default();
         let mut creation_ref = CreationReference::default();
         creation_ref.set_tags(tags.clone());
