@@ -3,7 +3,7 @@ use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, file::ToCsv, reference::{ tag::Tag}};
+use crate::{application_error::ApplicationError, file::ToCsv, reference::tag::Tag};
 
 
 
@@ -24,21 +24,25 @@ const SEPARATOR : &str = ";";
 
 impl TryFrom<&str> for Reference {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let split = value.split(SEPARATOR).map(String::from).collect::<Vec<String>>();
+        let mut split = value.split(SEPARATOR).map(String::from).collect::<Vec<String>>().into_iter();
 
-        let categorie = split.get(1)
+        let titre = split.next().expect("Missing Titre").to_owned();
+        let categorie = split.next()
             .expect("Missing tag")
             .split('\\')
             .map(str::to_string)
             .map(Tag)
             .collect::<HashSet<Tag>>();
+        let url = split.next().expect("Missing URL").to_owned();
+        let date_creation = NaiveDate::parse_from_str(&split.next().expect("Missing Date"), "%Y-%m-%d")
+            .map_err(|e|ApplicationError::DefaultError("could not parse date".to_string()))?;
 
         Ok(Reference {
             id: Some(Uuid::new_v4().to_string()),
-            titre: split.first().expect("Missing title").to_string(),
+            titre,
             tags: categorie,
-            url: split.get(2).expect("Missing url").to_string(),
-            date_creation: Local::now().date_naive(),
+            url,
+            date_creation,
             to_read: true
         })
     }
@@ -64,7 +68,7 @@ impl ToCsv for Reference {
     fn to_csv(&self) -> String {
         let mut tags = self.tags.iter().map(|t| t.0.clone()).collect::<Vec<String>>();
         tags.sort();
-        self.titre.to_string() + SEPARATOR + &tags.join("\\") + SEPARATOR + &self.url.to_string()
+        format!("{};{};{};{}", self.titre, &tags.join("\\"), self.url, self.date_creation)
     }
 }
 

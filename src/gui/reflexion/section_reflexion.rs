@@ -22,7 +22,7 @@ impl Fenetre for SectionReflexion {
     fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(), ApplicationError> {
         egui::Window::new(self.name())
         .open(is_open)
-        .scroll2(true)
+        .scroll(true)
         .show(ctx, |ui| {
             section_reflexions(self, ui)
         });

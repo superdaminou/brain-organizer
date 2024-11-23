@@ -1,9 +1,6 @@
 use std::fmt::Debug;
-use egui_graphs::Node as EguiNode;
 use egui_graphs::Graph;
-use ilmen_dot_parser::Attributs;
 use petgraph::stable_graph::StableGraph;
-use ilmen_dot_parser::Node as DotNode;
 
 use crate::database::CRUD;
 use crate::application_error::ApplicationError;
@@ -33,13 +30,6 @@ impl Debug for FenetreGraph {
         f.debug_struct("FenetreGraph").finish_non_exhaustive()
     }
 }
-
-
-fn egui_node_to_dot_node(value: &EguiNode<DotNode, String>) -> DotNode {
-    DotNode::new(&value.label(), Attributs::default())
-}
-
-
 
 impl Default for FenetreGraph {
     fn default() -> Self {

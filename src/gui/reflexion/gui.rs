@@ -50,7 +50,7 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
     });
 
     egui::ScrollArea::vertical()
-        .id_source("reflexion")
+        .id_salt("reflexion")
         .show(ui, |ui| {
             section.list_reflexions.clone().iter().try_for_each(|reflexion| {
                 ui.horizontal(|ui| {

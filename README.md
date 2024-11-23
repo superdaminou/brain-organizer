@@ -1,4 +1,20 @@
-Welcome to my brain manager. 
+DA BRAIN. 
+
+Under construction. 
+
+## ENV VARS 
+
+
+| NAME         | USAGE                          |
+|--------------|--------------------------------|
+| MODE         | LOCAL | WEB                    |
+| RUST_LOG     | info | debug | error           |
+| PASSWORD     | For server or web client usage |
+| USER         | For server or web client usage |
+| PORT         | For server usage               |
+| DATABASE_URL | For local usage                |
+
+
 
 Features:
 
@@ -9,8 +25,8 @@ Features:
 - Import From a directory
 - Expose it as a web server
 
+## How to run
 
-How to run:
 - cargo run -- [gui|import|export|web] (optionnal)
 
 How to release:

@@ -72,11 +72,20 @@ fn enregistrer(ui: &mut egui::Ui, section: &mut PanelReference, evenements: &mut
                 .take_while(|c|!c.eq_ignore_ascii_case(&')'))
                 .collect();
         }
+
+        if section.creation_reference.reference.id.is_some() {
+            section.connecteur.update(&section.creation_reference.reference.clone())
+                .and_then(|_|section.connecteur.search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
+                .map(|list| section.list_references = list)
+                .map(|_| reset(&mut section.creation_reference))?;
+        } else {
+
+            section.connecteur.create(&section.creation_reference.reference.clone())
+                .and_then(|_|section.connecteur.search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
+                .map(|list| section.list_references = list)
+                .map(|_| reset(&mut section.creation_reference))?;
+        }
     
-        section.connecteur.create(&section.creation_reference.reference.clone())
-            .and_then(|_|section.connecteur.search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
-            .map(|list| section.list_references = list)
-            .map(|_| reset(&mut section.creation_reference))?;
         evenements.push(Evenement::Reset);
             
     };

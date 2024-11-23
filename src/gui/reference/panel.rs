@@ -4,6 +4,7 @@ use crate::{application_error::ApplicationError, gui::structs::Fenetre, referenc
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
 use anyhow::Result;
+use log::warn;
 
 pub struct PanelReference {
     pub connecteur: Connecteur,
@@ -29,7 +30,12 @@ pub struct FiltreTag {
 
 impl Default for PanelReference {
     fn default() -> Self {
-        let mode_connecteur = std::env::var("SERVER_URL").map(|url|Connecteur::WEB).unwrap_or(Connecteur::LOCAL);
+        let mode_connecteur = std::env::var("MODE")
+            .map(|v|Connecteur::from_str(&v))
+            .unwrap_or_else(|e| {
+                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
+                Connecteur::LOCAL
+            });
 
         let references = mode_connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
         let tags =  tag::service::get_all_distinct().unwrap_or_default();
