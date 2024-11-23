@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-
 use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
 use reqwest::{blocking::Body, header::HeaderMap};
@@ -31,7 +30,7 @@ impl ConnecteurWebReference {
             .error_for_status()
             .unwrap()
             .json::<T>()
-            .context("Fuck")
+            .with_context(||"Error while deserializing get response".to_string())
     }
 
     fn post<T: DeserializeOwned>(path: &String, body: Body) -> Result<T> {
@@ -53,7 +52,7 @@ impl ConnecteurWebReference {
             .error_for_status()
             .unwrap()
             .json::<T>()
-            .context("Fuck")
+            .context("Error while creating reference")
     }
     
 
@@ -73,7 +72,7 @@ impl ConnecteurWebReference {
             .error_for_status()
             .unwrap()
             .json::<T>()
-            .context("Fuck")
+            .context("Error while Deleting")
     }
 
     fn update<T: DeserializeOwned>(path: &String, body: Body) -> Result<T> {
@@ -93,7 +92,7 @@ impl ConnecteurWebReference {
             .error_for_status()
             .unwrap()
             .json::<T>()
-            .context("Fuck")
+            .context("Error while updating")
     }
 
 }
@@ -134,6 +133,5 @@ impl ConnecteurReference for ConnecteurWebReference {
         let mut vals = HashMap::new();
         vals.insert("name", name.cloned());
         ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(&search_params).unwrap()))
-        // ConnecteurWebReference::post(&path, Body::from("{}".to_string()))
     }
 }

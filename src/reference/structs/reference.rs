@@ -88,31 +88,35 @@ mod tests {
 
     #[test]
     fn to_csv() {
-        let r = Reference{ tags:  HashSet::from([Tag("Histoire".to_string()), Tag("Informatique".to_string())]), ..Default::default()};
-        assert_eq!(r.to_csv(), "Reference;Histoire\\Informatique;www.url.com");
+        let date: NaiveDate = NaiveDate::default();
+        let r = Reference{ tags:  HashSet::from([Tag("Histoire".to_string()), Tag("Informatique".to_string())]), date_creation: date, ..Default::default()};
+        assert_eq!(r.to_csv(), format!("Reference;Histoire\\Informatique;www.url.com;{}",date));
     }
 
     #[test]
     fn to_csv_vec() {
-        let first_r = Reference { titre: "UnAutreTitre".to_string(), tags: HashSet::from([Tag("Informatique".to_string()), Tag("Histoire".to_string())]), ..Default::default() };
-        let  second_r = Reference { tags: HashSet::from([Tag("Philosophie".to_string()), Tag("Sociologie".to_string())]), ..Default::default() };
-        assert_eq!(vec![first_r, second_r].to_csv(), "UnAutreTitre;Histoire\\Informatique;www.url.com\r\nReference;Philosophie\\Sociologie;www.url.com");
+        let date: NaiveDate = NaiveDate::default();
+        let first_r = Reference { titre: "UnAutreTitre".to_string(), date_creation: date, tags: HashSet::from([Tag("Informatique".to_string()), Tag("Histoire".to_string())]), ..Default::default() };
+        let  second_r = Reference {date_creation: date, tags: HashSet::from([Tag("Philosophie".to_string()), Tag("Sociologie".to_string())]), ..Default::default() };
+        assert_eq!(vec![first_r, second_r].to_csv(), format!("UnAutreTitre;Histoire\\Informatique;www.url.com;{}\r\nReference;Philosophie\\Sociologie;www.url.com;{}", date, date));
     }
 
     #[test]
     fn reference_from_string() {
-        let r = Reference::try_from("Nom;Histoire\\Informatique;www.url.com").unwrap();
+        let r = Reference::try_from("Nom;Histoire\\Informatique;www.url.com;2020-02-02").unwrap();
         assert_eq!(r.tags.len(), 2);
         assert_eq!(r.titre, "Nom");
         assert_eq!(r.url, "www.url.com");
+        assert_eq!(r.date_creation, NaiveDate::from_ymd_opt(2020, 2, 2).unwrap())
     }
 
     #[test]
     fn reference_from_str() {
-        let r = Reference::try_from("Nom;Histoire\\Informatique;www.url.com").unwrap();
+        let r = Reference::try_from("Nom;Histoire\\Informatique;www.url.com;2020-02-02").unwrap();
         assert_eq!(r.tags.len(), 2);
         assert_eq!(r.titre, "Nom");
         assert_eq!(r.url, "www.url.com");
+        assert_eq!(r.date_creation, NaiveDate::from_ymd_opt(2020, 2, 2).unwrap())
     }
 
     #[test]

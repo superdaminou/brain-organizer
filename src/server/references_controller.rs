@@ -5,7 +5,7 @@ use ilmen_http::{http::HTTPResponse, RequestHandler, ResponseBuilder};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError,  reference::{ connecteur::Connecteur, structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, reference::{ structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
 
 
 pub fn get_all(_: &RequestHandler) -> HTTPResponse {

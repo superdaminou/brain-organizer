@@ -6,7 +6,7 @@ use log::{debug, error, info};
 use rusqlite::{Error, Row};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, database::{self, CRUD}, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
+use crate::{application_error::ApplicationError, database::{self}, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
 
 use anyhow::Result;
 
@@ -142,13 +142,6 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
     
 }
 
-pub fn create_or_update(reference: &Reference) -> Result<()>  {
-    match &reference.id {
-        Some(_) => ConnecteurDatabaseReference::new().update(reference),
-        None => ConnecteurDatabaseReference::new().create(reference)
-    }
-}
-
 pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
     info!("Searching for : {}", name);
     let where_query = if name.trim().is_empty() {""} else { &format!("AND r.nom LIKE '%{}%'", name) };
@@ -176,7 +169,6 @@ pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
                 .map(|row| row.unwrap())
                 .collect::<Vec<Reference>>())
 }
-
 
 fn is_exclusive(mode: ModeTags, reference: &Reference, tags: &HashSet<Tag>) -> bool {
     if mode == ModeTags::FERME {

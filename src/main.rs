@@ -8,6 +8,7 @@ mod application_error;
 mod file;
 mod gui;
 mod server;
+mod connecteur;
 
 use std::env;
 use command::Command;
