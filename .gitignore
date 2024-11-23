@@ -10,3 +10,4 @@
 .env
 /.vscode
 .vscode
+/brain_manager_web

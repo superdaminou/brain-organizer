@@ -1,9 +1,0 @@
-{
-  "version": "1",
-  "name": "brain_manager_web",
-  "type": "collection",
-  "ignore": [
-    "node_modules",
-    ".git"
-  ]
-}

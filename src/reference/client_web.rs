@@ -1,6 +1,7 @@
-use std::{collections::HashSet, f64::consts::E};
+use std::{collections::HashSet, f64::consts::E, fmt::format};
 
 use anyhow::{Context, Result};
+use egui::ahash::{HashMap, HashMapExt};
 use log::info;
 use reqwest::{blocking::Body, header::HeaderMap};
 use serde::de::DeserializeOwned;
@@ -17,10 +18,10 @@ impl ClientWebReference {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
-
-        let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
+        
+        let url = std::env::var("SERVER_URL").expect("Missing url");
         client.get(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
@@ -36,10 +37,12 @@ impl ClientWebReference {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
-
-        let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
+        //let auth = BASE64_STANDARD.encode(format!("{}:{}", user, password));
+        //headers.insert("Authorization", format!("Basic {}", auth).parse().unwrap());
+        
+        let url = std::env::var("SERVER_URL").expect("Missing url");
         client.post(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
@@ -57,10 +60,10 @@ impl ClientWebReference {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
-
-        let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
+        
+        let url = std::env::var("SERVER_URL").expect("Missing url");
         client.delete(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
@@ -76,10 +79,10 @@ impl ClientWebReference {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
-
-        let url = std::env::var("SERVER_URL").expect("Missing url");
         let user = std::env::var("USER").expect("Missing url");
         let password = std::env::var("PASSWORD").expect("Missing url");
+        
+        let url = std::env::var("SERVER_URL").expect("Missing url");
         client.put(format!("{}{}", url, path))
             .headers(headers.clone())
             .basic_auth(user, Some(password))
@@ -127,7 +130,10 @@ impl ConnecteurReference for ClientWebReference {
             tags: Some(tags.to_owned()),
             mode: Some(mode)
         };
-        ClientWebReference::post(&path, Body::from(serde_json::to_string(&search_params).unwrap()))
+        let mut vals = HashMap::new();
+        vals.insert("name", name.cloned());
+        //ClientWebReference::post(&path, Body::from(serde_json::to_string(&vals).unwrap()))
+        ClientWebReference::post(&path, Body::from("{}".to_string()))
     }
 }
 
