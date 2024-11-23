@@ -6,16 +6,20 @@ use log::{debug, error, info};
 use rusqlite::{Error, Row};
 use uuid::Uuid;
 
-use crate::{database::{self, CRUD}, application_error::ApplicationError};
-
-use super::{client_web::ConnecteurReference, structs::reference::Reference, tag::Tag, ModeTags};
+use crate::{application_error::ApplicationError, database::{self, CRUD}, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
 
 use anyhow::Result;
 
-pub struct ClientDatabaseReference;
+pub struct ConnecteurDatabaseReference;
 
-impl ConnecteurReference for ClientDatabaseReference {
-    fn create(reference: &Reference) -> Result<()> {
+impl ConnecteurDatabaseReference {
+    pub fn new() -> ConnecteurDatabaseReference {
+        ConnecteurDatabaseReference
+    }
+}
+
+impl ConnecteurReference for ConnecteurDatabaseReference {
+    fn create(&self, reference: &Reference) -> Result<()> {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO reference (id, nom, url, date_creation, to_read) VALUES (?1, ?2, ?3, ?4, ?5);";
         let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
@@ -37,7 +41,7 @@ impl ConnecteurReference for ClientDatabaseReference {
         Ok(())
     }
 
-    fn update(reference: &Reference) -> Result<()> {
+    fn update(&self, reference: &Reference) -> Result<()> {
         let id = Uuid::parse_str(reference.id.clone().unwrap().as_str())?;
         let ref_query = "UPDATE reference SET nom = ?1, url = ?2 WHERE id = ?3;";
         let delete_tag_query = "DELETE FROM tag WHERE reference_id = ?1;";
@@ -64,8 +68,8 @@ impl ConnecteurReference for ClientDatabaseReference {
     }
 
 
-    fn delete(id: &Uuid) -> Result<usize> {
-        let reference = ClientDatabaseReference::get_one(id)?;
+    fn delete(&self, id: &Uuid) -> Result<usize> {
+        let reference = ConnecteurDatabaseReference::new().get_one(id)?;
         
         info!("Start deleting: {}", &reference.id.clone().unwrap_or("No Id".to_string()));
         reference.id.clone()
@@ -81,7 +85,7 @@ impl ConnecteurReference for ClientDatabaseReference {
     }
 
 
-    fn get_all() -> Result<Vec<Reference>> {
+    fn get_all(&self, ) -> Result<Vec<Reference>> {
         let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
@@ -95,7 +99,7 @@ impl ConnecteurReference for ClientDatabaseReference {
     }
 
 
-    fn get_one(id: &Uuid) -> Result<Reference> {
+    fn get_one(&self, id: &Uuid) -> Result<Reference> {
         let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
@@ -110,7 +114,7 @@ impl ConnecteurReference for ClientDatabaseReference {
                 .context("Not found")
     }
 
-    fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
         let where_query = if name.is_none() || name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
         let inclusive_tag_query = inclusive_query(tags, mode);
         
@@ -140,8 +144,8 @@ impl ConnecteurReference for ClientDatabaseReference {
 
 pub fn create_or_update(reference: &Reference) -> Result<()>  {
     match &reference.id {
-        Some(_) => ClientDatabaseReference::update(reference),
-        None => ClientDatabaseReference::create(reference)
+        Some(_) => ConnecteurDatabaseReference::new().update(reference),
+        None => ConnecteurDatabaseReference::new().create(reference)
     }
 }
 

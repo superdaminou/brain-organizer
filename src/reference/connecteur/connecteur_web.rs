@@ -1,19 +1,20 @@
-use std::{collections::HashSet, f64::consts::E, fmt::format};
+use std::collections::HashSet;
 
 use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
-use log::info;
 use reqwest::{blocking::Body, header::HeaderMap};
 use serde::de::DeserializeOwned;
 use uuid::Uuid;
-use crate::server::SearchParams;
-
-use super::{structs::reference::Reference, tag::Tag, ModeTags};
+use crate::{reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
 
-pub struct ClientWebReference;
+pub struct ConnecteurWebReference;
 
-impl ClientWebReference {
+impl ConnecteurWebReference {
+    pub fn new() -> ConnecteurWebReference {
+        ConnecteurWebReference
+    }
+
     fn get<T: DeserializeOwned>(path: &String) -> Result<T> {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
@@ -97,34 +98,34 @@ impl ClientWebReference {
 
 }
 
-impl ConnecteurReference for ClientWebReference {
-    fn create(entity: &Reference) -> Result<()> {
-        let path = format!("/references");
-        ClientWebReference::post(&path, Body::from(serde_json::to_string(entity).unwrap()))
+impl ConnecteurReference for ConnecteurWebReference {
+    fn create(&self, entity: &Reference) -> Result<()> {
+        let path = "/references".to_string();
+        ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(entity).unwrap()))
     }
 
-    fn get_one(id: &Uuid) -> Result<Reference> {
+    fn get_one(&self, id: &Uuid) -> Result<Reference> {
         let path = format!("/references/{}", id);
-        ClientWebReference::get(&path)
+        ConnecteurWebReference::get(&path)
     }
 
-    fn get_all() -> Result<Vec<Reference>> {
-        let path = format!("/references");
-        ClientWebReference::get(&path)
+    fn get_all(&self, ) -> Result<Vec<Reference>> {
+        let path = "/references".to_string();
+        ConnecteurWebReference::get(&path)
     }
 
-    fn delete(entity_id: &Uuid) -> Result<usize> {
+    fn delete(&self, entity_id: &Uuid) -> Result<usize> {
         let path = format!("/references/{}", entity_id);
-        ClientWebReference::delete(&path)
+        ConnecteurWebReference::delete(&path)
     }
 
-    fn update(entity: &Reference) -> Result<()> {
+    fn update(&self, entity: &Reference) -> Result<()> {
         let path = format!("/references/{}", entity.id.clone().unwrap());
-        ClientWebReference::update(&path, Body::from(serde_json::to_string(entity).unwrap()))
+        ConnecteurWebReference::update(&path, Body::from(serde_json::to_string(entity).unwrap()))
     }
     
-    fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
-        let path = format!("/references/search");
+    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+        let path = "/references/search".to_string();
         let search_params = SearchParams {
             name: name.cloned(),
             tags: Some(tags.to_owned()),
@@ -132,17 +133,7 @@ impl ConnecteurReference for ClientWebReference {
         };
         let mut vals = HashMap::new();
         vals.insert("name", name.cloned());
-        //ClientWebReference::post(&path, Body::from(serde_json::to_string(&vals).unwrap()))
-        ClientWebReference::post(&path, Body::from("{}".to_string()))
+        ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(&search_params).unwrap()))
+        // ConnecteurWebReference::post(&path, Body::from("{}".to_string()))
     }
-}
-
-
-pub trait ConnecteurReference {
-    fn create(entity: &Reference) -> Result<()>;
-    fn get_one(id: &Uuid) -> Result<Reference>;
-    fn get_all() -> Result<Vec<Reference>>;
-    fn delete(entity_id: &Uuid) -> Result<usize>;
-    fn update(entity: &Reference) -> Result<()>;
-    fn search(name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>>;
 }

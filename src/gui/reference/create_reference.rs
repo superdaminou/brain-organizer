@@ -1,5 +1,5 @@
 
-use crate::{application_error::ApplicationError, reference::{self,  client_web::{ClientWebReference, ConnecteurReference}, structs::reference::Reference, tag::{self, Tag}}};
+use crate::{application_error::ApplicationError, reference::{structs::reference::Reference, tag::{self, Tag}, ConnecteurReference}};
 
 use super::panel::{Evenement, PanelReference};
 use anyhow::Result;
@@ -44,42 +44,46 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evene
 
     ui.heading("Nouvelle Reference");
 
-    ui.horizontal(|ui: &mut egui::Ui| {
-        if ui.button("Changer mode").clicked() {
-            match section.creation_reference.mode {
-                Mode::Classique => section.creation_reference.mode = Mode::Markdown,
-                Mode::Markdown => section.creation_reference.mode = Mode::Classique,
-            }
-        }
-        
-        match section.creation_reference.mode {
-            Mode::Classique => {
-                ui.label("Titre: ");
-                ui.text_edit_singleline(&mut section.creation_reference.reference.titre);
-        
-                ui.label("URL: ");
-                ui.text_edit_singleline(&mut section.creation_reference.reference.url);
-            },
-            Mode::Markdown => {
-                ui.horizontal(|ui: &mut egui::Ui| {
-                    ui.label("Format Markdown: ");
-                    ui.text_edit_singleline(&mut section.creation_reference.markdown_name);
-                    Ok::<(), anyhow::Error>(())
-                }).inner?;
-            },
-        }
-       
-
-        ui.checkbox(&mut section.creation_reference.reference.to_read, "Non Consulté");
-        Ok::<(), anyhow::Error>(())
-    }).inner?;
-
-    
-
+    libelle_reference(ui, section)?;
     reference_tags(section, ui)?;
 
     ui.add_space(5.0);
     // Tags existants
+    existing_tags(ui, section)?;
+
+    ui.add_space(20.0);
+    enregistrer(ui, section, &mut evenements)?;
+
+    Ok(evenements)
+}
+
+fn enregistrer(ui: &mut egui::Ui, section: &mut PanelReference, evenements: &mut Vec<Evenement>) -> Result<(), ApplicationError> {
+    let enregistrer = egui::Button::new("Enregistrer");
+    if ui.add(enregistrer).clicked() {
+        if section.creation_reference.mode == Mode::Markdown {
+            section.creation_reference.reference.titre = section.creation_reference.markdown_name.chars()
+                .skip(1)
+                .take_while(|c| !c.eq_ignore_ascii_case(&']') )
+                .collect::<String>();
+
+            section.creation_reference.reference.url = section.creation_reference.markdown_name.chars()
+                .skip_while(|c|!c.eq_ignore_ascii_case(&'('))
+                .skip(1)
+                .take_while(|c|!c.eq_ignore_ascii_case(&')'))
+                .collect();
+        }
+    
+        section.connecteur.create(&section.creation_reference.reference.clone())
+            .and_then(|_|section.connecteur.search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
+            .map(|list| section.list_references = list)
+            .map(|_| reset(&mut section.creation_reference))?;
+        evenements.push(Evenement::Reset);
+            
+    };
+    Ok(())
+}
+
+fn existing_tags(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<(), ApplicationError> {
     ui.label("Tag existants");
     ui.horizontal(|ui: &mut egui::Ui| {
         let mut adding_boutons = vec![];
@@ -96,33 +100,40 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evene
         })?;
         Ok::<(), anyhow::Error>(())  
     }).inner?;
+    Ok(())
+}
 
-    ui.add_space(20.0);
-    let enregistrer = egui::Button::new("Enregistrer");
-
-    if ui.add(enregistrer).clicked() {
-        if section.creation_reference.mode == Mode::Markdown {
-            section.creation_reference.reference.titre = section.creation_reference.markdown_name.chars()
-                .skip(1)
-                .take_while(|c| !c.eq_ignore_ascii_case(&']') )
-                .collect::<String>();
-
-            section.creation_reference.reference.url = section.creation_reference.markdown_name.chars()
-                .skip_while(|c|!c.eq_ignore_ascii_case(&'('))
-                .skip(1)
-                .take_while(|c|!c.eq_ignore_ascii_case(&')'))
-                .collect();
+fn libelle_reference(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<(), ApplicationError> {
+    ui.horizontal(|ui: &mut egui::Ui| {
+        if ui.button("Changer mode").clicked() {
+            match section.creation_reference.mode {
+                Mode::Classique => section.creation_reference.mode = Mode::Markdown,
+                Mode::Markdown => section.creation_reference.mode = Mode::Classique,
+            }
         }
-        
-        reference::client_db::create_or_update(&section.creation_reference.reference.clone())
-            .and_then(|_|ClientWebReference::search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
-            .map(|list| section.list_references = list)
-            .map(|_| reset(&mut section.creation_reference))?;
-        evenements.push(Evenement::Reset);
-                
-    }
+    
+        match section.creation_reference.mode {
+            Mode::Classique => {
+                ui.label("Titre: ");
+                ui.text_edit_singleline(&mut section.creation_reference.reference.titre);
+    
+                ui.label("URL: ");
+                ui.text_edit_singleline(&mut section.creation_reference.reference.url);
+            },
+            Mode::Markdown => {
+                ui.horizontal(|ui: &mut egui::Ui| {
+                    ui.label("Format Markdown: ");
+                    ui.text_edit_singleline(&mut section.creation_reference.markdown_name);
+                    Ok::<(), anyhow::Error>(())
+                }).inner?;
+            },
+        }
+   
 
-    Ok(evenements)
+        ui.checkbox(&mut section.creation_reference.reference.to_read, "Non Consulté");
+        Ok::<(), anyhow::Error>(())
+    }).inner?;
+    Ok(())
 }
 
 fn reset(creation_reference: &mut CreationReference) {

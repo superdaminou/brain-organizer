@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
-use crate::{application_error::ApplicationError, gui::structs::Fenetre, reference::{self, client_db::ClientDatabaseReference, client_web::{ClientWebReference, ConnecteurReference}, structs::reference::Reference, tag::{self, Tag}, ModeTags}};
+use crate::{application_error::ApplicationError, gui::structs::Fenetre, reference::{self,  connecteur::Connecteur, structs::reference::Reference, tag::{self, Tag}, ConnecteurReference, ModeTags}};
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
-use strum::{IntoEnumIterator};
 use anyhow::Result;
 
 pub struct PanelReference {
+    pub connecteur: Connecteur,
     pub creation_reference: CreationReference,
     pub list_references: Vec<Reference>,
     pub filtre_tag: FiltreTag,
@@ -29,11 +29,14 @@ pub struct FiltreTag {
 
 impl Default for PanelReference {
     fn default() -> Self {
-        let references = ClientWebReference::search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
+        let mode_connecteur = std::env::var("SERVER_URL").map(|url|Connecteur::WEB).unwrap_or(Connecteur::LOCAL);
+
+        let references = mode_connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
         let tags =  tag::service::get_all_distinct().unwrap_or_default();
         let mut creation_ref = CreationReference::default();
         creation_ref.set_tags(tags.clone());
         Self { 
+            connecteur: mode_connecteur,
             creation_reference: creation_ref, 
             list_references: references, 
             filtre_tag: Default::default(), 

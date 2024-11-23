@@ -4,7 +4,7 @@ use log::{error, info};
 
 use anyhow::{Context,Result};
 
-use crate::{application_error::ApplicationError, database::CRUD, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, reference::{client_db::ClientDatabaseReference, client_web::ConnecteurReference, structs::reference::Reference}, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::{application_error::ApplicationError, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, reference::{connecteur::Connecteur, structs::reference::Reference, ConnecteurReference}, reflexion::{service::ReflexionDatabase, Reflexion}};
 
 const IMPORT_STORAGE: &str = "./import/";
 
@@ -21,7 +21,7 @@ fn import_reference() -> Result<(), ApplicationError> {
         .map(Reference::try_from)
         .collect::<Result<Vec<Reference>, ApplicationError>>()?
         .iter()
-        .map(ClientDatabaseReference::create)
+        .map(|e|Connecteur::LOCAL.create(e))
         .for_each(|result| {
             match result {
                 Ok(()) => (),
