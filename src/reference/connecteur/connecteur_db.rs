@@ -68,7 +68,7 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
     }
 
 
-    fn delete(&self, id: &Uuid) -> Result<usize> {
+    fn delete(&self, id: &Uuid) -> Result<()> {
         let reference = ConnecteurDatabaseReference::new().get_one(id)?;
         
         info!("Start deleting: {}", &reference.id.clone().unwrap_or("No Id".to_string()));
@@ -81,7 +81,9 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
             .context("Pas d'id")
             .and_then(|_| database::opening_database())?
             .execute("DELETE FROM reference WHERE id=?1", [reference.id.clone()])
-            .context("While executing delete reference")
+            .context("While executing delete reference")?;
+
+        Ok(())
     }
 
 

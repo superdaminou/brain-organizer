@@ -3,6 +3,7 @@ use crate::{application_error::ApplicationError, reference::{structs::reference:
 
 use super::panel::{Evenement, PanelReference};
 use anyhow::Result;
+use egui::RichText;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct CreationReference {
@@ -47,7 +48,7 @@ pub fn show(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evene
     libelle_reference(ui, section)?;
     reference_tags(section, ui)?;
 
-    ui.add_space(5.0);
+    ui.add_space(10.0);
     // Tags existants
     existing_tags(ui, section)?;
 
@@ -93,22 +94,30 @@ fn enregistrer(ui: &mut egui::Ui, section: &mut PanelReference, evenements: &mut
 }
 
 fn existing_tags(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<(), ApplicationError> {
-    ui.label("Tag existants");
-    ui.horizontal(|ui: &mut egui::Ui| {
-        let mut adding_boutons = vec![];
-        section.creation_reference.existing_tags.iter().for_each(|tag|{
-            adding_boutons.push((ui.add(egui::Button::new(tag.0.clone())), tag.clone()));
-        });
+    ui.label(RichText::new("Tag existants").strong());
 
-        adding_boutons.iter().try_for_each(|tag| {
-            if tag.0.clicked() {
-                section.creation_reference.reference.tags.insert(tag.1.clone());
-                section.creation_reference.existing_tags = tag::service::get_all_distinct()?;
-            };
+    let mut adding_boutons: Vec<(egui::Response, Tag)> = vec![];
+
+    section.creation_reference.existing_tags.chunks(10)
+        .try_for_each(|chunk| {
+            ui.horizontal::<Result<()>>(|ui| {
+                chunk.iter().try_for_each(|tag| {
+                    adding_boutons.push((ui.selectable_label(false, tag.0.clone()), tag.clone()));
+                    Ok::<(), anyhow::Error>(())
+                })?;
+                Ok::<(), anyhow::Error>(())
+            }).inner?;
             Ok::<(), anyhow::Error>(())
         })?;
-        Ok::<(), anyhow::Error>(())  
-    }).inner?;
+
+    adding_boutons.iter().try_for_each(|tag| {
+        if tag.0.clicked() {
+            section.creation_reference.reference.tags.insert(tag.1.clone());
+            section.creation_reference.existing_tags = tag::service::get_all_distinct()?;
+        };
+        Ok::<(), anyhow::Error>(())
+    })?;
+
     Ok(())
 }
 

@@ -10,14 +10,15 @@ use super::panel::{Evenement, PanelReference};
 mod search_bar;
 
 pub fn show (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Evenement>, ApplicationError>{
-    let evenements = Vec::default();
+    let mut evenements = Vec::default();
     ui.heading("Liste References");
     search_bar(section, ui)?;
-    liste_references(ui, section);
+    evenements = vec![evenements, liste_references(ui, section)].concat() ;
     Ok(evenements)
 }
 
-fn liste_references(ui: &mut egui::Ui, section: &mut PanelReference) {
+fn liste_references(ui: &mut egui::Ui, section: &mut PanelReference) -> Vec<Evenement> {
+    let mut evenements : Vec<Evenement> = vec![];
     egui::ScrollArea::vertical()
         .id_salt("reference")
         .show(ui, |ui| {
@@ -42,6 +43,8 @@ fn liste_references(ui: &mut egui::Ui, section: &mut PanelReference) {
                         reference.id.clone().context("Pas d'id".to_string())
                         .and_then(|id| Uuid::parse_str(&id).context("context"))
                         .and_then(|id|section.connecteur.delete(&id))?;
+
+                        evenements.push(Evenement::Reset);
                     }
                 
                     ui.allocate_space(ui.available_size());
@@ -51,4 +54,6 @@ fn liste_references(ui: &mut egui::Ui, section: &mut PanelReference) {
                 Ok::<(),ApplicationError>(())
             })
         });
+        
+    evenements
 }
