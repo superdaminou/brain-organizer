@@ -34,16 +34,14 @@ jobs:
         path: ${{ matrix.os }}-${{ env.FILE_NAME }}.tar
 
   release:
+    env:
+      FILE_NAME: brain_manager
     needs: build
     runs-on: ubuntu-latest
     permissions: write-all
-    strategy:
-      fail-fast: false 
-      matrix:
-        os: [ubuntu-latest,macOS-latest,windows-latest,macOS-13]
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: './${{ matrix.os }}-${{ env.FILE_NAME }}/${{ matrix.os }}-${{ env.FILE_NAME }}.tar'
+          artifacts: './ubuntu-latest-${{ env.FILE_NAME }}/ubuntu-latest-${{ env.FILE_NAME }}.tar,macOS-latest-${{ env.FILE_NAME }}/macOS-latest-${{ env.FILE_NAME }}.tar,./windows-latest-${{ env.FILE_NAME }}/windows-latest-${{ env.FILE_NAME }}.tar,./macOS-13-${{ env.FILE_NAME }}/macOS-13-${{ env.FILE_NAME }}.tar'
