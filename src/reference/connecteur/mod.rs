@@ -32,7 +32,7 @@ impl ConnecteurReference for Connecteur {
         }
     }
 
-    fn delete(&self, entity_id: &uuid::Uuid) -> anyhow::Result<usize> {
+    fn delete(&self, entity_id: &uuid::Uuid) -> anyhow::Result<()> {
         match self {
             Connecteur::WEB=> ConnecteurWebReference::new().delete(entity_id),
             Connecteur::LOCAL => ConnecteurDatabaseReference::new().delete(entity_id),

@@ -25,7 +25,7 @@ pub trait ConnecteurReference {
     fn create(&self, entity: &Reference) -> Result<()>;
     fn get_one(&self, id: &Uuid) -> Result<Reference>;
     fn get_all(&self,) -> Result<Vec<Reference>>;
-    fn delete(&self, entity_id: &Uuid) -> Result<usize>;
+    fn delete(&self, entity_id: &Uuid) -> Result<()>;
     fn update(&self, entity: &Reference) -> Result<()>;
     fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>>;
 }

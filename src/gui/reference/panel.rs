@@ -16,7 +16,7 @@ pub struct PanelReference {
     pub evenements: Vec<Evenement> 
 }
 
-#[derive(serde::Deserialize, serde::Serialize, PartialEq, Eq)]
+#[derive(serde::Deserialize, serde::Serialize, PartialEq, Eq, Clone)]
 pub enum Evenement {
     Reset,
     Modifier(Reference)

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
-use reqwest::{blocking::Body, header::HeaderMap};
+use reqwest::{blocking::{Body, Response}, header::HeaderMap};
 use serde::de::DeserializeOwned;
 use uuid::Uuid;
 use crate::{reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
@@ -14,7 +14,7 @@ impl ConnecteurWebReference {
         ConnecteurWebReference
     }
 
-    fn get<T: DeserializeOwned>(path: &String) -> Result<T> {
+    fn get(path: &String) -> Response {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -29,11 +29,10 @@ impl ConnecteurWebReference {
             .unwrap()
             .error_for_status()
             .unwrap()
-            .json::<T>()
-            .with_context(||"Error while deserializing get response".to_string())
+            
     }
 
-    fn post<T: DeserializeOwned>(path: &String, body: Body) -> Result<T> {
+    fn post(path: &String, body: Body) -> Response {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -51,12 +50,10 @@ impl ConnecteurWebReference {
             .unwrap()
             .error_for_status()
             .unwrap()
-            .json::<T>()
-            .context("Error while creating reference")
     }
     
 
-    fn delete<T: DeserializeOwned>(path: &String) -> Result<T> {
+    fn delete(path: &String) -> Response {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -71,11 +68,9 @@ impl ConnecteurWebReference {
             .unwrap()
             .error_for_status()
             .unwrap()
-            .json::<T>()
-            .context("Error while Deleting")
     }
 
-    fn update<T: DeserializeOwned>(path: &String, body: Body) -> Result<T> {
+    fn update(path: &String, body: Body) -> Response {
         let client = reqwest::blocking::Client::new();
         let mut headers= HeaderMap::new();
         headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -91,8 +86,6 @@ impl ConnecteurWebReference {
             .unwrap()
             .error_for_status()
             .unwrap()
-            .json::<T>()
-            .context("Error while updating")
     }
 
 }
@@ -100,27 +93,37 @@ impl ConnecteurWebReference {
 impl ConnecteurReference for ConnecteurWebReference {
     fn create(&self, entity: &Reference) -> Result<()> {
         let path = "/references".to_string();
-        ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(entity).unwrap()))
+        ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(entity).unwrap()));
+            
+        Ok(())
     }
 
     fn get_one(&self, id: &Uuid) -> Result<Reference> {
         let path = format!("/references/{}", id);
-        ConnecteurWebReference::get(&path)
+        ConnecteurWebReference::get(&path).
+            json::<Reference>()
+            .with_context(||"Error while deserializing get response".to_string())
     }
 
     fn get_all(&self, ) -> Result<Vec<Reference>> {
         let path = "/references".to_string();
         ConnecteurWebReference::get(&path)
+            .json::<Vec<Reference>>()
+            .context("Error while creating reference")
     }
 
-    fn delete(&self, entity_id: &Uuid) -> Result<usize> {
+    fn delete(&self, entity_id: &Uuid) -> Result<()> {
         let path = format!("/references/{}", entity_id);
         ConnecteurWebReference::delete(&path)
+            .json::<()>()
+            .context("Error while Deleting")
     }
 
     fn update(&self, entity: &Reference) -> Result<()> {
         let path = format!("/references/{}", entity.id.clone().unwrap());
         ConnecteurWebReference::update(&path, Body::from(serde_json::to_string(entity).unwrap()))
+            .json::<()>()
+            .context("Error while Updating")
     }
     
     fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
@@ -133,5 +136,7 @@ impl ConnecteurReference for ConnecteurWebReference {
         let mut vals = HashMap::new();
         vals.insert("name", name.cloned());
         ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(&search_params).unwrap()))
+            .json::<Vec<Reference>>()
+            .context("Error while creating reference")
     }
 }
