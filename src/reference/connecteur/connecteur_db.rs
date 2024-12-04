@@ -6,7 +6,7 @@ use log::{debug, error, info};
 use rusqlite::{Error, Row};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, database::{self}, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
+use crate::{application_error::ApplicationError, database::{self}, reference::{structs::reference::Reference, tag::{self, Tag}, ConnecteurReference, ModeTags}};
 
 use anyhow::Result;
 
@@ -140,6 +140,10 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
                     .map(|row| row.unwrap())
                     .filter(|r| is_exclusive(mode, r, tags))
                     .collect::<Vec<Reference>>())
+    }
+    
+    fn all_tags_distinct(&self) -> Result<Vec<Tag>> {
+        tag::service::get_all_distinct()
     }
     
 }

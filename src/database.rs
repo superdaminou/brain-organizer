@@ -12,10 +12,15 @@ const DB_PATH: &str = "brain_manager.db";
 pub fn ensuring_model() -> Result<(), anyhow::Error> {
     info!("Ensuring model and running migration if needed");
     opening_database()
-        .and_then(|mut connexion | 
-            migrations::runner()
+    .and_then(run_migration)?;
+    Ok(())
+}
+
+fn run_migration(mut connexion: Connection) -> Result<(), anyhow::Error> {
+    migrations::runner()
             .run(&mut connexion)
-            .with_context(||"Could not run migration"))?;
+            .with_context(||"Could not run migration")?;
+
     Ok(())
 }
 
@@ -23,9 +28,6 @@ pub fn opening_database() -> Result<Connection> {
     trace!("Opening Database: {}", DB_PATH);
     Connection::open(DB_PATH).with_context(||"Couldn't open database")
 }
-
-
-
 
 pub trait CRUD<T> {
     fn create(entity: &T) -> Result<()>;

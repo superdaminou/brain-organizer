@@ -52,4 +52,11 @@ impl ConnecteurReference for Connecteur {
             Connecteur::LOCAL => ConnecteurDatabaseReference::new().search(name, tags, mode),
         }
     }
+    
+    fn all_tags_distinct(&self) -> anyhow::Result<Vec<super::tag::Tag>> {
+        match self {
+            Connecteur::WEB => ConnecteurWebReference::new().all_tags_distinct(),
+            Connecteur::LOCAL => ConnecteurDatabaseReference::new().all_tags_distinct(),
+        }
+    }
 }

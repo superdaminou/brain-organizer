@@ -28,4 +28,5 @@ pub trait ConnecteurReference {
     fn delete(&self, entity_id: &Uuid) -> Result<()>;
     fn update(&self, entity: &Reference) -> Result<()>;
     fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>>;
+    fn all_tags_distinct(&self) -> Result<Vec<Tag>>;
 }

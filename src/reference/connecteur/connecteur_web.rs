@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
 use reqwest::{blocking::{Body, Response}, header::HeaderMap};
-use serde::de::DeserializeOwned;
 use uuid::Uuid;
 use crate::{reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
@@ -88,6 +87,23 @@ impl ConnecteurWebReference {
             .unwrap()
     }
 
+    fn all_tags_distinct(path: &String) -> Response {
+        let client = reqwest::blocking::Client::new();
+        let mut headers= HeaderMap::new();
+        headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
+        let user = std::env::var("USER").expect("Missing url");
+        let password = std::env::var("PASSWORD").expect("Missing url");
+        
+        let url = std::env::var("SERVER_URL").expect("Missing url");
+        client.get(format!("{}{}", url, path))
+            .headers(headers.clone())
+            .basic_auth(user, Some(password))
+            .send()
+            .unwrap()
+            .error_for_status()
+            .unwrap()
+    }
+
 }
 
 impl ConnecteurReference for ConnecteurWebReference {
@@ -137,6 +153,13 @@ impl ConnecteurReference for ConnecteurWebReference {
         vals.insert("name", name.cloned());
         ConnecteurWebReference::post(&path, Body::from(serde_json::to_string(&search_params).unwrap()))
             .json::<Vec<Reference>>()
+            .context("Error while creating reference")
+    }
+    
+    fn all_tags_distinct(&self) -> Result<Vec<Tag>> {
+        let path = "/tags".to_string();
+        ConnecteurWebReference::all_tags_distinct(&path)
+            .json::<Vec<Tag>>()
             .context("Error while creating reference")
     }
 }
