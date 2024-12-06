@@ -38,7 +38,7 @@ impl Default for PanelReference {
             });
 
         let references = mode_connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
-        let tags =  tag::service::get_all_distinct().unwrap_or_default();
+        let tags =  mode_connecteur.all_tags_distinct().unwrap_or_default();
         let mut creation_ref = CreationReference::default();
         creation_ref.set_tags(tags.clone());
         Self { 
@@ -68,11 +68,11 @@ impl Fenetre for PanelReference {
             Ok::<_,ApplicationError>(())
         });
 
-        self.evenements.iter().for_each(|e| {
+        self.evenements.iter().try_for_each(|e| {
             match e {
                 Evenement::Reset => {
                     self.creation_reference.reference = Reference::default();
-                    let tags = tag::service::get_all_distinct().unwrap_or_default();
+                    let tags = self.connecteur.all_tags_distinct()?;
                     self.tags  = tags.clone();
                     self.creation_reference.existing_tags = tags;
                 },
@@ -81,7 +81,8 @@ impl Fenetre for PanelReference {
                     self.creation_reference.mode = Mode::Classique;
                 },
             }
-        });
+            Ok::<(), anyhow::Error>(())
+        })?;
 
         match visible {
             Some(windows) => {

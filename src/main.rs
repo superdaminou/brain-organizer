@@ -1,5 +1,5 @@
 mod reference;
-mod reflexion;
+mod notes;
 mod graph;
 mod finance;
 mod database;
@@ -9,6 +9,7 @@ mod file;
 mod gui;
 mod server;
 mod connecteur;
+mod client;
 
 use std::env;
 use command::Command;

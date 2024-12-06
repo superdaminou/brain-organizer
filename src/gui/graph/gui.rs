@@ -178,7 +178,7 @@ fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicat
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label(format!("Current graph: {}", fenetre.graph.filename()));
         if ui.button("Editer").clicked() {
-            fenetre.edit.open(fenetre.graph.filename(), &mut fenetre.edit_graph)?;
+            fenetre.edit.open(&fenetre.graph, &mut fenetre.edit_graph)?;
             fenetre.edit_graph.show = true;
         }
 

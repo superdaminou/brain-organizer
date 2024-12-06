@@ -4,9 +4,11 @@ use log::{error, info};
 
 use anyhow::{Context,Result};
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, reference::{ structs::reference::Reference, ConnecteurReference}, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, file::lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, notes::{ConnecteurNote, Note}, reference::{ structs::reference::Reference, ConnecteurReference}};
 
 const IMPORT_STORAGE: &str = "./import/";
+
+const CONNECTEUR: Connecteur = Connecteur::LOCAL;
 
 
 pub fn import() -> Result<(), ApplicationError> {
@@ -21,7 +23,7 @@ fn import_reference() -> Result<(), ApplicationError> {
         .map(Reference::try_from)
         .collect::<Result<Vec<Reference>, ApplicationError>>()?
         .iter()
-        .map(|e|Connecteur::LOCAL.create(e))
+        .map(|e|<Connecteur as ConnecteurReference>::create(&CONNECTEUR, e))
         .for_each(|result| {
             match result {
                 Ok(()) => (),
@@ -35,10 +37,10 @@ fn import_reflexion() -> Result<(), ApplicationError> {
     info!("Start importing reflexion file: {}", REFLEXION_FILE);
     read_to_string(IMPORT_STORAGE.to_string() + REFLEXION_FILE).context("Read file")?  
         .lines()  
-        .map(Reflexion::try_from)
-        .collect::<Result<Vec<Reflexion>, ApplicationError>>()?
+        .map(Note::try_from)
+        .collect::<Result<Vec<Note>, ApplicationError>>()?
         .iter()
-        .map(Reflexion::create)
+        .map(|n | <Connecteur as ConnecteurNote>::create(&CONNECTEUR, n))
         .for_each(|result| {
             match result {
                 Ok(()) => (),

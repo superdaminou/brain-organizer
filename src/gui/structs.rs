@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use crate::application_error::ApplicationError;
 
-use super::{app::central_panel, finance::fenetre_finance::FenetreFinance, graph::fenetre::FenetreGraph, reference::panel::PanelReference, reflexion::section_reflexion::SectionReflexion};
+use super::{app::central_panel, finance::fenetre_finance::FenetreFinance, graph::fenetre::FenetreGraph, reference::panel::PanelReference, note::section_note::SectionNote};
 use anyhow::Result;
 use eframe::egui::Context;
 pub struct TemplateApp {
@@ -15,7 +15,7 @@ impl Default for TemplateApp {
     fn default() -> Self {
         let fenetres: Vec<Box<dyn Fenetre>> = vec![
                 Box::<PanelReference>::default(),
-                Box::<SectionReflexion>::default(),
+                Box::<SectionNote>::default(),
                 Box::<FenetreGraph>::default(),
                 Box::<FenetreFinance>::default()
             ];

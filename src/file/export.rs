@@ -5,7 +5,9 @@ use log::info;
 const EXPORT_STORAGE: &str = "./export/";
 use anyhow::{Context, Result};
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv}, reference::ConnecteurReference, reflexion::{service::ReflexionDatabase, Reflexion}};
+const CONNECTEUR : Connecteur = Connecteur::LOCAL;
+
+use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv}, notes::ConnecteurNote, reference::ConnecteurReference};
 
 pub fn export() -> Result<(), ApplicationError> {
     match Path::new(EXPORT_STORAGE).exists() {
@@ -24,13 +26,13 @@ pub fn export() -> Result<(), ApplicationError> {
 
 fn export_reference() -> Result<(), ApplicationError> {
     info!("Start exporting reference file: {}", REFERENCE_FILE);
-    write_file(REFERENCE_FILE, Connecteur::LOCAL.get_all()?.to_csv())
+    write_file(REFERENCE_FILE, <Connecteur as ConnecteurReference>::get_all(&CONNECTEUR)?.to_csv())
 }
 
 
 fn export_reflexions() -> Result<(), ApplicationError> {
     info!("Start exporting reflexion entries: {}", REFLEXION_FILE);
-    write_file(REFLEXION_FILE, Reflexion::get_all()?.to_csv())
+    write_file(REFLEXION_FILE, <Connecteur as ConnecteurNote>::get_all(&CONNECTEUR)?.to_csv())
         .and_then(|_|
             copy_recursively(STORAGE, EXPORT_STORAGE.to_string() + STORAGE).map_err(ApplicationError::Other))
 }

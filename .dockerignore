@@ -1,0 +1,6 @@
+.vscode/
+.coverage/
+target/
+brain_manager.db
+import/
+storage/

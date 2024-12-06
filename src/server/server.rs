@@ -1,6 +1,6 @@
 use ilmen_http::{http::security::service::SecurityProtocol, HttpServer, Route, Verb};
 use crate::application_error::ApplicationError;
-use super::{references_controller, tags_controller};
+use super::{note_controller, references_controller, tags_controller};
 
 
 pub fn web() -> Result<(), ApplicationError> {
@@ -23,6 +23,8 @@ pub fn routes() -> Vec<Route> {
         Route::new(&Verb::DELETE, "/references/{id}", references_controller::delete, true),
 
         Route::new(&Verb::GET, "/tags" ,tags_controller::all_tags_distinct, true),
+
+
         ];
 
     routes

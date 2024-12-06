@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::{fs::{read_to_string, File}, io::{self, Write}};
 
 use ilmen_dot_parser::DotGraph;
 use log::info;
@@ -6,12 +6,36 @@ use rusqlite::{ Error, Row};
 use uuid::Uuid;
 use anyhow::{Context, Result};
 
-use crate::{application_error::ApplicationError, {database::{self, CRUD}, file::construct_path}};
+use crate::{application_error::ApplicationError, database::{self, CRUD}, file::construct_path, gui::Fileable};
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct  Graph {
     pub id: Uuid,
     filename: String,
+}
+
+impl Fileable for Graph {
+    fn id(&self) -> String {
+        self.id.to_string()
+    }
+
+    fn filename(&self) -> String {
+        self.filename.clone()
+    }
+
+    fn contenu(&self) -> String {
+        self.contenu().unwrap_or("Failed".to_string())
+    }
+
+    fn write<T: Fileable>(file: &T) -> Result<()> {
+        File::options()
+            .read(true)
+            .write(true)
+            .open(construct_path(&(&file.filename())))
+            .and_then(|mut f| 
+                f.write_all(file.contenu().as_bytes()))
+            .context("Ca a explosé ")
+    }
 }
 
 
@@ -117,6 +141,11 @@ impl Graph {
     
     pub  fn load_graph(&self) -> Result<DotGraph, ApplicationError> {
         DotGraph::graph_from_file(&construct_path(&self.filename())).map_err(|e| ApplicationError::DefaultError("While parsing".to_string()))
+     }
+
+     pub fn contenu(&self)->Result<String, io::Error> {
+        let filename= self.filename();
+        read_to_string(construct_path(&filename))
      }
 }
 

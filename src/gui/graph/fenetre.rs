@@ -5,7 +5,7 @@ use petgraph::stable_graph::StableGraph;
 use crate::database::CRUD;
 use crate::application_error::ApplicationError;
 use crate::graph::my_graph::Graph as MyGraph;
-use crate::gui::composant::EditFile;
+use crate::gui::composant::EditFileable;
 use crate::gui::composant::EditText;
 use crate::gui::structs::Fenetre;
 
@@ -22,7 +22,7 @@ pub struct FenetreGraph {
     pub graphs: Vec<MyGraph>,
     pub selected_node: Option<MyNode>,
     pub edit: EditText,
-    pub edit_graph: EditFile
+    pub edit_graph: EditFileable<MyGraph>
 }
 
 impl Debug for FenetreGraph {
@@ -39,7 +39,7 @@ impl Default for FenetreGraph {
             graphs: MyGraph::get_all().unwrap_or_default(),
             loaded_graph: Graph::new(StableGraph::new()),
             selected_node: None,
-            edit_graph: EditFile::default(),
+            edit_graph: EditFileable::default(),
             edit: EditText::default()
         }
     } 

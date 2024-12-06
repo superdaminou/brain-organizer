@@ -2,23 +2,21 @@ use std::{fs::{read_to_string, File}, io::Write};
 
 use egui::{TextEdit, Ui, Window};
 use anyhow::Result;
-use log::info;
 
-use crate::{application_error::ApplicationError, file::construct_path};
+use crate::{application_error::ApplicationError, file::construct_path, notes::{self, Note}};
 
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct EditText {}
 
 #[derive(serde::Deserialize, serde::Serialize,Default, Debug, Clone)]
-pub struct EditFile {
+pub struct  EditFileable <T: Fileable>{
     pub show: bool,
-    pub filename: String,
-    pub contenu: String
+    pub note: T
 }
 
 impl EditText {
-    pub fn show(&mut self, ui: &mut Ui,   edit_file: &mut EditFile) -> Result<()> {
-        Window::new(&edit_file.filename)
+    pub fn show<T: Fileable>(&mut self, ui: &mut Ui,   edit_file: &mut EditFileable<T>) -> Result<Option<String>> {
+        Window::new(&edit_file.note.filename())
             .open(&mut edit_file.show)
             .vscroll(true)
             .default_size([300.0, 300.0])
@@ -28,34 +26,30 @@ impl EditText {
 
                 ui.add_sized([
                     ui.available_height() -50.0, ui.available_width() - 50.0], 
-                    TextEdit::multiline(&mut edit_file.contenu)
+                    TextEdit::multiline(&mut edit_file.note.contenu())
                         .font(egui::TextStyle::Monospace)
                         .code_editor());
             
                 if ui.button("Enregistrer").clicked() {
-                    let write = File::options()
-                        .read(true)
-                        .write(true)
-                        .open(construct_path(&(edit_file.filename)))
-                        .and_then(|mut f| 
-                            f.write_all(edit_file.contenu.as_bytes()));
-                    match write {
-                        Err(e) => info!("Error while writing file {} :  {}", construct_path(&edit_file.filename), e.to_string()),
-                        Ok(_) => info!("Saved: {}", &edit_file.filename)
-                    }
+                    T::write(&edit_file.note);
                 } 
+
             });
-            Ok(())
+            Ok(None)
     }
 
-    pub fn open(&mut self ,filename: String, edit_reflexion:&mut EditFile) -> Result<(), ApplicationError> {
-        info!("Opening: {}", construct_path(&filename));
-        edit_reflexion.contenu = read_to_string(construct_path(&filename))
-            .map_err(|_| ApplicationError::DefaultError("Could not open find".to_string()))?;
+    pub fn open<T: Fileable + Clone>(&mut self ,note: &T, edit_reflexion:&mut EditFileable<T>) -> Result<(), ApplicationError> {
+        edit_reflexion.note = note.clone();
         edit_reflexion.show = !edit_reflexion.show;
-        edit_reflexion.filename = filename;
         Ok(())
     }
+}
 
+
+pub trait Fileable {
+    fn id(&self) -> String;
+    fn filename(&self) -> String;
+    fn contenu(&self) -> String;
+    fn write<T: Fileable>(file: &T) -> Result<()>;
 }
 

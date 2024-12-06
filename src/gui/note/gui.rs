@@ -1,12 +1,12 @@
 use log::info;
 
-use crate::{application_error::ApplicationError, gui::composant::EditText, reflexion::{service::ReflexionDatabase, Reflexion}};
+use crate::{application_error::ApplicationError, gui::composant::EditText, notes::{ConnecteurNote, Note}};
 
-use super::section_reflexion::SectionReflexion;
+use super::section_note::SectionNote;
 use anyhow::{Context, Result};
 
 
-pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+pub fn section_notes(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     EditText::default().show(ui, &mut section.edit_reflexion)?;
     new_reflexion(section, ui)?;
     list_reflexions(section, ui)?;
@@ -14,7 +14,7 @@ pub fn section_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> 
 }
 
 
-fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()> {
+fn new_reflexion(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<()> {
     ui.heading("Reflexion");
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Sujet");
@@ -22,8 +22,8 @@ fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()
     
         let button = egui::Button::new("Créer");
         if ui.add(button).clicked() {
-            return Reflexion::create(&section.reflexion.clone())
-                .and_then(|_| Reflexion::get_all().context("Coulnt get all"))
+            return section.connecteur.create(&section.reflexion.clone())
+                .and_then(|_| section.connecteur.get_all().context("Coulnt get all"))
                 .map(|result| section.list_reflexions = result);
 
         }
@@ -35,11 +35,11 @@ fn new_reflexion(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<()
 }
 
 
-fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
+fn list_reflexions(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
 
     ui.horizontal(|ui| {
         if ui.button("Recharger reflexion").clicked() {
-            match Reflexion::get_all() {
+            match section.connecteur.get_all() {
                 Ok(result) => {
                     section.list_reflexions = result;
                 },
@@ -52,17 +52,17 @@ fn list_reflexions(section: &mut SectionReflexion, ui: &mut egui::Ui) -> Result<
     egui::ScrollArea::vertical()
         .id_salt("reflexion")
         .show(ui, |ui| {
-            section.list_reflexions.clone().iter().try_for_each(|reflexion| {
+            section.list_reflexions.clone().iter().try_for_each(|note| {
                 ui.horizontal(|ui| {
-                    ui.label(&reflexion.sujet);
+                    ui.label(&note.sujet);
                     if ui.button("Ouvrir").clicked() {
-                        section.edit.open(reflexion.filename().clone(), &mut section.edit_reflexion)?;
+                        section.edit.open(note, &mut section.edit_reflexion)?;
                         section.edit_reflexion.show = true;
                         return Ok::<(), ApplicationError>(());
                     }
                     if ui.button("Supprimer").clicked() {
-                        return Ok(Reflexion::delete(&reflexion.clone())
-                            .and_then(|_| Reflexion::get_all().context("get All"))
+                        return Ok(section.connecteur.delete(&note.clone())
+                            .and_then(|_| section.connecteur.get_all().context("get All"))
                             .map(|result| section.list_reflexions = result)?);
                     }
                     Ok::<(), ApplicationError>(())
