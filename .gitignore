@@ -11,3 +11,4 @@
 /.vscode
 .vscode
 /brain_manager_web
+.env

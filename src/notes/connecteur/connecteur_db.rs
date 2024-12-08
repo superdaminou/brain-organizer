@@ -1,11 +1,7 @@
 use std::{fs::{remove_file, File}, io::Write};
-
-
 use rusqlite::{Error, Row};
 use uuid::Uuid;
-
 use crate::{database, file::construct_path, notes::{ConnecteurNote, Note}};
-
 use anyhow::{Context, Result};
 pub struct ConnecteurNoteDb;
 
@@ -36,15 +32,11 @@ impl ConnecteurNote for ConnecteurNoteDb {
         let query = "SELECT r.id, r.sujet FROM reflexion as r WHERE r.id =:id1 LIMIT 1";
         database::opening_database()?
                 .prepare(query)?
-                .query_map(&[(":id", &"one")], map_row)?
+                .query_map(&[(":id", &id.to_string())], map_row)?
                 .map(|row| row.context("Mapping result to Reflexion"))
                 .collect::<Result<Vec<Note>>>()
                 .map(|n|n.first().cloned())?
-                .context("Should have a note")
-        
-
-        
-        
+                .context("Should have a note")   
     }
 
 
@@ -55,7 +47,6 @@ impl ConnecteurNote for ConnecteurNoteDb {
             .context("Failed to delete")
             .and_then(|_| remove_file(construct_path(&reflexion.filename())).context("failed to remove file"))
             .with_context(|| "An error occured")
-            
     }
 
 

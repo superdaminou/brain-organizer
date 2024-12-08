@@ -27,7 +27,8 @@ thiserror ={ version = "2.0"}
 serde_json = { version = "1.0"}
 chrono = { version = "0.4", features = ["serde"]}
 rand = {version = "0.8"}
-ilmen-http = { version="0.0.5" }
+#ilmen-http = { version="0.0.6" }
+ilmen-http = { version = "0.0.6"}
 ilmen-dot-parser = { version="0.0.1" }
 clippers = "0.1.2"
 reqwest = { version = "0.12", features = ["json", "blocking"] }

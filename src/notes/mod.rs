@@ -1,4 +1,3 @@
-pub mod service;
 mod note;
 pub mod connecteur;
 

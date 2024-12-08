@@ -1,11 +1,11 @@
 use ilmen_http::{http::security::service::SecurityProtocol, HttpServer, Route, Verb};
 use crate::application_error::ApplicationError;
-use super::{note_controller, references_controller, tags_controller};
+use super::{references_controller, tags_controller};
 
 
-pub fn web() -> Result<(), ApplicationError> {
+pub fn server() -> Result<(), ApplicationError> {
     let port = std::env::var("PORT").expect("PORT must be set for baseAuth").parse::<i32>().expect("PORT non valide");
-    let configuration = ilmen_http::Config::new( port, SecurityProtocol::Basic(base_auth));
+    let configuration = ilmen_http::Config::new( "127.0.0.1", port, SecurityProtocol::Basic(base_auth));
     let server = HttpServer::new(configuration, routes());
     server.start();
     Ok(())

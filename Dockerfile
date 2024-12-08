@@ -8,6 +8,7 @@ RUN cargo install wasm-pack && cargo install --locked trunk
 RUN rustup target add wasm32-unknown-unknown
 WORKDIR /brain_app
 COPY . .
+COPY .env_server .env
 RUN cargo build
 
-CMD ["cargo", "run","--", "web"]
+CMD ["cargo", "run","--", "server"]

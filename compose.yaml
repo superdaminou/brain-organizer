@@ -1,0 +1,5 @@
+services:
+  server:
+    build: .
+    ports:
+      - "8085:8080"

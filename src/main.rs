@@ -45,6 +45,6 @@ fn main() -> Result<(), ApplicationError> {
         command::Command::Gui => running_gui(),
         command::Command::Import => import(),
         command::Command::Export => export(),
-        command::Command::Web => server::server::web(),
+        command::Command::Server => server::server::server(),
     }
 }

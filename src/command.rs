@@ -8,7 +8,7 @@ pub enum Command {
     Import,
     Gui,
     Export,
-    Web
+    Server
 }
 
 impl TryFrom<String> for Command {
@@ -18,7 +18,7 @@ impl TryFrom<String> for Command {
             "import" => Ok(Command::Import),
             "export" => Ok(Command::Export),
             "gui" => Ok(Command::Gui),
-            "web" => Ok(Command::Web),
+            "server" => Ok(Command::Server),
             _ => Err(ApplicationError::EnumError(value))
         }
     }
@@ -30,7 +30,7 @@ impl fmt::Display for Command {
             Command::Import => write!(f, "Import"),
             Command::Gui => write!(f, "GUI"),
             Command::Export => write!(f, "Export"),
-            Command::Web => write!(f, "Web")
+            Command::Server => write!(f, "Server")
         }
     }
 }

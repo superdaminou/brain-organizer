@@ -5,6 +5,8 @@ use uuid::Uuid;
 
 use crate::{application_error::ApplicationError, file::{construct_path, ToCsv}, gui::Fileable, reference::structs::reference::CsvLine};
 
+use super::{connecteur::connecteur_db::ConnecteurNoteDb, ConnecteurNote};
+
 const DELIMITER : &str = ";"; 
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
@@ -25,8 +27,7 @@ impl Fileable for Note {
 
     fn write<T: Fileable>(file: &T) -> anyhow::Result<()> {
         let note = Note { id: Some(file.id()), sujet: file.filename(), contenu: String::default() };
-        //<Note as ConnecteurNote>::update(&note)
-        Ok(())
+        ConnecteurNoteDb::new().update(&note)
     }
     
     fn id(&self) -> String {
