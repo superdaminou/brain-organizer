@@ -7,6 +7,12 @@ use uuid::Uuid;
 
 use crate::{application_error::ApplicationError, connecteur::Connecteur, reference::{ structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
 
+#[derive(Serialize, Deserialize)]
+pub struct SearchParams {
+    pub name: Option<String>,
+    pub tags: Option<HashSet<Tag>>,
+    pub mode: Option<ModeTags>
+}
 
 pub fn get_all(_: &RequestHandler) -> HTTPResponse {
     Connecteur::LOCAL.get_all()
@@ -16,12 +22,6 @@ pub fn get_all(_: &RequestHandler) -> HTTPResponse {
         .unwrap_or_else(ApplicationError::into)
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct SearchParams {
-    pub name: Option<String>,
-    pub tags: Option<HashSet<Tag>>,
-    pub mode: Option<ModeTags>
-}
 
 pub fn search(search_params: &RequestHandler) -> HTTPResponse {
     search_params.body()

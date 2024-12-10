@@ -1,9 +1,10 @@
-use std::{fmt::Display, fs::read_to_string};
+use std::{fmt::{format, Display}, fs::read_to_string};
 
+use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, file::{construct_path, ToCsv}, gui::Fileable, reference::structs::reference::CsvLine};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{construct_path, ToCsv}, gui::{EditableFile, Fileable}, reference::structs::reference::CsvLine};
 
 use super::{connecteur::connecteur_db::ConnecteurNoteDb, ConnecteurNote};
 
@@ -11,7 +12,7 @@ const DELIMITER : &str = ";";
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Note {
-    pub id: Option<String>,
+    pub id: String,
     pub sujet: String,
     pub contenu: String
 }
@@ -21,17 +22,27 @@ impl Fileable for Note {
         self.filename()
     }
 
-    fn contenu(&self) -> String {
-        self.contenu().unwrap_or("Failed".to_string())
+    fn contenu(&self, connecteur: &Connecteur) -> String {
+        connecteur.get_one(&self.id)
+            .map(|n|n.contenu)
+            .unwrap_or_else(|e|e.to_string())
     }
 
-    fn write<T: Fileable>(file: &T) -> anyhow::Result<()> {
-        let note = Note { id: Some(file.id()), sujet: file.filename(), contenu: String::default() };
-        ConnecteurNoteDb::new().update(&note)
+    fn write(file: &EditableFile, connecteur: &Connecteur) -> Result<(), ApplicationError> {
+        let note = Note {
+            contenu: file.contenu.clone(),
+            id: file.id.clone(),
+            sujet: file.sujet.clone(),
+        };
+        connecteur.update(&note)
     }
     
     fn id(&self) -> String {
-        "nopte".to_string()
+        self.id.clone()
+    }
+    
+    fn sujet(&self) -> String {
+        self.sujet.clone()
     }
 }
 
@@ -58,7 +69,7 @@ impl Note {
 impl Default for Note {
     fn default() -> Self {
         Self { 
-            id: None,
+            id: Uuid::new_v4().to_string(),
             sujet: String::from("Nouveau sujet"),
             contenu: String::default()
          }
@@ -87,7 +98,7 @@ impl TryFrom<&CsvLine> for Note {
         }
 
         Ok(Note {
-            id: Some(Uuid::new_v4().to_string()),
+            id: Uuid::new_v4().to_string(),
             sujet: sujet.clone(),
             contenu: String::default()
         })
@@ -136,7 +147,8 @@ mod tests {
 
     #[test]
     fn init_reflexion() {
-        assert_eq!(Note::default(), Note {id: None, sujet: "Nouveau sujet".to_string(), contenu: String::default()});
+        let note_default = Note::default(); 
+        assert_eq!(note_default.sujet, "Nouveau sujet");
     }
 
     #[test]

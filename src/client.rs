@@ -1,5 +1,7 @@
 use reqwest::{blocking::{Body, Response}, header::HeaderMap};
 
+use crate::application_error::ApplicationError;
+
 
 pub fn get(path: &String) -> Response {
     let client = reqwest::blocking::Client::new();
@@ -40,7 +42,7 @@ pub fn post(path: &String, body: Body) -> Response {
 }
 
 
-pub fn delete(path: &String) -> Response {
+pub fn delete(path: &String) -> Result<Response, ApplicationError> {
     let client = reqwest::blocking::Client::new();
     let mut headers= HeaderMap::new();
     headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -54,10 +56,10 @@ pub fn delete(path: &String) -> Response {
         .send()
         .unwrap()
         .error_for_status()
-        .unwrap()
+        .map_err(|e|ApplicationError::DefaultError(e.to_string()))
 }
 
-pub fn update(path: &String, body: Body) -> Response {
+pub fn update(path: &String, body: Body) -> Result<Response, ApplicationError> {
     let client = reqwest::blocking::Client::new();
     let mut headers= HeaderMap::new();
     headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -72,5 +74,5 @@ pub fn update(path: &String, body: Body) -> Response {
         .send()
         .unwrap()
         .error_for_status()
-        .unwrap()
+        .map_err(|e|ApplicationError::DefaultError(e.to_string()))
 }

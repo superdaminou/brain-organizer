@@ -1,7 +1,9 @@
 use std::fmt::Debug;
 use egui_graphs::Graph;
+use log::warn;
 use petgraph::stable_graph::StableGraph;
 
+use crate::connecteur::Connecteur;
 use crate::database::CRUD;
 use crate::application_error::ApplicationError;
 use crate::graph::my_graph::Graph as MyGraph;
@@ -22,7 +24,8 @@ pub struct FenetreGraph {
     pub graphs: Vec<MyGraph>,
     pub selected_node: Option<MyNode>,
     pub edit: EditText,
-    pub edit_graph: EditFileable<MyGraph>
+    pub edit_graph: EditFileable<MyGraph>,
+    pub connecteur: Connecteur
 }
 
 impl Debug for FenetreGraph {
@@ -33,6 +36,14 @@ impl Debug for FenetreGraph {
 
 impl Default for FenetreGraph {
     fn default() -> Self {
+
+        let mode_connecteur = std::env::var("MODE")
+            .map(|v|Connecteur::from_str(&v))
+            .unwrap_or_else(|e| {
+                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
+                Connecteur::LOCAL
+            });
+
         Self {
             graph: MyGraph::default(),
             creating_graph: String::default(),
@@ -40,7 +51,8 @@ impl Default for FenetreGraph {
             loaded_graph: Graph::new(StableGraph::new()),
             selected_node: None,
             edit_graph: EditFileable::default(),
-            edit: EditText::default()
+            edit: EditText::default(),
+            connecteur: mode_connecteur
         }
     } 
 }

@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
 use reqwest::{blocking::{Body, Response}, header::HeaderMap};
 use uuid::Uuid;
-use crate::{client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
+use crate::{application_error::ApplicationError, client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
 
 pub struct ConnecteurWebReference;
@@ -56,6 +56,7 @@ impl ConnecteurReference for ConnecteurWebReference {
     fn delete(&self, entity_id: &Uuid) -> Result<()> {
         let path = format!("/references/{}", entity_id);
         client::delete(&path)
+            .map_err(|e| anyhow::Error::msg(e.to_string()))?
             .json::<()>()
             .context("Error while Deleting")
     }
@@ -63,6 +64,7 @@ impl ConnecteurReference for ConnecteurWebReference {
     fn update(&self, entity: &Reference) -> Result<()> {
         let path = format!("/references/{}", entity.id.clone().unwrap());
         client::update(&path, Body::from(serde_json::to_string(entity).unwrap()))
+            .map_err(|e| anyhow::Error::msg(e.to_string()))?
             .json::<()>()
             .context("Error while Updating")
     }

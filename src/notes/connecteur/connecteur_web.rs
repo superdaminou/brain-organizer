@@ -1,7 +1,7 @@
 use anyhow::Context;
 use reqwest::blocking::Body;
 use uuid::Uuid;
-use crate::{client, notes::{ConnecteurNote, Note}};
+use crate::{application_error::ApplicationError, client, notes::{ConnecteurNote, Note}};
 
 
 pub struct ConnecteurWebNote;
@@ -13,7 +13,7 @@ impl ConnecteurWebNote {
 }
 
 impl ConnecteurNote for ConnecteurWebNote {
-    fn get_one(&self, id: &Uuid) -> anyhow::Result<crate::notes::Note> {
+    fn get_one(&self, id: &String) -> anyhow::Result<crate::notes::Note> {
         let path = format!("/notes/{}", id);
         client::get(&path).
             json::<Note>()
@@ -27,9 +27,10 @@ impl ConnecteurNote for ConnecteurWebNote {
             .context("Error while creating reference")
     }
 
-    fn delete(&self, note: &crate::notes::Note) -> anyhow::Result<()> {
-        let path = format!("/notes/{}", note.id.clone().unwrap_or_default());
+    fn delete(&self, note: &String) -> anyhow::Result<()> {
+        let path = format!("/notes/{}", note);
         client::delete(&path)
+        .map_err(|e| anyhow::Error::msg(e.to_string()))?
             .json::<()>()
             .context("Error while Deleting")
     }
@@ -41,10 +42,11 @@ impl ConnecteurNote for ConnecteurWebNote {
         Ok(())
     }
 
-    fn update(&self, note: &crate::notes::Note) -> anyhow::Result<()> {
-        let path = format!("/notes/{}", note.id.clone().unwrap());
+    fn update(&self, note: &crate::notes::Note) -> Result<(), ApplicationError> {
+        let path = format!("/notes/{}", note.id);
         client::update(&path, Body::from(serde_json::to_string(note).unwrap()))
+            .map_err(|e| anyhow::Error::msg(e.to_string()))?
             .json::<()>()
-            .context("Error while Updating")
+            .map_err(|e|ApplicationError::DefaultError(e.to_string()))
     }
 }

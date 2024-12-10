@@ -1,7 +1,8 @@
 use connecteur_db::ConnecteurNoteDb;
 use connecteur_web::ConnecteurWebNote;
+use uuid::Uuid;
 
-use crate::connecteur::Connecteur;
+use crate::{application_error::ApplicationError, connecteur::Connecteur};
 
 use super::{ConnecteurNote, Note};
 
@@ -19,7 +20,7 @@ impl ConnecteurNote for Connecteur {
         }
     }
 
-    fn get_one(&self, id: &uuid::Uuid) -> anyhow::Result<Note> {
+    fn get_one(&self, id: &String) -> anyhow::Result<Note> {
         match self {
             Connecteur::WEB => ConnecteurWebNote::new().get_one(id),
             Connecteur::LOCAL => ConnecteurNoteDb::new().get_one(id),
@@ -33,14 +34,14 @@ impl ConnecteurNote for Connecteur {
         }
     }
 
-    fn delete(&self, entity_id: &Note) -> anyhow::Result<()> {
+    fn delete(&self, entity_id: &String) -> anyhow::Result<()> {
         match self {
             Connecteur::WEB=> ConnecteurWebNote::new().delete(entity_id),
             Connecteur::LOCAL => ConnecteurNoteDb::new().delete(entity_id),
         }
     }
 
-    fn update(&self, entity: &Note) -> anyhow::Result<()> {
+    fn update(&self, entity: &Note) -> Result<(), ApplicationError> {
         match self {
             Connecteur::WEB => ConnecteurWebNote::new().update(entity),
             Connecteur::LOCAL => ConnecteurNoteDb::new().update(entity),

@@ -19,7 +19,7 @@ pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applic
     
     selected_graph(fenetre, ui)?;
     selected_node(fenetre, ui)?;
-    EditText::default().show(ui, &mut fenetre.edit_graph)?;
+    EditText::default().show(ui, &mut fenetre.edit_graph,&fenetre.connecteur)?;
 
     ui.horizontal(|ui: &mut egui::Ui| {
         egui::ComboBox::from_label("Graph")
@@ -178,7 +178,7 @@ fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicat
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label(format!("Current graph: {}", fenetre.graph.filename()));
         if ui.button("Editer").clicked() {
-            fenetre.edit.open(&fenetre.graph, &mut fenetre.edit_graph)?;
+            fenetre.edit.open(&fenetre.graph, &mut fenetre.edit_graph, &fenetre.connecteur)?;
             fenetre.edit_graph.show = true;
         }
 

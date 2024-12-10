@@ -1,13 +1,13 @@
 use log::info;
 
-use crate::{application_error::ApplicationError, gui::composant::EditText, notes::{ConnecteurNote, Note}};
+use crate::{application_error::ApplicationError, gui::{composant::EditText, Fileable}, notes::{ConnecteurNote, Note}};
 
 use super::section_note::SectionNote;
 use anyhow::{Context, Result};
 
 
-pub fn section_notes(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
-    EditText::default().show(ui, &mut section.edit_reflexion)?;
+pub fn section_notes(section: &mut SectionNote, ui: &mut egui::Ui, ) -> Result<(), ApplicationError> {
+    EditText::default().show(ui, &mut section.edit_reflexion, &section.connecteur)?;
     new_reflexion(section, ui)?;
     list_reflexions(section, ui)?;
     Ok(())
@@ -56,12 +56,12 @@ fn list_reflexions(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), A
                 ui.horizontal(|ui| {
                     ui.label(&note.sujet);
                     if ui.button("Ouvrir").clicked() {
-                        section.edit.open(note, &mut section.edit_reflexion)?;
+                        section.edit.open(note, &mut section.edit_reflexion, &section.connecteur)?;
                         section.edit_reflexion.show = true;
                         return Ok::<(), ApplicationError>(());
                     }
                     if ui.button("Supprimer").clicked() {
-                        return Ok(section.connecteur.delete(&note.clone())
+                        return Ok(section.connecteur.delete(&note.id())
                             .and_then(|_| section.connecteur.get_all().context("get All"))
                             .map(|result| section.list_reflexions = result)?);
                     }

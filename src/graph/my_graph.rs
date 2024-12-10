@@ -6,7 +6,7 @@ use rusqlite::{ Error, Row};
 use uuid::Uuid;
 use anyhow::{Context, Result};
 
-use crate::{application_error::ApplicationError, database::{self, CRUD}, file::construct_path, gui::Fileable};
+use crate::{application_error::ApplicationError, connecteur::{self, Connecteur}, database::{self, CRUD}, file::construct_path, gui::{EditableFile, Fileable}};
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct  Graph {
@@ -23,18 +23,24 @@ impl Fileable for Graph {
         self.filename.clone()
     }
 
-    fn contenu(&self) -> String {
+    fn contenu(&self, connecteur: &Connecteur) -> String {
         self.contenu().unwrap_or("Failed".to_string())
     }
 
-    fn write<T: Fileable>(file: &T) -> Result<()> {
-        File::options()
-            .read(true)
-            .write(true)
-            .open(construct_path(&(&file.filename())))
-            .and_then(|mut f| 
-                f.write_all(file.contenu().as_bytes()))
-            .context("Ca a explosé ")
+    fn write(file: &EditableFile, connecteur: &Connecteur) -> Result<(), ApplicationError> {
+        // File::options()
+        //     .read(true)
+        //     .write(true)
+        //     .open(construct_path(&(&file.filename())))
+        //     .and_then(|mut f| 
+        //         f.write_all(file.contenu().as_bytes()))
+        //     .context("Ca a explosé ")
+        Ok(())
+        
+    }
+    
+    fn sujet(&self) -> String {
+        self.filename.clone()
     }
 }
 

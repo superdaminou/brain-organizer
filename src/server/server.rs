@@ -1,17 +1,15 @@
 use ilmen_http::{http::security::service::SecurityProtocol, HttpServer, Route, Verb};
 use crate::application_error::ApplicationError;
-use super::{references_controller, tags_controller};
+use super::{note_controller, references_controller, tags_controller};
 
 
 pub fn server() -> Result<(), ApplicationError> {
-    let port = std::env::var("PORT").expect("PORT must be set for baseAuth").parse::<i32>().expect("PORT non valide");
-    let configuration = ilmen_http::Config::new( "127.0.0.1", port, SecurityProtocol::Basic(base_auth));
+    let port = std::env::var("PORT").expect("PORT must be set for baseAuth").parse::<i32>().expect("invalid PORT");
+    let configuration = ilmen_http::Config::new( "0.0.0.0", port, SecurityProtocol::Basic(base_auth));
     let server = HttpServer::new(configuration, routes());
     server.start();
     Ok(())
 }
-
-
 
 pub fn routes() -> Vec<Route> {
     let routes = vec![
@@ -21,10 +19,14 @@ pub fn routes() -> Vec<Route> {
         Route::new(&Verb::POST, "/references/search", references_controller::search, true),
         Route::new(&Verb::PUT, "/references/{id}", references_controller::update_one, true),
         Route::new(&Verb::DELETE, "/references/{id}", references_controller::delete, true),
-
+        
         Route::new(&Verb::GET, "/tags" ,tags_controller::all_tags_distinct, true),
 
-
+        Route::new(&Verb::GET, "/notes" ,note_controller::get_all, true),
+        Route::new(&Verb::GET, "/notes/{id}", note_controller::get_one, true),
+        Route::new(&Verb::POST, "/notes" ,  note_controller::post_one, true),
+        Route::new(&Verb::PUT, "/notes/{id}", note_controller::update_one, true),
+        Route::new(&Verb::DELETE, "/notes/{id}", note_controller::delete, true),
         ];
 
     routes
