@@ -1,6 +1,5 @@
 use anyhow::Context;
 use reqwest::blocking::Body;
-use uuid::Uuid;
 use crate::{application_error::ApplicationError, client, notes::{ConnecteurNote, Note}};
 
 

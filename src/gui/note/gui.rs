@@ -1,6 +1,6 @@
 use log::info;
 
-use crate::{application_error::ApplicationError, gui::{composant::EditText, Fileable}, notes::{ConnecteurNote, Note}};
+use crate::{application_error::ApplicationError, gui::{composant::EditText, Fileable}, notes::ConnecteurNote};
 
 use super::section_note::SectionNote;
 use anyhow::{Context, Result};
@@ -36,7 +36,6 @@ fn new_reflexion(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<()> {
 
 
 fn list_reflexions(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
-
     ui.horizontal(|ui| {
         if ui.button("Recharger reflexion").clicked() {
             match section.connecteur.get_all() {

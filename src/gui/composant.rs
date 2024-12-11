@@ -1,6 +1,6 @@
 use egui::{TextEdit, Ui, Window};
 use anyhow::Result;
-use crate::{application_error::ApplicationError, connecteur::{self, Connecteur}, notes::Note};
+use crate::{application_error::ApplicationError, connecteur::{Connecteur}};
 
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct EditText {}
@@ -14,7 +14,7 @@ pub struct  EditFileable <T: Fileable>{
 
 impl EditText {
     pub fn show<T: Fileable>(&mut self, ui: &mut Ui,   edit_file: &mut EditFileable<T>, connecteur: &Connecteur) -> Result<Option<String>> {
-        Window::new(&edit_file.note.filename())
+        Window::new(edit_file.note.filename())
             .open(&mut edit_file.show)
             .vscroll(true)
             .default_size([300.0, 300.0])

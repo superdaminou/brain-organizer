@@ -1,6 +1,5 @@
 use connecteur_db::ConnecteurNoteDb;
 use connecteur_web::ConnecteurWebNote;
-use uuid::Uuid;
 
 use crate::{application_error::ApplicationError, connecteur::Connecteur};
 

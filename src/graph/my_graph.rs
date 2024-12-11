@@ -1,4 +1,4 @@
-use std::{fs::{read_to_string, File}, io::{self, Write}};
+use std::{fs::{read_to_string, File}, io::{self}};
 
 use ilmen_dot_parser::DotGraph;
 use log::info;
@@ -6,7 +6,7 @@ use rusqlite::{ Error, Row};
 use uuid::Uuid;
 use anyhow::{Context, Result};
 
-use crate::{application_error::ApplicationError, connecteur::{self, Connecteur}, database::{self, CRUD}, file::construct_path, gui::{EditableFile, Fileable}};
+use crate::{application_error::ApplicationError, connecteur::{Connecteur}, database::{self, CRUD}, file::construct_path, gui::{EditableFile, Fileable}};
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct  Graph {

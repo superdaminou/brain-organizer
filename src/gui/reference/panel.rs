@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::structs::Fenetre, reference::{self, structs::reference::Reference, tag::{self, Tag}, ConnecteurReference, ModeTags}};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::structs::Fenetre, reference::{self, structs::reference::Reference, tag::{Tag}, ConnecteurReference, ModeTags}};
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
 use anyhow::Result;

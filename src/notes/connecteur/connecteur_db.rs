@@ -23,7 +23,7 @@ impl ConnecteurNote for ConnecteurNoteDb {
         File::options()
             .read(true)
             .write(true)
-            .open(construct_path(&(&note.filename())))
+            .open(construct_path(&note.filename()))
             .and_then(|mut f| 
                 f.write_all(note.contenu()?.as_bytes()))?;
 
@@ -70,7 +70,7 @@ impl ConnecteurNote for ConnecteurNoteDb {
         File::options()
             .read(true)
             .write(true)
-            .open(construct_path(&(&note.filename())))
+            .open(construct_path(&note.filename()))
             .and_then(|mut f| 
                 f.write_all(note.contenu()?.as_bytes()))
             .map_err(|e|ApplicationError::DefaultError(e.to_string()))

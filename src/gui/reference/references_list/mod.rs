@@ -13,7 +13,7 @@ pub fn show (section: &mut PanelReference, ui: &mut egui::Ui) -> Result<Vec<Even
     let mut evenements = Vec::default();
     ui.heading("Liste References");
     search_bar(section, ui)?;
-    evenements = vec![evenements, liste_references(ui, section)].concat() ;
+    evenements = [evenements, liste_references(ui, section)].concat() ;
     Ok(evenements)
 }
 

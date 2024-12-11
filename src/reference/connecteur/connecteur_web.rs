@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
 use reqwest::{blocking::{Body, Response}, header::HeaderMap};
 use uuid::Uuid;
-use crate::{application_error::ApplicationError, client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
+use crate::{client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
 
 pub struct ConnecteurWebReference;

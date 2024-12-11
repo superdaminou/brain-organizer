@@ -1,12 +1,11 @@
-use std::{fmt::{format, Display}, fs::read_to_string};
+use std::{fmt::Display, fs::read_to_string};
 
-use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{construct_path, ToCsv}, gui::{EditableFile, Fileable}, reference::structs::reference::CsvLine};
 
-use super::{connecteur::connecteur_db::ConnecteurNoteDb, ConnecteurNote};
+use super::ConnecteurNote;
 
 const DELIMITER : &str = ";"; 
 
