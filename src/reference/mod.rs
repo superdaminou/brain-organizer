@@ -3,13 +3,12 @@ use std::collections::HashSet;
 use structs::reference::Reference;
 use strum_macros::Display;
 use anyhow::Result;
-use tag::Tag;
+pub use tag::Tag;
 use uuid::Uuid;
 
 pub mod connecteur;
 pub mod structs;
-pub mod tag;
-
+mod tag;
 
 
 #[derive(serde::Deserialize, serde::Serialize, Default, Display, Clone, Copy, PartialEq, Eq)]

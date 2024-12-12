@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::structs::Fenetre, reference::{self, structs::reference::Reference, tag::{Tag}, ConnecteurReference, ModeTags}};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::structs::Fenetre, reference::{self, structs::reference::Reference,  ConnecteurReference, ModeTags, Tag}};
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
 use anyhow::Result;
@@ -39,7 +39,7 @@ impl Default for PanelReference {
 
         let references = mode_connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
         let tags =  mode_connecteur.all_tags_distinct().unwrap_or_default();
-        let mut creation_ref = CreationReference::default();
+        let mut creation_ref = CreationReference::new(&mode_connecteur);
         creation_ref.set_tags(tags.clone());
         Self { 
             connecteur: mode_connecteur,

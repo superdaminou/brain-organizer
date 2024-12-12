@@ -1,4 +1,4 @@
-use crate::{gui::reference::panel::PanelReference, reference::{ structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}};
+use crate::{gui::reference::panel::PanelReference, reference::{ structs::reference::Reference, ConnecteurReference, ModeTags, Tag}};
 use anyhow::Result;
 
 

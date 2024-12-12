@@ -1,5 +1,5 @@
 
-use crate::{application_error::ApplicationError, reference::{structs::reference::Reference, tag::{self, Tag}, ConnecteurReference}};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, reference::{structs::reference::Reference, ConnecteurReference, Tag}};
 
 use super::panel::{Evenement, PanelReference};
 use anyhow::Result;
@@ -14,9 +14,9 @@ pub struct CreationReference {
     pub mode: Mode, 
 }
 
-impl Default for CreationReference {
-    fn default() -> Self {
-        let tags = tag::service::get_all_distinct().unwrap_or_default();
+impl CreationReference {
+    pub fn new(connecteur: &Connecteur) -> Self {
+        let tags = connecteur.all_tags_distinct().unwrap_or_default();
         Self {
             reference: Default::default(), 
             tag: Default::default(), 
@@ -113,7 +113,7 @@ fn existing_tags(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<(), 
     adding_boutons.iter().try_for_each(|tag| {
         if tag.0.clicked() {
             section.creation_reference.reference.tags.insert(tag.1.clone());
-            section.creation_reference.existing_tags = tag::service::get_all_distinct()?;
+            section.creation_reference.existing_tags = section.connecteur.all_tags_distinct()?;
         };
         Ok::<(), anyhow::Error>(())
     })?;
