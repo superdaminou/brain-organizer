@@ -40,7 +40,7 @@ pub fn update_one(params: &RequestHandler) -> HTTPResponse {
         .map(|b|serde_json::from_str::<UpdateNote>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
-        .and_then(|reference|Connecteur::LOCAL.update(&reference.into()).map_err(ApplicationError::from))
+        .and_then(|note|Connecteur::LOCAL.update(&note.into()).map_err(ApplicationError::from))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }

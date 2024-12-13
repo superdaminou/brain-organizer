@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
-use reqwest::{blocking::{Body, Response}, header::HeaderMap};
+use reqwest::blocking::{Body, Response};
 use uuid::Uuid;
 use crate::{client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
@@ -14,7 +14,7 @@ impl ConnecteurWebReference {
     }
 
     fn all_tags_distinct(path: &String) -> Response {
-        client::get(&path)
+        client::get(path)
     }
 }
 

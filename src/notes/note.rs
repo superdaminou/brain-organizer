@@ -1,9 +1,10 @@
-use std::{fmt::Display, fs::read_to_string};
+use std::fmt::Display;
 
+use log::info;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{construct_path, ToCsv}, gui::{EditableFile, Fileable}, reference::structs::reference::CsvLine};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, file::ToCsv, gui::{EditableFile, Fileable}, reference::structs::reference::CsvLine};
 
 use super::ConnecteurNote;
 
@@ -33,6 +34,7 @@ impl Fileable for Note {
             id: file.id.clone(),
             sujet: file.sujet.clone(),
         };
+        info!("Updating contenu: {}", &note.contenu);
         connecteur.update(&note)
     }
     
@@ -57,11 +59,6 @@ impl Note {
             .map(String::from)
             .collect::<Vec<String>>().join("_");
         clean_path.to_string() + ".txt"
-    }
-
-    pub fn contenu(&self) -> Result<String, std::io::Error> {
-        let filename= self.filename();
-        read_to_string(construct_path(&filename))
     }
 }
 

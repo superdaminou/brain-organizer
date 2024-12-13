@@ -1,4 +1,4 @@
-use std::{fs::{remove_file, File}, io::Write};
+use std::{fs::{read_to_string, remove_file, File}, io::Write};
 use log::info;
 use rusqlite::{Error, Row};
 use uuid::Uuid;
@@ -25,7 +25,7 @@ impl ConnecteurNote for ConnecteurNoteDb {
             .write(true)
             .open(construct_path(&note.filename()))
             .and_then(|mut f| 
-                f.write_all(note.contenu()?.as_bytes()))?;
+                f.write_all(note.contenu.as_bytes()))?;
 
         Ok(())
     }
@@ -72,15 +72,18 @@ impl ConnecteurNote for ConnecteurNoteDb {
             .write(true)
             .open(construct_path(&note.filename()))
             .and_then(|mut f| 
-                f.write_all(note.contenu()?.as_bytes()))
+                f.write_all(note.contenu.as_bytes()))
             .map_err(|e|ApplicationError::DefaultError(e.to_string()))
     }
 }
  
 fn map_row(row: &Row) -> Result<Note, Error> {
-    Ok(Note {
+    let mut note= Note {
         id: row.get(0)?,
         sujet: row.get(1)?,
-        contenu: String::default()
-    })
+        contenu:  String::default()
+    };
+    let path = construct_path(&note.filename());
+    note.contenu = read_to_string(path).unwrap();
+    Ok(note)
 }
