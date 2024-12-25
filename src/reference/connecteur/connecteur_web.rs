@@ -5,7 +5,6 @@ use reqwest::blocking::{Body, Response};
 use uuid::Uuid;
 use crate::{client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
-
 pub struct ConnecteurWebReference;
 
 impl ConnecteurWebReference {
@@ -50,10 +49,10 @@ impl ConnecteurReference for ConnecteurWebReference {
 
     fn update(&self, entity: &Reference) -> Result<()> {
         let path = format!("/references/{}", entity.id.clone().unwrap());
-        client::update(&path, Body::from(serde_json::to_string(entity).unwrap()))
-            .map_err(|e| anyhow::Error::msg(e.to_string()))?
-            .json::<()>()
-            .context("Error while Updating")
+    
+        client::update(&path, Body::from(serde_json::to_string(entity).unwrap())).map_err(|e|anyhow::Error::msg(e.to_string()))?;
+
+        Ok(())            
     }
     
     fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {

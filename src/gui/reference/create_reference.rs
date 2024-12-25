@@ -74,6 +74,7 @@ fn enregistrer(ui: &mut egui::Ui, section: &mut PanelReference, evenements: &mut
                 .collect();
         }
 
+
         if section.creation_reference.reference.id.is_some() {
             section.connecteur.update(&section.creation_reference.reference.clone())
                 .and_then(|_|section.connecteur.search(Some(&section.search), &section.filtre_tag.tags, section.filtre_tag.mode))
@@ -113,7 +114,6 @@ fn existing_tags(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<(), 
     adding_boutons.iter().try_for_each(|tag| {
         if tag.0.clicked() {
             section.creation_reference.reference.tags.insert(tag.1.clone());
-            section.creation_reference.existing_tags = section.connecteur.all_tags_distinct()?;
         };
         Ok::<(), anyhow::Error>(())
     })?;
@@ -166,6 +166,7 @@ fn reference_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>
         if ui.add(egui::Button::new("Ajouter")).clicked() {
             section.creation_reference.reference.tags.insert(section.creation_reference.tag.clone());
             section.creation_reference.tag = Tag::default();
+            section.creation_reference.existing_tags = section.connecteur.all_tags_distinct()?;
         }
         Ok::<(), anyhow::Error>(())
     }).inner?;

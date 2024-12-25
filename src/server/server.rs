@@ -4,8 +4,11 @@ use super::{note_controller, references_controller, tags_controller};
 
 
 pub fn server() -> Result<(), ApplicationError> {
-    let port = std::env::var("PORT").expect("PORT must be set for baseAuth").parse::<i32>().expect("invalid PORT");
-    let configuration = ilmen_http::Config::new( "0.0.0.0", port, SecurityProtocol::Basic(base_auth));
+    let port = std::env::var("PORT").expect("PORT must be defined").parse::<i32>().expect("invalid PORT");
+    let configuration = ilmen_http::Config::initialize()
+        .with_adresse("0.0.0.0", &port)
+        .with_security(&SecurityProtocol::Basic(base_auth))
+        .to_owned();
     let server = HttpServer::new(configuration, routes());
     server.start();
     Ok(())

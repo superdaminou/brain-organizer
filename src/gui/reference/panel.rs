@@ -38,7 +38,8 @@ impl Default for PanelReference {
             });
 
         let references = mode_connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
-        let tags =  mode_connecteur.all_tags_distinct().unwrap_or_default();
+        let tags = &mut mode_connecteur.all_tags_distinct().unwrap_or_default();
+        tags.sort();
         let mut creation_ref = CreationReference::new(&mode_connecteur);
         creation_ref.set_tags(tags.clone());
         Self { 
@@ -47,7 +48,7 @@ impl Default for PanelReference {
             list_references: references, 
             filtre_tag: Default::default(), 
             search: Default::default(),
-            tags,
+            tags: tags.to_owned(),
             evenements: Vec::default()
         }
     }
