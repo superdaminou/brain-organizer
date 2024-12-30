@@ -13,14 +13,14 @@ impl ConnecteurWebDepense {
 impl ConnecteurDepense for ConnecteurWebDepense {
     fn get_one(&self, id: &String) -> Result<Depense, ApplicationError> {
         let path = format!("/depenses/{}", id);
-        client::get(&path).
-            json::<Depense>()
+        client::get(&path)?
+            .json::<Depense>()
             .map_err(ApplicationError::from)
     }
 
     fn get_all(&self) -> Result<Vec<Depense>, ApplicationError> {
         let path = "/depenses".to_string();
-        client::get(&path)
+        client::get(&path)?
             .json::<Vec<Depense>>()
             .map_err(ApplicationError::from)
     }

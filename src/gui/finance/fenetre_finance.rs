@@ -1,4 +1,3 @@
-use log::warn;
 use crate::{application_error::ApplicationError, connecteur::Connecteur, finance::depense::{Depense, REPETITION}, gui::structs::Fenetre};
 
 use super::gui::finances_gui;
@@ -16,7 +15,7 @@ pub struct SectionFinance {
 impl SectionFinance {
     pub fn new(connecteur: Connecteur) -> Self {
         Self { 
-            connecteur: connecteur, 
+            connecteur, 
             depense: Depense::default(),
             depenses: Vec::default(),
             mode_calcul: REPETITION::MENSUEL,

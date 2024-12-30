@@ -8,7 +8,7 @@ use petgraph::{ csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, prelude::StableGr
 
 use ilmen_dot_parser::{Attributs, DotGraph};
 use ilmen_dot_parser::Node as DotNode;
-use crate::{database::CRUD, application_error::ApplicationError, gui::composant::EditText};
+use crate::{application_error::ApplicationError, graph::ConnecteurGraph, gui::composant::EditText};
 use crate::graph::my_graph::Graph as MyGraph;
 
 use super::{fenetre::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};
@@ -22,12 +22,12 @@ pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applic
 
     ui.horizontal(|ui: &mut egui::Ui| {
         egui::ComboBox::from_label("Select Graph")
-            .selected_text(format!("{:?}", fenetre.graph.filename()))
+            .selected_text(format!("{:?}", fenetre.current_graph.filename))
             .show_ui(ui, |ui| {
                 fenetre.graphs.iter().for_each(|g| {
-                    let value = ui.selectable_value(&mut &fenetre.graph, g, g.filename());
+                    let value = ui.selectable_value(&mut &fenetre.current_graph, g, g.filename.clone());
                     if value.clicked() {
-                        fenetre.graph = g.clone();
+                        fenetre.current_graph = g.clone();
                     };
                     
                 })
@@ -45,14 +45,14 @@ fn new_graph(section: &mut FenetreGraph, ui: &mut egui::Ui) -> Result<(), Applic
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.heading("New Graph File: ");
         ui.label("filename");
-        ui.text_edit_singleline(&mut section.creating_graph);
+        ui.text_edit_singleline(&mut section.creating_graph.filename);
     
         let button = egui::Button::new("Créer");
         if ui.add(button).clicked() {
-            let graph = MyGraph::from(&section.creating_graph);
-            MyGraph::create(&graph)?;
-            section.graph = graph;
-            section.graphs = MyGraph::get_all().unwrap_or_default();
+            section.connecteur.create(&section.creating_graph)?;
+            section.current_graph = section.creating_graph.clone();
+            section.graphs = section.connecteur.get_all().unwrap_or_default();
+            section.creating_graph = MyGraph::default()
         }
         Ok::<(), ApplicationError>(())
     }).inner?;
@@ -175,16 +175,16 @@ fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicati
 
 fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
     ui.horizontal(|ui: &mut egui::Ui| {
-        ui.label(format!("Current graph: {}", fenetre.graph.filename()));
+        ui.label(format!("Current graph: {}", fenetre.current_graph.filename));
         if ui.button("Editer").clicked() {
-            fenetre.edit.open(&fenetre.graph, &mut fenetre.edit_graph, &fenetre.connecteur)?;
+            fenetre.edit.open(&fenetre.current_graph, &mut fenetre.edit_graph, &fenetre.connecteur)?;
             fenetre.edit_graph.show = true;
         }
 
         if ui.button("Charger Graph").clicked() {
             GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
-            fenetre.graph = MyGraph::get_one(&fenetre.graph.id)?;
-            fenetre.loaded_graph = to_egui_graph(fenetre.graph.load_graph()?)?;
+            fenetre.current_graph = fenetre.connecteur.get_one(&fenetre.current_graph.id.to_string())?;
+            fenetre.loaded_graph = to_egui_graph(DotGraph::try_from(fenetre.current_graph.contenu.as_str()).unwrap())?;
         }
         Ok::<(), ApplicationError>(())
      });

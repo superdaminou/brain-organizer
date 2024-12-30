@@ -11,7 +11,7 @@ impl ConnecteurWebReference {
         ConnecteurWebReference
     }
 
-    fn all_tags_distinct(path: &String) -> Response {
+    fn all_tags_distinct(path: &String) -> Result<Response, ApplicationError> {
         client::get(path)
     }
 }
@@ -26,14 +26,14 @@ impl ConnecteurReference for ConnecteurWebReference {
 
     fn get_one(&self, id: &Uuid) -> Result<Reference, ApplicationError> {
         let path = format!("/references/{}", id);
-        client::get(&path).
-            json::<Reference>()
+        client::get(&path)?
+            .json::<Reference>()
             .map_err(ApplicationError::from)
     }
 
     fn get_all(&self, ) -> Result<Vec<Reference>, ApplicationError> {
         let path = "/references".to_string();
-        client::get(&path)
+        client::get(&path)?
             .json::<Vec<Reference>>()
             .map_err(ApplicationError::from)
     }
@@ -69,7 +69,7 @@ impl ConnecteurReference for ConnecteurWebReference {
     
     fn all_tags_distinct(&self) -> Result<Vec<Tag>, ApplicationError> {
         let path = "/tags".to_string();
-        ConnecteurWebReference::all_tags_distinct(&path)
+        ConnecteurWebReference::all_tags_distinct(&path)?
             .json::<Vec<Tag>>()
             .map_err(ApplicationError::from)
     }

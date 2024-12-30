@@ -34,6 +34,9 @@ pub enum ApplicationError
     HttpClientError(#[from] reqwest::Error),
 
     #[error(transparent)]
+    DotParserError(#[from] ilmen_dot_parser::ParsingError),
+
+    #[error(transparent)]
     ParseDateError(#[from] ParseError),
 
     #[error(transparent)]

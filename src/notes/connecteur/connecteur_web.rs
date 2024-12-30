@@ -13,14 +13,14 @@ impl ConnecteurWebNote {
 impl ConnecteurNote for ConnecteurWebNote {
     fn get_one(&self, id: &String) -> Result<crate::notes::Note, ApplicationError> {
         let path = format!("/notes/{}", id);
-        client::get(&path).
-            json::<Note>()
+        client::get(&path)?
+            .json::<Note>()
             .map_err(ApplicationError::from)
     }
 
     fn get_all(&self) -> Result<Vec<crate::notes::Note>, ApplicationError> {
         let path = "/notes".to_string();
-        client::get(&path)
+        client::get(&path)?
             .json::<Vec<Note>>()
             .map_err(ApplicationError::from)
     }

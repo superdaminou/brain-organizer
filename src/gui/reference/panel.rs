@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::structs::Fenetre, reference::{self, structs::reference::Reference,  ConnecteurReference, ModeTags, Tag}};
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
-use log::warn;
 
 pub struct PanelReference {
     pub connecteur: Connecteur,
@@ -35,7 +34,7 @@ impl PanelReference {
         let mut creation_ref = CreationReference::new(&connecteur);
         creation_ref.set_tags(tags.clone());
         Self { 
-            connecteur: connecteur,
+            connecteur,
             creation_reference: creation_ref, 
             list_references: references, 
             filtre_tag: Default::default(), 

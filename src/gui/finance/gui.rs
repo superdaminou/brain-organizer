@@ -124,7 +124,7 @@ fn create_depense(section: &mut SectionFinance, ui: &mut egui::Ui) -> Result<(),
 
 fn calcul(depenses: &Vec<Depense>, mode_calcul: &REPETITION) -> f32 {
     depenses.iter()
-    .map(|d| d.convert(&mode_calcul))
+    .map(|d| d.convert(mode_calcul))
     .fold(0.0, |acc, x| acc+ x)
 
 }

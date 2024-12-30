@@ -3,7 +3,7 @@ use reqwest::{blocking::{Body, Response}, header::HeaderMap};
 use crate::application_error::ApplicationError;
 
 
-pub fn get(path: &String) -> Response {
+pub fn get(path: &String) -> Result<Response, ApplicationError> {
     let client = reqwest::blocking::Client::new();
     let mut headers= HeaderMap::new();
     headers.insert("user-agent","ILMEN/1.0".parse().unwrap());
@@ -17,7 +17,7 @@ pub fn get(path: &String) -> Response {
         .send()
         .unwrap()
         .error_for_status()
-        .unwrap()
+        .map_err(ApplicationError::from)
         
 }
 

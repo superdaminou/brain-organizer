@@ -56,13 +56,12 @@ impl ConnecteurDepense for ConnecteurDepenseDb {
     }
 
     fn update(&self, depense: &Depense) -> Result<(), ApplicationError> {
-        let id =Uuid::new_v4();
-        let ref_query = "UPDATE depense SET libelle=?1, montant=?2, repetition=?3) VALUES (?1, ?2, ?3);";
+        let ref_query = "UPDATE depense SET libelle=?1, montant=?2, repetition=?3 WHERE id = ?4;";
         let connexion = database::opening_database().map_err(ApplicationError::from)?;
 
 
         info!("Updating  depense: {}", depense.libelle);
-        connexion.execute(ref_query, (id.to_string(), depense.libelle.clone(), depense.montant))?;
+        connexion.execute(ref_query, (depense.libelle.clone(), depense.montant, depense.repetition.code(), depense.id.unwrap().to_string()))?;
         Ok(())
     }
 

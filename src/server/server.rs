@@ -1,6 +1,6 @@
 use ilmen_http::{http::security::service::SecurityProtocol, HttpServer, Route, Verb};
 use crate::application_error::ApplicationError;
-use super::{depenses_controller, note_controller, references_controller, tags_controller};
+use super::{depenses_controller, graphs_controller, note_controller, references_controller, tags_controller};
 
 
 pub fn server() -> Result<(), ApplicationError> {
@@ -36,6 +36,13 @@ pub fn routes() -> Vec<Route> {
         Route::new(&Verb::POST, "/depenses" ,  depenses_controller::post_one, true),
         Route::new(&Verb::PUT, "/depenses/{id}", depenses_controller::update_one, true),
         Route::new(&Verb::DELETE, "/depenses/{id}", depenses_controller::delete, true),
+
+
+        Route::new(&Verb::GET, "/graphs" ,graphs_controller::get_all, true),
+        Route::new(&Verb::GET, "/graphs/{id}", graphs_controller::get_one, true),
+        Route::new(&Verb::POST, "/graphs" ,  graphs_controller::post_one, true),
+        Route::new(&Verb::PUT, "/graphs/{id}", graphs_controller::update_one, true),
+        Route::new(&Verb::DELETE, "/graphs/{id}", graphs_controller::delete, true),
         ];
 
     routes

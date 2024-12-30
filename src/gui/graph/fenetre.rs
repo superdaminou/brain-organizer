@@ -1,12 +1,11 @@
 use std::fmt::Debug;
 use egui_graphs::Graph;
-use log::warn;
 use petgraph::stable_graph::StableGraph;
 
 use crate::connecteur::Connecteur;
-use crate::database::CRUD;
 use crate::application_error::ApplicationError;
 use crate::graph::my_graph::Graph as MyGraph;
+use crate::graph::ConnecteurGraph;
 use crate::gui::composant::EditFileable;
 use crate::gui::composant::EditText;
 use crate::gui::structs::Fenetre;
@@ -16,14 +15,14 @@ use super::gui_graph::GuiNode;
 use ilmen_dot_parser::Node as MyNode;
 
 pub struct FenetreGraph {
-    pub graph: MyGraph,
+    pub current_graph: MyGraph,
     pub loaded_graph: Graph<GuiNode, String>, 
-    pub creating_graph: String,
+    pub creating_graph: MyGraph,
     pub graphs: Vec<MyGraph>,
     pub selected_node: Option<MyNode>,
     pub edit: EditText,
     pub edit_graph: EditFileable<MyGraph>,
-    pub connecteur: Connecteur
+    pub connecteur: Connecteur,
 }
 
 impl Debug for FenetreGraph {
@@ -35,14 +34,14 @@ impl Debug for FenetreGraph {
 impl FenetreGraph {
     pub fn new(connecteur: Connecteur) -> Self {
         Self {
-            graph: MyGraph::default(),
-            creating_graph: String::default(),
-            graphs: MyGraph::get_all().unwrap_or_default(),
+            current_graph: MyGraph::default(),
+            creating_graph: MyGraph::default(),
+            graphs: connecteur.get_all().unwrap_or_default(),
             loaded_graph: Graph::new(StableGraph::new()),
             selected_node: None,
             edit_graph: EditFileable::default(),
             edit: EditText::default(),
-            connecteur: connecteur
+            connecteur
         }
     } 
 }

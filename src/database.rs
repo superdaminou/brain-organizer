@@ -2,8 +2,6 @@
 use log::{info, trace};
 use refinery::embed_migrations;
 use rusqlite::Connection;
-use uuid::Uuid;
-
 use crate::application_error::ApplicationError;
 
 embed_migrations!("./src/migration");
@@ -27,13 +25,4 @@ fn run_migration(mut connexion: Connection) -> Result<(), ApplicationError> {
 pub fn opening_database() -> Result<Connection, ApplicationError> {
     trace!("Opening Database: {}", DB_PATH);
     Connection::open(DB_PATH).map_err(ApplicationError::from)
-}
-
-pub trait CRUD<T> {
-    fn create(entity: &T) -> Result<(), ApplicationError>;
-    fn get_one(id: &Uuid) -> Result<T, ApplicationError>;
-    fn get_all() -> Result<Vec<T>, ApplicationError>;
-    fn delete(entity: &Uuid) -> Result<usize, ApplicationError>;
-    fn update(entity: &T) -> Result<(), ApplicationError>;
-
 }

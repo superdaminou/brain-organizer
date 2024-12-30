@@ -3,7 +3,7 @@ use ilmen_http::{http::HTTPResponse, RequestHandler, ResponseBuilder};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, finance::{depense::{Depense, REPETITION}, ConnecteurDepense}};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, graph::{my_graph::Graph, ConnecteurGraph}};
 
 
 pub fn get_all(_: &RequestHandler) -> HTTPResponse {
@@ -27,7 +27,7 @@ pub fn get_one(params: &RequestHandler) -> HTTPResponse {
 
 pub fn post_one(params: &RequestHandler) -> HTTPResponse {
     params.body()
-        .map(|b|serde_json::from_str::<CreateDepense>(&b))
+        .map(|b|serde_json::from_str::<CreateGraph>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
         .and_then(|depense|Connecteur::LOCAL.create(&depense.into()).map_err(ApplicationError::from))
@@ -37,7 +37,7 @@ pub fn post_one(params: &RequestHandler) -> HTTPResponse {
 
 pub fn update_one(params: &RequestHandler) -> HTTPResponse {
     params.body()
-        .map(|b|serde_json::from_str::<UpdateDepense>(&b))
+        .map(|b|serde_json::from_str::<UpdateGraph>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
         .and_then(|depense|Connecteur::LOCAL.update(&depense.into()).map_err(ApplicationError::from))
@@ -57,39 +57,34 @@ pub fn delete(params: &RequestHandler) -> HTTPResponse {
 
 
 #[derive(Serialize, Deserialize)]
-struct CreateDepense {
-    pub libelle: String,
-    pub montant: f32,
-    pub repetition: REPETITION
+struct CreateGraph {
+    pub filename: String,
+    pub contenu: String
 }
 
 #[derive(Serialize, Deserialize)]
-struct UpdateDepense {
+struct UpdateGraph {
     pub id: Uuid,
-    pub libelle: String,
-    pub montant: f32,
-    pub repetition: REPETITION
+    pub filename: String,
+    pub contenu: String
 }
 
-impl From<CreateDepense> for Depense {
-    fn from(value: CreateDepense) -> Self {
-        Depense {
-            libelle: value.libelle,
-            montant: value.montant,
-            repetition: value.repetition,
+impl From<CreateGraph> for Graph {
+    fn from(value: CreateGraph) -> Self {
+        Graph {
+            filename: value.filename,
+            contenu: value.contenu,
             ..Default::default()
         }
     }
 }
 
-impl From<UpdateDepense> for Depense {
-    fn from(value: UpdateDepense) -> Self {
-        Depense {
-            id: Some(value.id),
-            libelle: value.libelle,
-            montant: value.montant,
-            repetition: value.repetition,
-            ..Default::default()
+impl From<UpdateGraph> for Graph {
+    fn from(value: UpdateGraph) -> Self {
+        Graph {
+            id: value.id,
+            filename: value.filename,
+            contenu: value.contenu
         }
     }
 }
