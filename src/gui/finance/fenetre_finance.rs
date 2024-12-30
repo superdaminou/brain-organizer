@@ -1,22 +1,39 @@
-use anyhow::Context;
-use crate::{application_error::ApplicationError, gui::structs::Fenetre, finance::depense::Depense};
+use log::warn;
+use crate::{application_error::ApplicationError, connecteur::Connecteur, finance::depense::Depense, gui::structs::Fenetre};
 
 use super::gui::finances_gui;
 
 
 
-#[derive(Default)]
-pub struct FenetreFinance {
+pub struct SectionFinance {
     pub depenses: Vec<Depense>,
-    pub depense: Depense
+    pub depense: Depense,
+    pub connecteur: Connecteur
 }
 
-impl Fenetre for FenetreFinance {
+impl Default for SectionFinance {
+    fn default() -> Self {
+        let mode_connecteur = std::env::var("MODE")
+            .map(|v|Connecteur::from_str(&v))
+            .unwrap_or_else(|e| {
+                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
+                Connecteur::LOCAL
+            });
+        Self { 
+            connecteur: mode_connecteur, 
+            depense: Depense::default(),
+            depenses: Vec::default() 
+        }
+    }
+}
+
+
+impl Fenetre for SectionFinance {
     fn name(&self) -> &'static str {
         "Finances"
     }
 
-    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> anyhow::Result<(),ApplicationError> {
+    fn show(&mut self, ctx: &egui::Context, is_open: &mut bool) -> Result<(),ApplicationError> {
         let visible = egui::Window::new(self.name())
         .open(is_open)
         .show(ctx, |ui| {
@@ -25,7 +42,7 @@ impl Fenetre for FenetreFinance {
 
         match visible {
             Some(windows) => {
-                windows.inner.context("Graph GUI Error")?
+                windows.inner.ok_or_else(||ApplicationError::DefaultError("Expecting something".to_string()))?
             },
             None => Ok(())
         }

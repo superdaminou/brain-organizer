@@ -3,7 +3,6 @@ use std::{fs::{create_dir, File}, io::Write, path::Path};
 use log::info;
 
 const EXPORT_STORAGE: &str = "./export/";
-use anyhow::{Context, Result};
 
 const CONNECTEUR : Connecteur = Connecteur::LOCAL;
 
@@ -15,7 +14,7 @@ pub fn export() -> Result<(), ApplicationError> {
         false => {
             info!("Creating storage directory: {}", EXPORT_STORAGE);
             create_dir(EXPORT_STORAGE)
-            .context("Failed to create dir")?;
+            .map_err(ApplicationError::from)?;
         }
     }
 
@@ -34,7 +33,7 @@ fn export_reflexions() -> Result<(), ApplicationError> {
     info!("Start exporting reflexion entries: {}", REFLEXION_FILE);
     write_file(REFLEXION_FILE, <Connecteur as ConnecteurNote>::get_all(&CONNECTEUR)?.to_csv())
         .and_then(|_|
-            copy_recursively(STORAGE, EXPORT_STORAGE.to_string() + STORAGE).map_err(ApplicationError::Other))
+            copy_recursively(STORAGE, EXPORT_STORAGE.to_string() + STORAGE).map_err(ApplicationError::from))
 }
 
 fn write_file(file: &str, content: String) -> Result<(), ApplicationError>{

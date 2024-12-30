@@ -1,0 +1,1 @@
+ALTER TABLE depense ADD COLUMN repetition VARCHAR NOT NULL;

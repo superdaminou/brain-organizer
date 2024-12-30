@@ -2,9 +2,10 @@ use std::collections::HashSet;
 
 use structs::reference::Reference;
 use strum_macros::Display;
-use anyhow::Result;
 pub use tag::Tag;
 use uuid::Uuid;
+
+use crate::application_error::ApplicationError;
 
 pub mod connecteur;
 pub mod structs;
@@ -21,11 +22,11 @@ pub enum ModeTags {
 }
 
 pub trait ConnecteurReference {
-    fn create(&self, entity: &Reference) -> Result<()>;
-    fn get_one(&self, id: &Uuid) -> Result<Reference>;
-    fn get_all(&self,) -> Result<Vec<Reference>>;
-    fn delete(&self, entity_id: &Uuid) -> Result<()>;
-    fn update(&self, entity: &Reference) -> Result<()>;
-    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>>;
-    fn all_tags_distinct(&self) -> Result<Vec<Tag>>;
+    fn create(&self, entity: &Reference) -> Result<(),ApplicationError>;
+    fn get_one(&self, id: &Uuid) -> Result<Reference, ApplicationError>;
+    fn get_all(&self,) -> Result<Vec<Reference>, ApplicationError>;
+    fn delete(&self, entity_id: &Uuid) -> Result<(), ApplicationError>;
+    fn update(&self, entity: &Reference) -> Result<(), ApplicationError>;
+    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>, ApplicationError>;
+    fn all_tags_distinct(&self) -> Result<Vec<Tag>, ApplicationError>;
 }

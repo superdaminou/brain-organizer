@@ -3,7 +3,6 @@
 use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::{composant::{EditFileable, EditText}, structs::Fenetre}, notes::Note};
 
 use super::gui::section_notes;
-use anyhow::Result;
 use log::warn;
 
 pub struct SectionNote {

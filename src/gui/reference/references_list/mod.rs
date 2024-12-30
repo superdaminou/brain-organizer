@@ -1,5 +1,3 @@
-
-use anyhow::Context;
 use search_bar::search_bar;
 use uuid::Uuid;
 
@@ -40,15 +38,16 @@ fn liste_references(ui: &mut egui::Ui, section: &mut PanelReference) -> Vec<Even
                     }
                 
                     if ui.button("Supprimer").clicked() {
-                        reference.id.clone().context("Pas d'id".to_string())
-                        .and_then(|id| Uuid::parse_str(&id).context("context"))
-                        .and_then(|id|section.connecteur.delete(&id))?;
+                        reference.id.clone().ok_or(ApplicationError::EmptyOption("id".to_string()))
+                        .and_then(|id| Uuid::parse_str(&id).map_err(ApplicationError::from))
+                        .map_err(ApplicationError::from)
+                        .and_then(|id|section.connecteur.delete(&id));
 
                         evenements.push(Evenement::Reset);
                     }
                 
                     ui.allocate_space(ui.available_size());
-                    Ok::<(),anyhow::Error>(())
+                    Ok::<(),ApplicationError>(())
                 });
 
                 Ok::<(),ApplicationError>(())

@@ -15,8 +15,6 @@ use super::gui::graph_window;
 use super::gui_graph::GuiNode;
 use ilmen_dot_parser::Node as MyNode;
 
-use anyhow::{Context, Result};
-
 pub struct FenetreGraph {
     pub graph: MyGraph,
     pub loaded_graph: Graph<GuiNode, String>, 
@@ -71,7 +69,7 @@ impl Fenetre for FenetreGraph {
 
         match visible {
             Some(windows) => {
-                windows.inner.context("Graph GUI Error")?
+                windows.inner.ok_or(ApplicationError::DefaultError("Expecting somtehign? ".to_string()))?
             },
             None => Ok(())
         }

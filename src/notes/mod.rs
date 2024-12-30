@@ -6,9 +6,9 @@ pub use note::Note;
 use crate::application_error::ApplicationError;
 
 pub trait ConnecteurNote {
-    fn get_one(&self, id: &String) -> anyhow::Result<Note>;
-    fn get_all(&self) -> anyhow::Result<Vec<Note>>;
-    fn delete(&self, note: &String) -> anyhow::Result<()>;
-    fn create(&self, note: &Note) -> anyhow::Result<(), anyhow::Error>;
-    fn update(&self, note: &Note) -> anyhow::Result<(), ApplicationError>;
+    fn get_one(&self, id: &String) -> Result<Note, ApplicationError>;
+    fn get_all(&self) -> Result<Vec<Note>, ApplicationError>;
+    fn delete(&self, note: &String) -> Result<(), ApplicationError>;
+    fn create(&self, note: &Note) -> Result<(), ApplicationError>;
+    fn update(&self, note: &Note) -> Result<(), ApplicationError>;
 }

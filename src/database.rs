@@ -1,39 +1,39 @@
 
 use log::{info, trace};
 use refinery::embed_migrations;
-use anyhow::{Context, Result};
 use rusqlite::Connection;
 use uuid::Uuid;
+
+use crate::application_error::ApplicationError;
 
 embed_migrations!("./src/migration");
 
 const DB_PATH: &str = "brain_manager.db";
 
-pub fn ensuring_model() -> Result<(), anyhow::Error> {
+pub fn ensuring_model() -> Result<(), ApplicationError> {
     info!("Ensuring model and running migration if needed");
     opening_database()
     .and_then(run_migration)?;
     Ok(())
 }
 
-fn run_migration(mut connexion: Connection) -> Result<(), anyhow::Error> {
+fn run_migration(mut connexion: Connection) -> Result<(), ApplicationError> {
     migrations::runner()
-            .run(&mut connexion)
-            .with_context(||"Could not run migration")?;
+            .run(&mut connexion)?;
 
     Ok(())
 }
 
-pub fn opening_database() -> Result<Connection> {
+pub fn opening_database() -> Result<Connection, ApplicationError> {
     trace!("Opening Database: {}", DB_PATH);
-    Connection::open(DB_PATH).with_context(||"Couldn't open database")
+    Connection::open(DB_PATH).map_err(ApplicationError::from)
 }
 
 pub trait CRUD<T> {
-    fn create(entity: &T) -> Result<()>;
-    fn get_one(id: &Uuid) -> Result<T>;
-    fn get_all() -> Result<Vec<T>>;
-    fn delete(entity: &Uuid) -> Result<usize>;
-    fn update(entity: &T) -> Result<()>;
+    fn create(entity: &T) -> Result<(), ApplicationError>;
+    fn get_one(id: &Uuid) -> Result<T, ApplicationError>;
+    fn get_all() -> Result<Vec<T>, ApplicationError>;
+    fn delete(entity: &Uuid) -> Result<usize, ApplicationError>;
+    fn update(entity: &T) -> Result<(), ApplicationError>;
 
 }

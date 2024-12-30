@@ -4,7 +4,6 @@ use ilmen_dot_parser::DotGraph;
 use log::info;
 use rusqlite::{ Error, Row};
 use uuid::Uuid;
-use anyhow::{Context, Result};
 
 use crate::{application_error::ApplicationError, connecteur::{Connecteur}, database::{self, CRUD}, file::construct_path, gui::{EditableFile, Fileable}};
 
@@ -65,21 +64,21 @@ impl From<&String> for Graph {
 
 
 impl CRUD<Graph> for Graph {
-    fn create(my_graph: &Graph) -> Result<()> {
+    fn create(my_graph: &Graph) -> Result<(), ApplicationError> {
         let id =Uuid::new_v4();
         let query = "INSERT INTO graph (id, filename) VALUES (?1, ?2);";
-        let connexion = database::opening_database().context("Could not open database")?;
+        let connexion = database::opening_database().map_err(ApplicationError::from)?;
 
 
         info!("Adding new graph: {}", my_graph.filename);
         connexion.execute(query, (id.to_string(), my_graph.filename.clone()))?;
 
-        File::create(construct_path(&(my_graph.filename()))).context("Creating file")?;
+        File::create(construct_path(&(my_graph.filename()))).map_err(ApplicationError::from)?;
         Ok(())
     }
 
 
-    fn update(graph: &Graph) -> Result<()> {
+    fn update(graph: &Graph) -> Result<(), ApplicationError> {
 
         let id = graph.id;
         Self::get_one(&id)?;
@@ -94,15 +93,15 @@ impl CRUD<Graph> for Graph {
     }
 
 
-    fn delete(graph: &Uuid) -> Result<usize> {
+    fn delete(graph: &Uuid) -> Result<usize, ApplicationError> {
         info!("Start deleting: {}", &graph);
         database::opening_database()?
             .execute("DELETE FROM graph WHERE id=?1", [graph.to_string()])
-            .context("While executing delete graph")
+            .map_err(ApplicationError::from)
     }
 
 
-    fn get_all() -> Result<Vec<Graph>> {
+    fn get_all() -> Result<Vec<Graph>, ApplicationError> {
         let query = "SELECT g.id, g.filename
             FROM graph as g ;";
         Ok(database::opening_database()?
@@ -113,7 +112,7 @@ impl CRUD<Graph> for Graph {
     }
 
 
-    fn get_one(id: &Uuid) -> Result<Graph> {
+    fn get_one(id: &Uuid) -> Result<Graph, ApplicationError> {
         let query = "SELECT g.id, g.filename
             FROM graph as g 
             WHERE g.id = :id 
@@ -123,7 +122,7 @@ impl CRUD<Graph> for Graph {
                 .query_map([id.to_string()], map_row)?
                 .next()
                 .transpose()?
-                .context("Not found")
+                .ok_or_else(||ApplicationError::DefaultError("expection something".to_string()))
     }
 
 }

@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::structs::Fenetre, reference::{self, structs::reference::Reference,  ConnecteurReference, ModeTags, Tag}};
 
 use super::{create_reference::{self, CreationReference, Mode}, references_list};
-use anyhow::Result;
 use log::warn;
 
 pub struct PanelReference {
@@ -82,7 +81,7 @@ impl Fenetre for PanelReference {
                     self.creation_reference.mode = Mode::Classique;
                 },
             }
-            Ok::<(), anyhow::Error>(())
+            Ok::<(), ApplicationError>(())
         })?;
 
         match visible {

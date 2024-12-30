@@ -1,4 +1,3 @@
-use anyhow::Context;
 use reqwest::blocking::Body;
 use crate::{application_error::ApplicationError, client, notes::{ConnecteurNote, Note}};
 
@@ -12,29 +11,28 @@ impl ConnecteurWebNote {
 }
 
 impl ConnecteurNote for ConnecteurWebNote {
-    fn get_one(&self, id: &String) -> anyhow::Result<crate::notes::Note> {
+    fn get_one(&self, id: &String) -> Result<crate::notes::Note, ApplicationError> {
         let path = format!("/notes/{}", id);
         client::get(&path).
             json::<Note>()
-            .with_context(||"Error while deserializing get response".to_string())
+            .map_err(ApplicationError::from)
     }
 
-    fn get_all(&self) -> anyhow::Result<Vec<crate::notes::Note>> {
+    fn get_all(&self) -> Result<Vec<crate::notes::Note>, ApplicationError> {
         let path = "/notes".to_string();
         client::get(&path)
             .json::<Vec<Note>>()
-            .context("Error while creating reference")
+            .map_err(ApplicationError::from)
     }
 
-    fn delete(&self, note: &String) -> anyhow::Result<()> {
+    fn delete(&self, note: &String) -> Result<(), ApplicationError> {
         let path = format!("/notes/{}", note);
-        client::delete(&path)
-        .map_err(|e| anyhow::Error::msg(e.to_string()))?
+        client::delete(&path)?
             .json::<()>()
-            .context("Error while Deleting")
+            .map_err(ApplicationError::from)
     }
 
-    fn create(&self, note: &crate::notes::Note) -> anyhow::Result<(), anyhow::Error> {
+    fn create(&self, note: &crate::notes::Note) -> Result<(), ApplicationError> {
         let path = "/notes".to_string();
         client::post(&path, Body::from(serde_json::to_string(note).unwrap()));
             
@@ -43,8 +41,7 @@ impl ConnecteurNote for ConnecteurWebNote {
 
     fn update(&self, note: &crate::notes::Note) -> Result<(), ApplicationError> {
         let path = format!("/notes/{}", note.id);
-        client::update(&path, Body::from(serde_json::to_string(note).unwrap()))
-            .map_err(|e| anyhow::Error::msg(e.to_string()))?
+        client::update(&path, Body::from(serde_json::to_string(note).unwrap()))?
             .json::<()>()
             .map_err(|e|ApplicationError::DefaultError(e.to_string()))
     }

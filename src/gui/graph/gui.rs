@@ -12,7 +12,6 @@ use crate::{database::CRUD, application_error::ApplicationError, gui::composant:
 use crate::graph::my_graph::Graph as MyGraph;
 
 use super::{fenetre::FenetreGraph, gui_graph::{GuiGraph, GuiNode}};
-use anyhow::Result;
 
 pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
     new_graph(fenetre, ui)?;
@@ -42,7 +41,7 @@ pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applic
     Ok(())
 }
 
-fn new_graph(section: &mut FenetreGraph, ui: &mut egui::Ui) -> Result<()> {
+fn new_graph(section: &mut FenetreGraph, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.heading("New Graph File: ");
         ui.label("filename");
@@ -55,7 +54,7 @@ fn new_graph(section: &mut FenetreGraph, ui: &mut egui::Ui) -> Result<()> {
             section.graph = graph;
             section.graphs = MyGraph::get_all().unwrap_or_default();
         }
-        anyhow::Ok(())
+        Ok::<(), ApplicationError>(())
     }).inner?;
 
     Ok(())

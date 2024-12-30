@@ -6,7 +6,6 @@ use log::{error, info};
 use crate::application_error::ApplicationError;
 
 use super::structs::TemplateApp;
-use anyhow::Result;
 
 pub fn running_gui() -> Result<(), ApplicationError>{
     // OPEN GUI

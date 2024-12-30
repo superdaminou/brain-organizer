@@ -1,14 +1,11 @@
 use std::collections::HashSet;
 
-use anyhow::Context;
 use chrono::NaiveDate;
 use log::{debug, error, info};
 use rusqlite::{Error, Row};
 use uuid::Uuid;
 
 use crate::{application_error::ApplicationError, database::{self}, reference::{structs::reference::Reference, tag::{self, Tag}, ConnecteurReference, ModeTags}};
-
-use anyhow::Result;
 
 pub struct ConnecteurDatabaseReference;
 
@@ -19,11 +16,11 @@ impl ConnecteurDatabaseReference {
 }
 
 impl ConnecteurReference for ConnecteurDatabaseReference {
-    fn create(&self, reference: &Reference) -> Result<()> {
+    fn create(&self, reference: &Reference) -> Result<(), ApplicationError> {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO reference (id, nom, url, date_creation, to_read) VALUES (?1, ?2, ?3, ?4, ?5);";
         let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
-        let connexion = database::opening_database().context("Could not open database")?;
+        let connexion = database::opening_database().map_err(ApplicationError::from)?;
 
 
         info!("Adding new reference: {}", reference.titre);
@@ -41,8 +38,8 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
         Ok(())
     }
 
-    fn update(&self, reference: &Reference) -> Result<()> {
-        let id = Uuid::parse_str(reference.id.clone().unwrap().as_str())?;
+    fn update(&self, reference: &Reference) -> Result<(), ApplicationError> {
+        let id = Uuid::parse_str(reference.id.clone().unwrap().as_str()).map_err(ApplicationError::from)?;
         let ref_query = "UPDATE reference SET nom = ?1, url = ?2 WHERE id = ?3;";
         let delete_tag_query = "DELETE FROM tag WHERE reference_id = ?1;";
         let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
@@ -68,26 +65,26 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
     }
 
 
-    fn delete(&self, id: &Uuid) -> Result<()> {
+    fn delete(&self, id: &Uuid) -> Result<(), ApplicationError> {
         let reference = ConnecteurDatabaseReference::new().get_one(id)?;
         
         info!("Start deleting: {}", &reference.id.clone().unwrap_or("No Id".to_string()));
         reference.id.clone()
-            .context("pas d'id")
+            .ok_or(ApplicationError::EmptyOption("id".to_string()))
             .and_then(|_| database::opening_database())?
             .execute("DELETE FROM tag WHERE reference_id=?1", [reference.id.clone()])?;
 
         reference.id.clone()
-            .context("Pas d'id")
+            .ok_or(ApplicationError::EmptyOption("id".to_string()))
             .and_then(|_| database::opening_database())?
             .execute("DELETE FROM reference WHERE id=?1", [reference.id.clone()])
-            .context("While executing delete reference")?;
+            .map_err(ApplicationError::from)?;
 
         Ok(())
     }
 
 
-    fn get_all(&self, ) -> Result<Vec<Reference>> {
+    fn get_all(&self, ) -> Result<Vec<Reference>, ApplicationError> {
         let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
@@ -101,7 +98,7 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
     }
 
 
-    fn get_one(&self, id: &Uuid) -> Result<Reference> {
+    fn get_one(&self, id: &Uuid) -> Result<Reference, ApplicationError> {
         let query = "SELECT r.id, r.nom, r.url, coalesce(GROUP_CONCAT(t.nom), '') as tag, r.date_creation, r.to_read
             FROM reference as r 
             LEFT JOIN tag as t ON t.reference_id = r.id 
@@ -113,10 +110,10 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
                 .query_map([id.to_string()], map_row)?
                 .next()
                 .transpose()?
-                .context("Not found")
+                .ok_or(ApplicationError::DefaultError("Expectinh ref".to_string()))
     }
 
-    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>, ApplicationError> {
         let where_query = if name.is_none() || name.is_some_and(|n| n.trim().is_empty()) {""} else { &format!("AND r.nom LIKE '%{}%'", name.unwrap()) };
         let inclusive_tag_query = inclusive_query(tags, mode);
         
@@ -142,13 +139,13 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
                     .collect::<Vec<Reference>>())
     }
     
-    fn all_tags_distinct(&self) -> Result<Vec<Tag>> {
+    fn all_tags_distinct(&self) -> Result<Vec<Tag>, ApplicationError> {
         tag::service::get_all_distinct()
     }
     
 }
 
-pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>> {
+pub fn _search(name: &String, tags: &[Tag]) -> Result<Vec<Reference>, ApplicationError> {
     info!("Searching for : {}", name);
     let where_query = if name.trim().is_empty() {""} else { &format!("AND r.nom LIKE '%{}%'", name) };
 

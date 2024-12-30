@@ -1,9 +1,8 @@
-use crate::{gui::reference::panel::PanelReference, reference::{ structs::reference::Reference, ConnecteurReference, ModeTags, Tag}};
-use anyhow::Result;
+use crate::{application_error::ApplicationError, gui::reference::panel::PanelReference, reference::{ structs::reference::Reference, ConnecteurReference, ModeTags, Tag}};
 
 
-pub fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {    
-    ui.horizontal::<Result<()>>(|ui| {
+pub fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {    
+    ui.horizontal::<Result<(), ApplicationError>>(|ui| {
         ui.label("Nom ");
         ui.text_edit_singleline(&mut section.search);
         
@@ -25,7 +24,7 @@ pub fn search_bar(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>
     Ok(())
 }
 
-pub fn update_tag_filter(tag: &Tag, section: &mut PanelReference) -> Result<()>{
+pub fn update_tag_filter(tag: &Tag, section: &mut PanelReference) -> Result<(), ApplicationError>{
     if section.filtre_tag.tags.contains(tag) {
         section.filtre_tag.tags.retain(|tag| !tag.eq(tag));
     } else {
@@ -37,7 +36,7 @@ pub fn update_tag_filter(tag: &Tag, section: &mut PanelReference) -> Result<()>{
 }
 
 
-pub fn filter_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
+pub fn filter_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     let mut selectables_tag = vec![];
     
     let button = egui::Button::new(section.filtre_tag.mode.to_string());
@@ -56,14 +55,14 @@ pub fn filter_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()
     
     section.tags.chunks(10)
         .try_for_each(|chunk| {
-            ui.horizontal::<Result<()>>(|ui| {
+            ui.horizontal::<Result<(), ApplicationError>>(|ui| {
                 chunk.iter().try_for_each(|tag| {
                     selectables_tag.push((ui.selectable_label(section.filtre_tag.tags.contains(tag), tag.0.clone()), tag.clone()));
-                    Ok::<(), anyhow::Error>(())
+                    Ok::<(), ApplicationError>(())
                 })?;
-                Ok::<(), anyhow::Error>(())
+                Ok(())
             }).inner?;
-            Ok::<(), anyhow::Error>(())
+            Ok::<(), ApplicationError>(())
         })?;
     
 
@@ -71,7 +70,7 @@ pub fn filter_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()
         if tag.0.clicked() {
             update_tag_filter(&tag.1, section)?;
         };
-        Ok::<(), anyhow::Error>(())
+        Ok(())
     })
 }
 

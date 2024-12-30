@@ -1,37 +1,45 @@
 use egui::Ui;
 
-use crate::{database::CRUD, application_error::ApplicationError, finance::{self, depense::Depense}};
+use crate::{application_error::ApplicationError, database::CRUD, finance::{depense::Depense, ConnecteurDepense}};
 
-use super::fenetre_finance::FenetreFinance;
-use anyhow::Result;
+use super::fenetre_finance::SectionFinance;
 
 
-pub fn finances_gui(fenetre: &mut FenetreFinance, ui:&mut Ui) -> Result<(), ApplicationError> {
+pub fn finances_gui(section: &mut SectionFinance, ui:&mut Ui) -> Result<(), ApplicationError> {
 
-    create_depense(fenetre, ui)?;
+    create_depense(section, ui)?;
 
     ui.horizontal(|ui: &mut egui::Ui| {
         let button = egui::Button::new("Tout récuperer");
 
         if ui.add(button).clicked() {
-            fenetre.depenses = Depense::get_all()?;
+            section.depenses = section.connecteur.get_all()?;
         }
         Ok::<(), ApplicationError>(())
     }).inner?;
 
 
-    egui::Grid::new("some_unique_id").show(ui, |ui| {
-        //HEADER
+    egui::Grid::new("depenses").show(ui, |ui| {
         ui.label("Libelle");
         ui.label("Montant");
+        ui.label("Repetition");
         ui.end_row();
 
-        fenetre.depenses.iter().try_for_each(|depense| {
+        section.depenses.iter().try_for_each(|depense| {
             ui.label(depense.libelle.clone());
             ui.label(depense.montant.to_string());
+            ui.label(depense.repetition.to_string());
+
+            let modifier = egui::Button::new("Modifier");
+            if ui.add(modifier).clicked() {
+                section.depense = depense.clone();
+            }
+
+
+
             let supprimer = egui::Button::new("Supprimer");
             if ui.add(supprimer).clicked() {
-                Depense::delete(&depense.id)?;
+                section.connecteur.delete(&depense.id.unwrap().to_string())?;
             }
             ui.end_row();
             Ok::<(), ApplicationError>(())
@@ -40,14 +48,14 @@ pub fn finances_gui(fenetre: &mut FenetreFinance, ui:&mut Ui) -> Result<(), Appl
     }).inner?;
 
 
-    ui.label("Total: ".to_string() + &fenetre.depenses.iter().fold(0.0, |acc, x | acc + x.montant).to_string());
+    ui.label("Total: ".to_string() + &section.depenses.iter().fold(0.0, |acc, x | acc + x.montant).to_string());
 
     Ok(())
 }
 
 
 
-fn create_depense(section: &mut FenetreFinance, ui: &mut egui::Ui) -> Result<()> {
+fn create_depense(section: &mut SectionFinance, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Libelle ");
         ui.text_edit_singleline(&mut section.depense.libelle);
@@ -58,13 +66,24 @@ fn create_depense(section: &mut FenetreFinance, ui: &mut egui::Ui) -> Result<()>
         let button = egui::Button::new("Enregistrer");
 
         if ui.add(button).clicked() {
-            finance::service::create_or_update(&section.depense)?;
+
+            if section.depense.id.is_some() {
+                section.connecteur.update(&section.depense.clone())
+                    .and_then(|_|section.connecteur.get_all())
+                    .map(|list| section.depenses = list)?
+            } else {
+    
+                section.connecteur.create(&section.depense.clone())
+                    .and_then(|_|section.connecteur.get_all())
+                    .map(|list| section.depenses = list)?
+            }
+
             section.depense = Depense::default();
-            section.depenses = Depense::get_all()?;
+            section.depenses = section.connecteur.get_all()?;
             
         }
 
-        Ok::<(), anyhow::Error>(())
+        Ok::<(), ApplicationError>(())
     }).inner?;
 
     Ok(())

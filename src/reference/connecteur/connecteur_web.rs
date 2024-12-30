@@ -1,9 +1,8 @@
 use std::collections::HashSet;
-use anyhow::{Context, Result};
 use egui::ahash::{HashMap, HashMapExt};
 use reqwest::blocking::{Body, Response};
 use uuid::Uuid;
-use crate::{client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
+use crate::{application_error::ApplicationError, client, reference::{structs::reference::Reference, tag::Tag, ConnecteurReference, ModeTags}, server::SearchParams};
 
 pub struct ConnecteurWebReference;
 
@@ -18,44 +17,43 @@ impl ConnecteurWebReference {
 }
 
 impl ConnecteurReference for ConnecteurWebReference {
-    fn create(&self, entity: &Reference) -> Result<()> {
+    fn create(&self, entity: &Reference) -> Result<(), ApplicationError> {
         let path = "/references".to_string();
         client::post(&path, Body::from(serde_json::to_string(entity).unwrap()));
             
         Ok(())
     }
 
-    fn get_one(&self, id: &Uuid) -> Result<Reference> {
+    fn get_one(&self, id: &Uuid) -> Result<Reference, ApplicationError> {
         let path = format!("/references/{}", id);
         client::get(&path).
             json::<Reference>()
-            .with_context(||"Error while deserializing get response".to_string())
+            .map_err(ApplicationError::from)
     }
 
-    fn get_all(&self, ) -> Result<Vec<Reference>> {
+    fn get_all(&self, ) -> Result<Vec<Reference>, ApplicationError> {
         let path = "/references".to_string();
         client::get(&path)
             .json::<Vec<Reference>>()
-            .context("Error while creating reference")
+            .map_err(ApplicationError::from)
     }
 
-    fn delete(&self, entity_id: &Uuid) -> Result<()> {
+    fn delete(&self, entity_id: &Uuid) -> Result<(), ApplicationError> {
         let path = format!("/references/{}", entity_id);
-        client::delete(&path)
-            .map_err(|e| anyhow::Error::msg(e.to_string()))?
+        client::delete(&path)?
             .json::<()>()
-            .context("Error while Deleting")
+            .map_err(ApplicationError::from)
     }
 
-    fn update(&self, entity: &Reference) -> Result<()> {
+    fn update(&self, entity: &Reference) -> Result<(), ApplicationError> {
         let path = format!("/references/{}", entity.id.clone().unwrap());
     
-        client::update(&path, Body::from(serde_json::to_string(entity).unwrap())).map_err(|e|anyhow::Error::msg(e.to_string()))?;
+        client::update(&path, Body::from(serde_json::to_string(entity).unwrap())).map_err(ApplicationError::from)?;
 
         Ok(())            
     }
     
-    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>> {
+    fn search(&self, name: Option<&String>, tags: &HashSet<Tag>, mode: ModeTags) -> Result<Vec<Reference>, ApplicationError> {
         let path = "/references/search".to_string();
         let search_params = SearchParams {
             name: name.cloned(),
@@ -66,13 +64,13 @@ impl ConnecteurReference for ConnecteurWebReference {
         vals.insert("name", name.cloned());
         client::post(&path, Body::from(serde_json::to_string(&search_params).unwrap()))
             .json::<Vec<Reference>>()
-            .context("Error while creating reference")
+            .map_err(ApplicationError::from)
     }
     
-    fn all_tags_distinct(&self) -> Result<Vec<Tag>> {
+    fn all_tags_distinct(&self) -> Result<Vec<Tag>, ApplicationError> {
         let path = "/tags".to_string();
         ConnecteurWebReference::all_tags_distinct(&path)
             .json::<Vec<Tag>>()
-            .context("Error while creating reference")
+            .map_err(ApplicationError::from)
     }
 }

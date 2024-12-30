@@ -5,7 +5,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ApplicationError
 {
-    #[error("Database Error")]
+    #[error(transparent)]
     DatabaseError(#[from] rusqlite::Error),
 
     #[error("An error occured: {0}")]
@@ -19,9 +19,22 @@ pub enum ApplicationError
     
     #[error("UnknownError")]
     Unknown,
-    
+
+    #[error("I was expecting a: {0}")]
+    EmptyOption(String),
+
     #[error(transparent)]
-    Other(#[from] anyhow::Error),
+    RefineryError(#[from] refinery::Error),
+
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+
+    #[error(transparent)]
+    HttpClientError(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    UuidError(#[from] uuid::Error),
+
 
     #[error("failed to read the key file")]
     FileReadError(#[source] std::io::Error),

@@ -2,7 +2,6 @@
 use crate::{application_error::ApplicationError, connecteur::Connecteur, reference::{structs::reference::Reference, ConnecteurReference, Tag}};
 
 use super::panel::{Evenement, PanelReference};
-use anyhow::Result;
 use egui::RichText;
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -101,21 +100,21 @@ fn existing_tags(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<(), 
 
     section.creation_reference.existing_tags.chunks(10)
         .try_for_each(|chunk| {
-            ui.horizontal::<Result<()>>(|ui| {
+            ui.horizontal::<Result<(), ApplicationError>>(|ui| {
                 chunk.iter().try_for_each(|tag| {
                     adding_boutons.push((ui.selectable_label(false, tag.0.clone()), tag.clone()));
-                    Ok::<(), anyhow::Error>(())
+                    Ok::<(), ApplicationError>(())
                 })?;
-                Ok::<(), anyhow::Error>(())
+                Ok(())
             }).inner?;
-            Ok::<(), anyhow::Error>(())
+            Ok::<(), ApplicationError>(())
         })?;
 
     adding_boutons.iter().try_for_each(|tag| {
         if tag.0.clicked() {
             section.creation_reference.reference.tags.insert(tag.1.clone());
         };
-        Ok::<(), anyhow::Error>(())
+        Ok::<(), ApplicationError>(())
     })?;
 
     Ok(())
@@ -142,14 +141,14 @@ fn libelle_reference(ui: &mut egui::Ui, section: &mut PanelReference) -> Result<
                 ui.horizontal(|ui: &mut egui::Ui| {
                     ui.label("Format Markdown: ");
                     ui.text_edit_singleline(&mut section.creation_reference.markdown_name);
-                    Ok::<(), anyhow::Error>(())
+                    Ok::<(), ApplicationError>(())
                 }).inner?;
             },
         }
    
 
         ui.checkbox(&mut section.creation_reference.reference.to_read, "Non Consulté");
-        Ok::<(), anyhow::Error>(())
+        Ok::<(), ApplicationError>(())
     }).inner?;
     Ok(())
 }
@@ -159,16 +158,15 @@ fn reset(creation_reference: &mut CreationReference) {
     creation_reference.markdown_name = String::default();
 }
 
-fn reference_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()> {
+fn reference_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<(), ApplicationError> {
     ui.horizontal(|ui: &mut egui::Ui| {
         ui.label("Tag: ");
         ui.text_edit_singleline(&mut section.creation_reference.tag.0);
         if ui.add(egui::Button::new("Ajouter")).clicked() {
             section.creation_reference.reference.tags.insert(section.creation_reference.tag.clone());
             section.creation_reference.tag = Tag::default();
-            section.creation_reference.existing_tags = section.connecteur.all_tags_distinct()?;
         }
-        Ok::<(), anyhow::Error>(())
+        Ok::<(), ApplicationError>(())
     }).inner?;
 
     ui.horizontal(|ui: &mut egui::Ui| {
@@ -184,8 +182,8 @@ fn reference_tags(section: &mut PanelReference, ui: &mut egui::Ui) -> Result<()>
             if tag.0.clicked() {
                 section.creation_reference.reference.tags.remove(&tag.1);
             };
-            Ok::<(), anyhow::Error>(())
+            Ok::<(), ApplicationError>(())
         })?;
-        Ok::<(), anyhow::Error>(())      
+        Ok::<(), ApplicationError>(())      
     }).inner
 }
