@@ -1,5 +1,5 @@
 use log::warn;
-use crate::{application_error::ApplicationError, connecteur::Connecteur, finance::depense::Depense, gui::structs::Fenetre};
+use crate::{application_error::ApplicationError, connecteur::Connecteur, finance::depense::{Depense, REPETITION}, gui::structs::Fenetre};
 
 use super::gui::finances_gui;
 
@@ -8,7 +8,9 @@ use super::gui::finances_gui;
 pub struct SectionFinance {
     pub depenses: Vec<Depense>,
     pub depense: Depense,
-    pub connecteur: Connecteur
+    pub connecteur: Connecteur,
+    pub mode_calcul: REPETITION,
+    pub calcul: f32
 }
 
 impl Default for SectionFinance {
@@ -22,7 +24,9 @@ impl Default for SectionFinance {
         Self { 
             connecteur: mode_connecteur, 
             depense: Depense::default(),
-            depenses: Vec::default() 
+            depenses: Vec::default(),
+            mode_calcul: REPETITION::MENSUEL,
+            calcul: 0.0
         }
     }
 }

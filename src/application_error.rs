@@ -1,3 +1,4 @@
+use chrono::ParseError;
 use ilmen_http::{http::HTTPResponse, ResponseBuilder};
 use thiserror::Error;
 
@@ -31,6 +32,9 @@ pub enum ApplicationError
 
     #[error(transparent)]
     HttpClientError(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    ParseDateError(#[from] ParseError),
 
     #[error(transparent)]
     UuidError(#[from] uuid::Error),

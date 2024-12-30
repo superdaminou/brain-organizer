@@ -21,7 +21,7 @@ pub fn graph_window(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applic
     EditText::default().show(ui, &mut fenetre.edit_graph,&fenetre.connecteur)?;
 
     ui.horizontal(|ui: &mut egui::Ui| {
-        egui::ComboBox::from_label("Graph")
+        egui::ComboBox::from_label("Select Graph")
             .selected_text(format!("{:?}", fenetre.graph.filename()))
             .show_ui(ui, |ui| {
                 fenetre.graphs.iter().for_each(|g| {

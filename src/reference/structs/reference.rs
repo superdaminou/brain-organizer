@@ -35,7 +35,7 @@ impl TryFrom<&str> for Reference {
             .collect::<HashSet<Tag>>();
         let url = split.next().expect("Missing URL").to_owned();
         let date_creation = NaiveDate::parse_from_str(&split.next().expect("Missing Date"), "%Y-%m-%d")
-            .map_err(|e|ApplicationError::DefaultError("could not parse date".to_string()))?;
+            .map_err(ApplicationError::from)?;
 
         Ok(Reference {
             id: Some(Uuid::new_v4().to_string()),

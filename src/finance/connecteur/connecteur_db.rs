@@ -38,7 +38,7 @@ impl ConnecteurDepense for ConnecteurDepenseDb {
     fn delete(&self, entity: &String) -> Result<(), ApplicationError> {
         let query = "DELETE FROM depense WHERE id = ?1";
         let connexion = database::opening_database().map_err(ApplicationError::from)?;
-        connexion.execute(query, [entity.to_string()]).map_err(ApplicationError::from);
+        connexion.execute(query, [entity.to_string()]).map_err(ApplicationError::from)?;
 
         Ok(())
     }
@@ -73,10 +73,12 @@ fn map_row(row: &Row) -> Result<Depense, Error> {
     let id  = row.get(0)
         .and_then(|id: String| Uuid::parse_str(id.as_str()).map_err(|_| rusqlite::Error::ExecuteReturnedResults))?;
     
+    let repetition: String=  row.get(3)?;
+
     Ok(Depense {
         id: Some(id),
         libelle: row.get(1)?,
         montant: row.get(2)?,
-        repetition: REPETITION::MENSUEL,
+        repetition: REPETITION::try_from(repetition.as_str()).unwrap(),
     })
 }

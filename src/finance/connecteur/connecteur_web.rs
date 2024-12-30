@@ -12,35 +12,35 @@ impl ConnecteurWebDepense {
 
 impl ConnecteurDepense for ConnecteurWebDepense {
     fn get_one(&self, id: &String) -> Result<Depense, ApplicationError> {
-        let path = format!("/Depenses/{}", id);
+        let path = format!("/depenses/{}", id);
         client::get(&path).
             json::<Depense>()
             .map_err(ApplicationError::from)
     }
 
     fn get_all(&self) -> Result<Vec<Depense>, ApplicationError> {
-        let path = "/Depenses".to_string();
+        let path = "/depenses".to_string();
         client::get(&path)
             .json::<Vec<Depense>>()
             .map_err(ApplicationError::from)
     }
 
     fn delete(&self, depense: &String) -> Result<(), ApplicationError> {
-        let path = format!("/Depenses/{}", depense);
+        let path = format!("/depenses/{}", depense);
         client::delete(&path)
-        .map_err(ApplicationError::from)?
-            .json::<()>()
-            .map_err(ApplicationError::from)
+        .map_err(ApplicationError::from)?;
+
+        Ok(())
     }
 
     fn create(&self, depense: &Depense) -> Result<(), ApplicationError> {
-        let path = "/Depenses".to_string();
+        let path = "/depenses".to_string();
         client::post(&path, Body::from(serde_json::to_string(depense).unwrap())).error_for_status().map_err(ApplicationError::from)?;
         Ok(())
     }
 
     fn update(&self, depense: &Depense) -> Result<(), ApplicationError> {
-        let path = format!("/Depenses/{}", depense.id.expect("Should have an id"));
+        let path = format!("/depenses/{}", depense.id.expect("Should have an id"));
         client::update(&path, Body::from(serde_json::to_string(depense).unwrap()))
             .map_err(ApplicationError::from)?
             .json::<()>()

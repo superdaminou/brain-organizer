@@ -48,7 +48,7 @@ pub fn delete(params: &RequestHandler) -> HTTPResponse {
     params.path_params().get("id")
         .ok_or(ApplicationError::EmptyOption("id".to_string()))
         .map_err(ApplicationError::from)
-        .and_then(|id| Uuid::parse_str(id).map_err(|e|ApplicationError::DefaultError("Not an uuid".to_string())))
+        .and_then(|id| Uuid::parse_str(id).map_err(ApplicationError::from))
         .and_then(|note|Connecteur::LOCAL.delete(&note.to_string()).map_err(ApplicationError::from))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
