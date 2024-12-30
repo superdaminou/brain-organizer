@@ -32,16 +32,8 @@ impl Debug for FenetreGraph {
     }
 }
 
-impl Default for FenetreGraph {
-    fn default() -> Self {
-
-        let mode_connecteur = std::env::var("MODE")
-            .map(|v|Connecteur::from_str(&v))
-            .unwrap_or_else(|e| {
-                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
-                Connecteur::LOCAL
-            });
-
+impl FenetreGraph {
+    pub fn new(connecteur: Connecteur) -> Self {
         Self {
             graph: MyGraph::default(),
             creating_graph: String::default(),
@@ -50,7 +42,7 @@ impl Default for FenetreGraph {
             selected_node: None,
             edit_graph: EditFileable::default(),
             edit: EditText::default(),
-            connecteur: mode_connecteur
+            connecteur: connecteur
         }
     } 
 }

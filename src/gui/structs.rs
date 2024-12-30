@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use crate::application_error::ApplicationError;
+use crate::{application_error::ApplicationError, connecteur::Connecteur};
 
 use super::{app::central_panel, finance::fenetre_finance::SectionFinance, graph::fenetre::FenetreGraph, reference::panel::PanelReference, note::section_note::SectionNote};
 use eframe::egui::Context;
@@ -10,21 +10,6 @@ pub struct TemplateApp {
     pub fenetre_ouverte: BTreeSet<&'static str>
 }
 
-impl Default for TemplateApp {
-    fn default() -> Self {
-        let fenetres: Vec<Box<dyn Fenetre>> = vec![
-                Box::<PanelReference>::default(),
-                Box::<SectionNote>::default(),
-                Box::<FenetreGraph>::default(),
-                Box::<SectionFinance>::default()
-            ];
-        Self {
-            fenetres,
-            error: AppError::init(),
-            fenetre_ouverte: BTreeSet::new()
-        }
-    }
-}
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct AppError {
@@ -43,8 +28,18 @@ impl AppError {
 
 impl TemplateApp {
     /// Called once before the first frame.
-    pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        Default::default()
+    pub fn new(_cc: &eframe::CreationContext<'_>, connecteur: Connecteur) -> Self {
+        let fenetres: Vec<Box<dyn Fenetre>> = vec![
+                Box::<PanelReference>::new(PanelReference::new(connecteur)),
+                Box::<SectionNote>::new(SectionNote::new(connecteur)),
+                Box::<FenetreGraph>::new(FenetreGraph::new(connecteur)),
+                Box::<SectionFinance>::new(SectionFinance::new(connecteur))
+            ];
+        Self {
+            fenetres,
+            error: AppError::init(),
+            fenetre_ouverte: BTreeSet::new()
+        }
     }
 }
 

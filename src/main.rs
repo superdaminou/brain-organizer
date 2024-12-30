@@ -14,6 +14,7 @@ mod client;
 use std::env;
 use command::Command;
 use application_error::ApplicationError;
+use connecteur::Connecteur;
 use file::{ensuring_storage, export, import};
 use gui::app::running_gui;
 use log::{info, warn};
@@ -24,9 +25,7 @@ fn main() -> Result<(), ApplicationError> {
     dotenv().ok();
     env_logger::init();
     info!("Application Initialization");
-    opening_database()
-    .and_then(|_| ensuring_model())
-    .and_then(|_| ensuring_storage())?;
+    
 
 
     // MATCH COMMANDS AND DO WHATS NEEDED
@@ -40,9 +39,21 @@ fn main() -> Result<(), ApplicationError> {
             Command::Gui
         } 
     };
+    let mode_connecteur = std::env::var("MODE")
+        .map(|v|Connecteur::from_str(&v))
+        .unwrap_or_else(|e| {
+            warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
+            Connecteur::LOCAL
+        });
+
+    if mode_connecteur == Connecteur::LOCAL {
+        opening_database()
+        .and_then(|_| ensuring_model())
+        .and_then(|_| ensuring_storage())?;
+    }
     
     match command {
-        command::Command::Gui => running_gui(),
+        command::Command::Gui => running_gui(mode_connecteur),
         command::Command::Import => import(),
         command::Command::Export => export(),
         command::Command::Server => server::server::server(),

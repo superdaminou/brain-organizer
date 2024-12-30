@@ -27,22 +27,15 @@ pub struct FiltreTag {
     pub mode: ModeTags
 }
 
-impl Default for PanelReference {
-    fn default() -> Self {
-        let mode_connecteur = std::env::var("MODE")
-            .map(|v|Connecteur::from_str(&v))
-            .unwrap_or_else(|e| {
-                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
-                Connecteur::LOCAL
-            });
-
-        let references = mode_connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
-        let tags = &mut mode_connecteur.all_tags_distinct().unwrap_or_default();
+impl PanelReference {
+    pub fn new(connecteur: Connecteur) -> Self {
+        let references = connecteur.search(None, &HashSet::default(), reference::ModeTags::OUVERT).unwrap_or_default();
+        let tags = &mut connecteur.all_tags_distinct().unwrap_or_default();
         tags.sort();
-        let mut creation_ref = CreationReference::new(&mode_connecteur);
+        let mut creation_ref = CreationReference::new(&connecteur);
         creation_ref.set_tags(tags.clone());
         Self { 
-            connecteur: mode_connecteur,
+            connecteur: connecteur,
             creation_reference: creation_ref, 
             list_references: references, 
             filtre_tag: Default::default(), 

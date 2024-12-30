@@ -3,11 +3,11 @@ use std::collections::BTreeSet;
 use log::{error, info};
 
 
-use crate::application_error::ApplicationError;
+use crate::{application_error::ApplicationError, connecteur::{self, Connecteur}};
 
 use super::structs::TemplateApp;
 
-pub fn running_gui() -> Result<(), ApplicationError>{
+pub fn running_gui(connecteur: Connecteur) -> Result<(), ApplicationError>{
     // OPEN GUI
     info!("Getting gui context");
     let native_options = eframe::NativeOptions {
@@ -21,7 +21,7 @@ pub fn running_gui() -> Result<(), ApplicationError>{
     eframe::run_native(
         "brain manager",
         native_options,
-        Box::new(|cc| Ok(Box::new(TemplateApp::new(cc)))),
+        Box::new(|cc| Ok(Box::new(TemplateApp::new(cc, connecteur)))),
         ).map_err(ApplicationError::from)
 }
 

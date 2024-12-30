@@ -1370,9 +1370,9 @@ dependencies = [
 
 [[package]]
 name = "ilmen-http"
-version = "0.0.8"
+version = "0.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21b8c1d51f311a61657868041448db92e13544ef5377ce901d939dd92e8fd960"
+checksum = "f2b94d8daad39c9d546f839d80a958d8574b9f255a20353a53ff79369bf04420"
 dependencies = [
  "anyhow",
  "base64 0.22.1",

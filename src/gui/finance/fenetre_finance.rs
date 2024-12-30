@@ -13,16 +13,10 @@ pub struct SectionFinance {
     pub calcul: f32
 }
 
-impl Default for SectionFinance {
-    fn default() -> Self {
-        let mode_connecteur = std::env::var("MODE")
-            .map(|v|Connecteur::from_str(&v))
-            .unwrap_or_else(|e| {
-                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
-                Connecteur::LOCAL
-            });
+impl SectionFinance {
+    pub fn new(connecteur: Connecteur) -> Self {
         Self { 
-            connecteur: mode_connecteur, 
+            connecteur: connecteur, 
             depense: Depense::default(),
             depenses: Vec::default(),
             mode_calcul: REPETITION::MENSUEL,

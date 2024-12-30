@@ -3,7 +3,6 @@
 use crate::{application_error::ApplicationError, connecteur::Connecteur, gui::{composant::{EditFileable, EditText}, structs::Fenetre}, notes::Note};
 
 use super::gui::section_notes;
-use log::warn;
 
 pub struct SectionNote {
     pub connecteur: Connecteur,
@@ -13,16 +12,10 @@ pub struct SectionNote {
     pub edit_reflexion: EditFileable<Note>
 }
 
-impl Default for SectionNote {
-    fn default() -> Self {
-        let mode_connecteur = std::env::var("MODE")
-            .map(|v|Connecteur::from_str(&v))
-            .unwrap_or_else(|e| {
-                warn!("Erreurs lors de la lecture du mode, mise en mode LOCAL par defaut: {}", e);
-                Connecteur::LOCAL
-            });
+impl SectionNote {
+    pub fn new(connecteur: Connecteur) -> Self {
         Self { 
-            connecteur: mode_connecteur, 
+            connecteur, 
             reflexion: Default::default(), 
             list_reflexions: Default::default(), 
             edit: Default::default(), 

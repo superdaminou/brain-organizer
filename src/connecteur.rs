@@ -1,7 +1,7 @@
 use log::warn;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum  Connecteur {
     WEB,
     #[default]
