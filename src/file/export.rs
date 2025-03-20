@@ -60,7 +60,7 @@ fn export_reflexions() -> Result<(), ApplicationError> {
     info!("Start exporting reflexion entries: {}", REFLEXION_FILE);
     write_file(REFLEXION_FILE, <Connecteur as ConnecteurNote>::get_all(&CONNECTEUR)?.to_csv())
         .and_then(|_|
-            copy_recursively(STORAGE, EXPORT_STORAGE.to_string() + STORAGE).map_err(ApplicationError::from))
+            copy_recursively(STORAGE, EXPORT_STORAGE.to_string() + STORAGE))
 }
 
 fn write_file(file: &str, content: String) -> Result<(), ApplicationError>{

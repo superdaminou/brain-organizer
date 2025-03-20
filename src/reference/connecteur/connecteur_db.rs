@@ -20,7 +20,7 @@ impl ConnecteurReference for ConnecteurDatabaseReference {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO reference (id, nom, url, date_creation, to_read) VALUES (?1, ?2, ?3, ?4, ?5);";
         let tag_query = "INSERT INTO tag (id, nom, reference_id) VALUES (?1, ?2, ?3);";
-        let connexion = database::opening_database().map_err(ApplicationError::from)?;
+        let connexion = database::opening_database()?;
 
 
         info!("Adding new reference: {}", reference.titre);

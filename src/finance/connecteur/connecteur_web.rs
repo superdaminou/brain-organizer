@@ -27,8 +27,7 @@ impl ConnecteurDepense for ConnecteurWebDepense {
 
     fn delete(&self, depense: &String) -> Result<(), ApplicationError> {
         let path = format!("/depenses/{}", depense);
-        client::delete(&path)
-        .map_err(ApplicationError::from)?;
+        client::delete(&path)?;
 
         Ok(())
     }
@@ -41,8 +40,7 @@ impl ConnecteurDepense for ConnecteurWebDepense {
 
     fn update(&self, depense: &Depense) -> Result<(), ApplicationError> {
         let path = format!("/depenses/{}", depense.id.expect("Should have an id"));
-        client::update(&path, Body::from(serde_json::to_string(depense).unwrap()))
-            .map_err(ApplicationError::from)?
+        client::update(&path, Body::from(serde_json::to_string(depense).unwrap()))?
             .json::<()>()
             .map_err(ApplicationError::from)
     }

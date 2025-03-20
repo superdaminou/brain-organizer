@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use egui::Ui;
-use egui_graphs::{ default_edge_transform, default_node_transform, to_graph_custom, Edge, Graph, GraphView, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
+use egui_graphs::{ to_graph_custom, DefaultEdgeShape, DefaultNodeShape, Edge, Graph, GraphView, LayoutHierarchical, LayoutStateHierarchical, Node as ENode, SettingsInteraction, SettingsNavigation, SettingsStyle};
 use log::info;
-use petgraph::{ csr::DefaultIx, graph::{EdgeIndex, NodeIndex}, prelude::StableGraph, Directed};
+use petgraph::{ csr::DefaultIx, graph::NodeIndex, prelude::StableGraph, Directed};
 
 
 use ilmen_dot_parser::{Attributs, DotGraph};
@@ -65,10 +65,12 @@ fn show_graph(ui:&mut Ui, graph: &mut Graph<GuiNode, String>) {
     ui.add(&mut GraphView::<
         _,
         _,
+        Directed,
         _,
         _,
         _,
-        _,
+        LayoutStateHierarchical,
+        LayoutHierarchical,
     >::new(graph)
     .with_navigations(
         &SettingsNavigation::new()
@@ -109,11 +111,13 @@ pub fn to_egui_graph(dot_graph: DotGraph ) -> Result<egui_graphs::Graph<GuiNode,
             Ok::<(), ApplicationError>(())
         })?;
 
+
     Ok(to_graph_custom::<>(
-            &mut GuiGraph::from(graph).0, 
-            node_transform, 
+            &mut GuiGraph::from(graph).0,
+            node_transform,
             edge_transform))
 }
+
 
 fn insert_and_get_index(node: &String, graph:&mut StableGraph::<DotNode, String>, index_by_node:&mut HashMap<String, NodeIndex>) -> NodeIndex{
     let node_index = graph.add_node(DotNode::new(node.as_str(), Attributs::default()));
@@ -121,24 +125,19 @@ fn insert_and_get_index(node: &String, graph:&mut StableGraph::<DotNode, String>
     node_index
 }
 
+
 pub fn node_transform(
-    idx: NodeIndex<u32>,
-    payload: &GuiNode,
-) -> ENode<GuiNode, String> {
-    let mut node = default_node_transform::<GuiNode,String, Directed, u32,_>(idx , payload)
-        .with_label(payload.0.identifier.clone());
-    node.set_location(payload.1);
-    node
+    node: &mut ENode<GuiNode, String>,
+) {
+    node.set_label(node.payload().0.identifier.clone());
 }
 
 pub fn edge_transform(
-    idx: EdgeIndex<u32>,
-    payload: &String,
-    order: usize,
-) -> Edge<GuiNode, String> {
-    default_edge_transform::<GuiNode,String,Directed,u32, _, _>(idx , payload, order)
-        .with_label(payload.clone())
+    edge: &mut Edge<GuiNode, String>,
+) {
+    edge.set_label(edge.payload().to_owned());
 }
+
 
 
 fn selected_node(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), ApplicationError>{
@@ -185,6 +184,16 @@ fn selected_graph(fenetre: &mut FenetreGraph, ui:&mut Ui) -> Result<(), Applicat
             GraphView::<(), (), Directed, DefaultIx>::reset_metadata(ui);
             fenetre.current_graph = fenetre.connecteur.get_one(&fenetre.current_graph.id.to_string())?;
             fenetre.loaded_graph = to_egui_graph(DotGraph::try_from(fenetre.current_graph.contenu.as_str()).unwrap())?;
+            GraphView::<
+                (),
+                (),
+                Directed,
+                DefaultIx,
+                DefaultNodeShape,
+                DefaultEdgeShape,
+                LayoutStateHierarchical,
+                LayoutHierarchical,
+            >::clear_cache(ui);
         }
         Ok::<(), ApplicationError>(())
      });

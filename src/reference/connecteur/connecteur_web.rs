@@ -48,7 +48,7 @@ impl ConnecteurReference for ConnecteurWebReference {
     fn update(&self, entity: &Reference) -> Result<(), ApplicationError> {
         let path = format!("/references/{}", entity.id.clone().unwrap());
     
-        client::update(&path, Body::from(serde_json::to_string(entity).unwrap())).map_err(ApplicationError::from)?;
+        client::update(&path, Body::from(serde_json::to_string(entity).unwrap()))?;
 
         Ok(())            
     }

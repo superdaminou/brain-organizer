@@ -14,7 +14,7 @@ pub enum Command {
 impl TryFrom<String> for Command {
     type Error = ApplicationError;
     fn try_from(value: String) -> Result<Self, ApplicationError> {
-        return match value.to_lowercase().as_str() {
+        match value.to_lowercase().as_str() {
             "import" => Ok(Command::Import),
             "export" => Ok(Command::Export),
             "gui" => Ok(Command::Gui),

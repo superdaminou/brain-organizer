@@ -16,8 +16,9 @@ pub fn import() -> Result<(), ApplicationError> {
 }
 
 fn import_reference() -> Result<(), ApplicationError> {
-    info!("Start importing reference file: {}", REFERENCE_FILE);
-    read_to_string(IMPORT_STORAGE.to_string() + REFERENCE_FILE).map_err(ApplicationError::from)?
+    let file = format!("{}.csv", REFERENCE_FILE); 
+    info!("Start importing reference file: {}", file);
+    read_to_string(IMPORT_STORAGE.to_string() + &file).map_err(ApplicationError::from)?
         .lines()  
         .map(Reference::try_from)
         .collect::<Result<Vec<Reference>, ApplicationError>>()?
@@ -46,5 +47,4 @@ fn import_reflexion() -> Result<(), ApplicationError> {
                 Err(e) => error!("error while inserting reflexion: {}", e)
             }
         });
-    copy_recursively(IMPORT_STORAGE.to_string() + STORAGE, STORAGE).map_err(ApplicationError::from)
-}
+    copy_recursively(IMPORT_STORAGE.to_string() + STORAGE, STORAGE)}

@@ -16,7 +16,7 @@ impl ConnecteurGraph for ConnecteurGraphDb {
     fn create(&self, my_graph: &Graph) -> Result<(), ApplicationError> {
         let id =Uuid::new_v4();
         let query = "INSERT INTO graph (id, filename) VALUES (?1, ?2);";
-        let connexion = database::opening_database().map_err(ApplicationError::from)?;
+        let connexion = database::opening_database()?;
 
 
         info!("Adding new graph: {}", my_graph.filename());

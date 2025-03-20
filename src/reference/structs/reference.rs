@@ -28,7 +28,7 @@ impl TryFrom<&str> for Reference {
 
         let titre = split.next().expect("Missing Titre").to_owned();
         let categorie = split.next()
-            .expect("Missing tag")
+            .unwrap_or_else(|| panic!("Missing tag for {}", &titre))
             .split('\\')
             .map(str::to_string)
             .map(Tag)

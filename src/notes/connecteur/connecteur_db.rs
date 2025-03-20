@@ -49,9 +49,7 @@ impl ConnecteurNote for ConnecteurNoteDb {
         database::opening_database()?
             .execute("DELETE FROM reflexion WHERE id=?1", [&id.to_string()])
             .map_err(ApplicationError::from)
-            .and_then(|_| remove_file(construct_path(&reflexion.filename())).map_err(ApplicationError::from))
-            .map_err(ApplicationError::from)
-    }
+            .and_then(|_| remove_file(construct_path(&reflexion.filename())).map_err(ApplicationError::from))}
 
 
     fn get_all(&self, ) -> Result<Vec<Note>, ApplicationError> {

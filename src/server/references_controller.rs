@@ -14,9 +14,7 @@ pub struct SearchParams {
 }
 
 pub fn get_all(_: &RequestHandler) -> HTTPResponse {
-    Connecteur::LOCAL.get_all()
-        .map_err(ApplicationError::from)
-        .and_then(|refs| serde_json::to_string(&refs).map_err(ApplicationError::from))
+    Connecteur::LOCAL.get_all().and_then(|refs| serde_json::to_string(&refs).map_err(ApplicationError::from))
         .map(|body| ResponseBuilder::new(200, Some(body)).build())
         .unwrap_or_else(ApplicationError::into)
 }
@@ -27,7 +25,7 @@ pub fn search(search_params: &RequestHandler) -> HTTPResponse {
         .map(|body|serde_json::from_str::<SearchParams>(&body))
         .expect("Missing search params")
         .map_err(ApplicationError::from)
-        .and_then(|sp| Connecteur::LOCAL.search(sp.name.as_ref(), &sp.tags.unwrap_or_default(), sp.mode.unwrap_or_default()).map_err(ApplicationError::from))
+        .and_then(|sp| Connecteur::LOCAL.search(sp.name.as_ref(), &sp.tags.unwrap_or_default(), sp.mode.unwrap_or_default()))
         .and_then(|r| serde_json::to_string(&r).map_err(ApplicationError::from))
         .map(|response| ResponseBuilder::new(200, Some(response)).build())
         .unwrap_or_else(|e|e.into())
@@ -49,7 +47,7 @@ pub fn post_one(params: &RequestHandler) -> HTTPResponse {
         .map(|b|serde_json::from_str::<CreateReference>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
-        .and_then(|reference|Connecteur::LOCAL.create(&reference.into()).map_err(ApplicationError::from))
+        .and_then(|reference|Connecteur::LOCAL.create(&reference.into()))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }
@@ -59,17 +57,15 @@ pub fn update_one(params: &RequestHandler) -> HTTPResponse {
         .map(|b|serde_json::from_str::<UpdateReference>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
-        .and_then(|reference|Connecteur::LOCAL.update(&reference.into()).map_err(ApplicationError::from))
+        .and_then(|reference|Connecteur::LOCAL.update(&reference.into()))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }
 
 pub fn delete(params: &RequestHandler) -> HTTPResponse {
     params.path_params().get("id")
-        .ok_or(ApplicationError::EmptyOption("id".to_string()))
-        .map_err(ApplicationError::from)
-        .and_then(|id| Uuid::parse_str(id).map_err(ApplicationError::from))
-        .and_then(|reference|Connecteur::LOCAL.delete(&reference).map_err(ApplicationError::from))
+        .ok_or(ApplicationError::EmptyOption("id".to_string())).and_then(|id| Uuid::parse_str(id).map_err(ApplicationError::from))
+        .and_then(|reference|Connecteur::LOCAL.delete(&reference))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }

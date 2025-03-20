@@ -39,9 +39,7 @@ fn liste_references(ui: &mut egui::Ui, section: &mut PanelReference) -> Vec<Even
                 
                     if ui.button("Supprimer").clicked() {
                         reference.id.clone().ok_or(ApplicationError::EmptyOption("id".to_string()))
-                        .and_then(|id| Uuid::parse_str(&id).map_err(ApplicationError::from))
-                        .map_err(ApplicationError::from)
-                        .and_then(|id|section.connecteur.delete(&id))?;
+                        .and_then(|id| Uuid::parse_str(&id).map_err(ApplicationError::from)).and_then(|id|section.connecteur.delete(&id))?;
 
                         evenements.push(Evenement::Reset);
                     }

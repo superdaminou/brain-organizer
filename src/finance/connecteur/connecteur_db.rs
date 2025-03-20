@@ -37,7 +37,7 @@ impl ConnecteurDepense for ConnecteurDepenseDb {
 
     fn delete(&self, entity: &String) -> Result<(), ApplicationError> {
         let query = "DELETE FROM depense WHERE id = ?1";
-        let connexion = database::opening_database().map_err(ApplicationError::from)?;
+        let connexion = database::opening_database()?;
         connexion.execute(query, [entity.to_string()]).map_err(ApplicationError::from)?;
 
         Ok(())
@@ -47,7 +47,7 @@ impl ConnecteurDepense for ConnecteurDepenseDb {
     fn create(&self, depense: &Depense) -> Result<(), ApplicationError> {
         let id =Uuid::new_v4();
         let ref_query = "INSERT INTO depense (id, libelle, montant, repetition) VALUES (?1, ?2, ?3, ?4);";
-        let connexion = database::opening_database().map_err(ApplicationError::from)?;
+        let connexion = database::opening_database()?;
 
 
         info!("Adding new depense: {}", depense.libelle);
@@ -57,7 +57,7 @@ impl ConnecteurDepense for ConnecteurDepenseDb {
 
     fn update(&self, depense: &Depense) -> Result<(), ApplicationError> {
         let ref_query = "UPDATE depense SET libelle=?1, montant=?2, repetition=?3 WHERE id = ?4;";
-        let connexion = database::opening_database().map_err(ApplicationError::from)?;
+        let connexion = database::opening_database()?;
 
 
         info!("Updating  depense: {}", depense.libelle);

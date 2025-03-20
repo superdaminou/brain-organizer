@@ -7,9 +7,7 @@ use crate::{application_error::ApplicationError, connecteur::Connecteur, graph::
 
 
 pub fn get_all(_: &RequestHandler) -> HTTPResponse {
-    Connecteur::LOCAL.get_all()
-        .map_err(ApplicationError::from)
-        .and_then(|refs| serde_json::to_string(&refs).map_err(ApplicationError::from))
+    Connecteur::LOCAL.get_all().and_then(|refs| serde_json::to_string(&refs).map_err(ApplicationError::from))
         .map(|body| ResponseBuilder::new(200, Some(body)).build())
         .unwrap_or_else(ApplicationError::into)
 }
@@ -30,7 +28,7 @@ pub fn post_one(params: &RequestHandler) -> HTTPResponse {
         .map(|b|serde_json::from_str::<CreateGraph>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
-        .and_then(|depense|Connecteur::LOCAL.create(&depense.into()).map_err(ApplicationError::from))
+        .and_then(|depense|Connecteur::LOCAL.create(&depense.into()))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }
@@ -40,17 +38,15 @@ pub fn update_one(params: &RequestHandler) -> HTTPResponse {
         .map(|b|serde_json::from_str::<UpdateGraph>(&b))
         .expect("Missing body")
         .map_err(ApplicationError::from)
-        .and_then(|depense|Connecteur::LOCAL.update(&depense.into()).map_err(ApplicationError::from))
+        .and_then(|depense|Connecteur::LOCAL.update(&depense.into()))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }
 
 pub fn delete(params: &RequestHandler) -> HTTPResponse {
     params.path_params().get("id")
-        .ok_or(ApplicationError::EmptyOption("id".to_string()))
-        .map_err(ApplicationError::from)
-        .and_then(|id| Uuid::parse_str(id).map_err(ApplicationError::from))
-        .and_then(|depense|Connecteur::LOCAL.delete(&depense.to_string()).map_err(ApplicationError::from))
+        .ok_or(ApplicationError::EmptyOption("id".to_string())).and_then(|id| Uuid::parse_str(id).map_err(ApplicationError::from))
+        .and_then(|depense|Connecteur::LOCAL.delete(&depense.to_string()))
         .map(|_| ResponseBuilder::new(200, None).build())
         .unwrap_or_else(|e| e.into())
 }

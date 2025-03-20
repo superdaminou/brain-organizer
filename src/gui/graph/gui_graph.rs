@@ -15,9 +15,9 @@ impl From<&DotNode> for GuiNode {
 }
 
 fn node_to_pos(node: &DotNode) -> Pos2 {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
         
-    let rand = rng.gen_range(0..100);
+    let rand = rng.random_range(0..100);
 
     let x = f32::from_f64(rand.to_f64().cos() * 50.0);
     let y = f32::from_f64(rand.to_f64().sin() * 50.0);
@@ -41,9 +41,9 @@ impl From<StableGraph<DotNode, String>> for GuiGraph {
         value.edge_references().for_each(|edge| {
             graph.add_edge(edge.source(), edge.target(), String::default());
             let source_node_pos = graph.node_weight(edge.source()).expect("Source node").1;
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
                     
-            let rand = rng.gen_range(0..100);
+            let rand = rng.random_range(0..100);
 
             let new_x_pos = f32::from_f64(source_node_pos.x.to_f64() + (rand.to_f64().cos() * value.node_count().to_f64().max(5.0) * 4.));
             let new_y_pos = f32::from_f64(source_node_pos.y.to_f64() + (rand.to_f64().sin() * value.node_count().to_f64().max(5.0) * 4.));

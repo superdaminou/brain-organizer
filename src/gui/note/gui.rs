@@ -22,7 +22,7 @@ fn new_reflexion(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), App
         let button = egui::Button::new("Créer");
         if ui.add(button).clicked() {
             return section.connecteur.create(&section.reflexion.clone())
-                .and_then(|_| section.connecteur.get_all().map_err(ApplicationError::from))
+                .and_then(|_| section.connecteur.get_all())
                 .map(|result| section.list_reflexions = result);
 
         }
@@ -60,7 +60,7 @@ fn list_reflexions(section: &mut SectionNote, ui: &mut egui::Ui) -> Result<(), A
                     }
                     if ui.button("Supprimer").clicked() {
                         return section.connecteur.delete(&note.id())
-                            .and_then(|_| section.connecteur.get_all().map_err(ApplicationError::from))
+                            .and_then(|_| section.connecteur.get_all())
                             .map(|result| section.list_reflexions = result);
                     }
                     Ok::<(), ApplicationError>(())
