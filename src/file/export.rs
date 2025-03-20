@@ -6,9 +6,35 @@ const EXPORT_STORAGE: &str = "./export/";
 
 const CONNECTEUR : Connecteur = Connecteur::LOCAL;
 
-use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv}, notes::ConnecteurNote, reference::ConnecteurReference};
+pub enum ModeExport  {
+    RIS,
+    CSV
+}
 
-pub fn export() -> Result<(), ApplicationError> {
+impl TryFrom<String> for ModeExport {
+    type Error = ApplicationError;
+    fn try_from(value: String) -> Result<Self, ApplicationError> {
+        match value.as_str() {
+            "RIS" => Ok(ModeExport::RIS),
+            "CSV" => Ok(ModeExport::CSV),
+            _ =>  Err(ApplicationError::EnumError("WOLOLO".to_string()))
+        }
+    }
+}
+
+impl ModeExport {
+    pub fn extension(&self) -> &str {
+        match self {
+            ModeExport::RIS => "ris",
+            ModeExport::CSV => "csv",
+        }
+    }
+}
+
+
+use crate::{application_error::ApplicationError, connecteur::Connecteur, file::{lib::{copy_recursively, REFERENCE_FILE, REFLEXION_FILE, STORAGE}, ToCsv, ToRis}, notes::ConnecteurNote, reference::ConnecteurReference};
+
+pub fn export(mode: ModeExport) -> Result<(), ApplicationError> {
     match Path::new(EXPORT_STORAGE).exists() {
         true => info!("Export directory - cleaning files"),
         false => {
@@ -18,14 +44,15 @@ pub fn export() -> Result<(), ApplicationError> {
         }
     }
 
-    export_reference()
+    export_reference(mode)
     .and_then(|_| export_reflexions())
 
 }
 
-fn export_reference() -> Result<(), ApplicationError> {
-    info!("Start exporting reference file: {}", REFERENCE_FILE);
-    write_file(REFERENCE_FILE, <Connecteur as ConnecteurReference>::get_all(&CONNECTEUR)?.to_csv())
+fn export_reference(mode: ModeExport) -> Result<(), ApplicationError> {
+    let fichier = format!("{}.{}", REFERENCE_FILE, mode.extension());
+    info!("Start exporting reference file: {}", fichier);
+    write_file(&fichier, <Connecteur as ConnecteurReference>::get_all(&CONNECTEUR)?.to_ris())
 }
 
 

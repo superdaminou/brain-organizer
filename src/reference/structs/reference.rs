@@ -3,7 +3,7 @@ use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{application_error::ApplicationError, file::ToCsv, reference::tag::Tag};
+use crate::{application_error::ApplicationError, file::{ToCsv, ToRis}, reference::tag::Tag};
 
 
 
@@ -76,6 +76,24 @@ impl ToCsv for Vec<Reference> {
     fn to_csv(&self) -> String {
         self.iter()
         .map(|item|item.to_csv())
+        .collect::<Vec<String>>()
+        .join("\r\n")
+    }
+}
+
+impl ToRis for Reference {
+    fn to_ris(&self) -> String {
+        let mut tags = self.tags.iter().map(|t| format!("KW - {}",  t.0)).collect::<Vec<String>>();
+        tags.sort();
+        format!("TY - MULTI\r\nTI - {}\r\n{}\r\nUR - {}\r\nDA - {}\r\nER - \r\n", self.titre, &tags.join("\r\n"), self.url, self.date_creation)
+    }
+}
+
+
+impl ToRis for Vec<Reference> {
+    fn to_ris(&self) -> String {
+        self.iter()
+        .map(|item|item.to_ris())
         .collect::<Vec<String>>()
         .join("\r\n")
     }

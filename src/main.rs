@@ -15,7 +15,7 @@ use std::env;
 use command::Command;
 use application_error::ApplicationError;
 use connecteur::Connecteur;
-use file::{ensuring_storage, export, import};
+use file::{ensuring_storage, export, import, ModeExport};
 use gui::app::running_gui;
 use log::{info, warn};
 use dotenv::dotenv;
@@ -52,10 +52,17 @@ fn main() -> Result<(), ApplicationError> {
         .and_then(|_| ensuring_storage())?;
     }
     
+    let mode_export = std::env::var("EXPORT")
+    .map(ModeExport::try_from)
+    .unwrap_or_else(|e| {
+        warn!("Erreurs lors de la lecture du mode d'export, mise en mode CSV par defaut: {}", e);
+        Ok(ModeExport::CSV)
+    })?;
+
     match command {
         command::Command::Gui => running_gui(mode_connecteur),
         command::Command::Import => import(),
-        command::Command::Export => export(),
+        command::Command::Export => export(mode_export),
         command::Command::Server => server::server::server(),
     }
 }

@@ -5,7 +5,7 @@ use crate::application_error::ApplicationError;
 
 pub const STORAGE: &str = "./storage/";
 pub const REFLEXION_FILE: &str = "reflexion.csv";
-pub const REFERENCE_FILE: &str = "reference.csv";
+pub const REFERENCE_FILE: &str = "reference.ris";
 
 
 pub fn ensuring_storage() -> Result<(), ApplicationError> {
